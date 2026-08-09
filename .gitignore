@@ -1,0 +1,14 @@
+node_modules/
+dist/
+build/
+.next/
+out/
+coverage/
+*.log
+.env
+.env.local
+.DS_Store
+.turbo/
+generated/
+apps/game-server/prisma/migrations/.gitkeep_ignore
+*.tsbuildinfo
