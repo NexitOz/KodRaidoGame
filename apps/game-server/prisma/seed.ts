@@ -3,8 +3,55 @@ import * as argon2 from 'argon2';
 
 const prisma = new PrismaClient();
 
-const PLACEHOLDER_ART = (seed: string) =>
-  `https://placehold.co/480x640/0b0b10/e3123e?text=${encodeURIComponent(seed)}`;
+const RARITY_GRADIENT: Record<string, [string, string]> = {
+  COMMON: ['#1c1c24', '#0b0b10'],
+  RARE: ['#122a3f', '#0b0b10'],
+  EPIC: ['#33123f', '#0b0b10'],
+  LEGENDARY: ['#463414', '#0b0b10'],
+  RAIDO: ['#460d17', '#0b0b10'],
+};
+
+function escapeXml(text: string): string {
+  return text.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[c]!);
+}
+
+function wrapText(text: string, maxChars: number): string[] {
+  const words = text.split(' ');
+  const lines: string[] = [];
+  let current = '';
+  for (const word of words) {
+    const next = current ? `${current} ${word}` : word;
+    if (next.length > maxChars && current) {
+      lines.push(current);
+      current = word;
+    } else {
+      current = next;
+    }
+  }
+  if (current) lines.push(current);
+  return lines;
+}
+
+/**
+ * Dev/MVP placeholder art rendered as an inline SVG data URI so seeding never
+ * depends on an external image host being reachable.
+ */
+function generatePlaceholderArt(name: string, rarity: string): string {
+  const [from, to] = RARITY_GRADIENT[rarity] ?? RARITY_GRADIENT.COMMON!;
+  const lines = wrapText(name, 14);
+  const nameY = 430;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="480" height="640" viewBox="0 0 480 640">
+<defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${from}"/><stop offset="1" stop-color="${to}"/></linearGradient></defs>
+<rect width="480" height="640" fill="url(#g)"/>
+<circle cx="240" cy="220" r="92" fill="none" stroke="#e3123e" stroke-width="3" opacity="0.55"/>
+<text x="240" y="248" font-family="Georgia, serif" font-size="96" fill="#e3123e" text-anchor="middle" opacity="0.9">ᚱ</text>
+${lines
+  .map((line, i) => `<text x="240" y="${nameY + i * 34}" font-family="sans-serif" font-size="26" fill="#f5f5f7" text-anchor="middle">${escapeXml(line)}</text>`)
+  .join('\n')}
+<text x="240" y="600" font-family="sans-serif" font-size="16" letter-spacing="4" fill="#8a8a97" text-anchor="middle">KOD RAIDO</text>
+</svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
 
 interface SeedCard {
   slug: string;
@@ -24,22 +71,22 @@ const TRACKS = [
   {
     slug: 'awakening-of-shadow-release',
     title: 'Пробуждение Тени',
-    coverUrl: PLACEHOLDER_ART('Awakening of Shadow'),
+    coverUrl: generatePlaceholderArt('Пробуждение Тени', 'RARE'),
   },
   {
     slug: 'echo-of-resonance-release',
     title: 'Эхо Резонанса',
-    coverUrl: PLACEHOLDER_ART('Echo of Resonance'),
+    coverUrl: generatePlaceholderArt('Эхо Резонанса', 'RARE'),
   },
   {
     slug: 'drakes-voice-release',
     title: 'Голос Дрейка',
-    coverUrl: PLACEHOLDER_ART('Drakes Voice'),
+    coverUrl: generatePlaceholderArt('Голос Дрейка', 'COMMON'),
   },
   {
     slug: 'code-raido-awakening-release',
     title: 'Код Райдо: Пробуждение',
-    coverUrl: PLACEHOLDER_ART('Kod Raido Awakening'),
+    coverUrl: generatePlaceholderArt('Код Райдо: Пробуждение', 'RAIDO'),
   },
 ];
 
@@ -487,7 +534,7 @@ async function main() {
         abilityText: card.abilityText,
         effectJson: (card.effectJson ?? []) as object[],
         linkedTrackIds,
-        artworkUrl: PLACEHOLDER_ART(card.name),
+        artworkUrl: generatePlaceholderArt(card.name, card.rarity),
         rightsStatus: 'placeholder',
         active: true,
         isPlayable: true,
@@ -504,7 +551,7 @@ async function main() {
         abilityText: card.abilityText,
         effectJson: (card.effectJson ?? []) as object[],
         linkedTrackIds,
-        artworkUrl: PLACEHOLDER_ART(card.name),
+        artworkUrl: generatePlaceholderArt(card.name, card.rarity),
         rightsStatus: 'placeholder',
         active: true,
         isPlayable: true,
