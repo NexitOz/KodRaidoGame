@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  @apply bg-raido-black text-raido-white antialiased;
+}
+
+body {
+  min-height: 100dvh;
+  background-image: radial-gradient(circle at top, rgba(227, 18, 62, 0.12), transparent 55%);
+}
+
+::selection {
+  @apply bg-raido-red/40 text-raido-white;
+}

@@ -1,0 +1,176 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum CardType {
+  CHARACTER
+  TRACK
+  RUNE
+  EVENT
+  EDIT
+}
+
+enum Rarity {
+  COMMON
+  RARE
+  EPIC
+  LEGENDARY
+  RAIDO
+}
+
+enum RightsStatus {
+  owned
+  licensed
+  placeholder
+  blocked
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  username     String   @unique
+  passwordHash String
+  avatarUrl    String?
+  level        Int      @default(1)
+  xp           Int      @default(0)
+  softCurrency Int      @default(500)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  collection    CollectionEntry[]
+  decks         Deck[]
+  refreshTokens RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("refresh_tokens")
+}
+
+model Track {
+  id              String    @id @default(uuid())
+  slug            String    @unique
+  title           String
+  coverUrl        String
+  audioPreviewUrl String?
+  releaseUrl      String?
+  releaseDate     DateTime?
+  createdAt       DateTime  @default(now())
+
+  mediaAssets MediaAsset[]
+
+  @@map("tracks")
+}
+
+model MediaAsset {
+  id            String   @id @default(uuid())
+  provider      String
+  externalId    String
+  type          String
+  url           String
+  linkedTrackId String?
+  linkedTrack   Track?   @relation(fields: [linkedTrackId], references: [id])
+  metadataJson  Json?
+  createdAt     DateTime @default(now())
+
+  @@map("media_assets")
+}
+
+model Card {
+  id     String   @id @default(uuid())
+  slug   String   @unique
+  name   String
+  type   CardType
+  rarity Rarity
+  cost   Int
+  tags   String[]
+
+  // Character-only fields
+  attack           Int?
+  health           Int?
+  universe         String?
+  voiceStingerUrl  String?
+
+  // Track-only fields
+  coverUrl        String?
+  audioPreviewUrl String?
+  releaseUrl      String?
+  releaseDate     DateTime?
+
+  // Edit-only fields
+  videoUrl String?
+
+  artworkUrl       String
+  abilityText      String?
+  effectJson       Json         @default("[]")
+  linkedTrackIds   String[]
+  boostProfileId   String?
+  rightsStatus     RightsStatus @default(placeholder)
+  rightsNote       String?
+  source           String?
+  licenseExpiresAt DateTime?
+  isPlayable       Boolean      @default(true)
+  active           Boolean      @default(true)
+  isToken          Boolean      @default(false)
+  resonanceTier    Int          @default(0)
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  collectionEntries CollectionEntry[]
+  deckCards         DeckCard[]
+
+  @@map("cards")
+}
+
+model CollectionEntry {
+  userId   String
+  cardId   String
+  quantity Int    @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@id([userId, cardId])
+  @@map("collections")
+}
+
+model Deck {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  active    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cards DeckCard[]
+
+  @@map("decks")
+}
+
+model DeckCard {
+  deckId   String
+  cardId   String
+  quantity Int    @default(1)
+
+  deck Deck @relation(fields: [deckId], references: [id], onDelete: Cascade)
+  card Card @relation(fields: [cardId], references: [id], onDelete: Cascade)
+
+  @@id([deckId, cardId])
+  @@map("deck_cards")
+}
