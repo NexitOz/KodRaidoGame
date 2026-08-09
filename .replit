@@ -1,0 +1,23 @@
+# Replit runs the Next.js frontend (apps/web) only. The backend
+# (game-server + worker + Postgres + Redis) is deployed separately (Railway
+# recommended — see docs/deployment.md) since Replit doesn't reliably host a
+# persistent Postgres + Redis pair. Point NEXT_PUBLIC_API_URL (Secrets tab) at
+# that backend's public URL + "/api".
+
+modules = ["nodejs-20"]
+entrypoint = "apps/web/src/app/page.tsx"
+
+[nix]
+channel = "stable-24_05"
+
+[[ports]]
+localPort = 3000
+externalPort = 80
+
+[deployment]
+deploymentTarget = "autoscale"
+build = ["sh", "-c", "npm install && npm run build -w @kod-raido/shared -w @kod-raido/game-engine -w @kod-raido/ui -w apps/web"]
+run = ["sh", "-c", "npm run start -w apps/web"]
+
+[env]
+NEXT_TELEMETRY_DISABLED = "1"

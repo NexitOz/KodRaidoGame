@@ -6,6 +6,17 @@ import { RegisterDto } from './dto/register.dto';
 
 const REFRESH_COOKIE = 'raido_refresh_token';
 
+/**
+ * In production the frontend (Vercel/Replit) and this API (Railway/etc.) live on
+ * different domains, so the refresh cookie must be SameSite=None (which requires
+ * Secure). Locally everything is same-site (just different localhost ports), so
+ * Lax without Secure keeps the cookie working over plain HTTP in dev.
+ */
+function cookieSecurityAttrs(): { secure: boolean; sameSite: 'none' | 'lax' } {
+  const isProduction = process.env.NODE_ENV === 'production';
+  return isProduction ? { secure: true, sameSite: 'none' } : { secure: false, sameSite: 'lax' };
+}
+
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -41,17 +52,16 @@ export class AuthController {
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     const token = (req.cookies as Record<string, string> | undefined)?.[REFRESH_COOKIE];
     if (token) await this.authService.logout(token);
-    res.clearCookie(REFRESH_COOKIE, { path: '/api/auth' });
+    res.clearCookie(REFRESH_COOKIE, { path: '/api/auth', ...cookieSecurityAttrs() });
     return { success: true };
   }
 
   private setRefreshCookie(res: Response, result: AuthResult) {
     res.cookie(REFRESH_COOKIE, result.refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
       expires: result.refreshTokenExpiresAt,
       path: '/api/auth',
+      ...cookieSecurityAttrs(),
     });
   }
 

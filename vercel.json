@@ -1,0 +1,7 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build -w @kod-raido/shared -w @kod-raido/game-engine -w @kod-raido/ui -w apps/web",
+  "outputDirectory": "apps/web/.next"
+}

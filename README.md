@@ -40,10 +40,9 @@ cp apps/web/.env.example apps/web/.env
 docker compose up --build
 ```
 
-После запуска контейнеров выполните миграции и сид один раз:
+Миграции применяются автоматически при старте контейнера `game-server`. Один раз выполните сид:
 
 ```bash
-docker compose exec game-server npm run prisma:deploy
 docker compose exec game-server npm run seed
 ```
 
@@ -82,6 +81,12 @@ npm run dev:worker           # BullMQ worker
 | `npm run test`      | Vitest по всем workspaces         |
 | `npm run build`     | Сборка всех пакетов и приложений  |
 | `npm run seed`      | Заполнение БД стартовым контентом |
+
+## Деплой (Vercel / Replit / Railway)
+
+Чтобы получить публичную ссылку на живой визуал (не только локально), см.
+[`docs/deployment.md`](./docs/deployment.md) — пошаговый гайд: бэкенд на Railway (game-server +
+Postgres + Redis), фронтенд на Vercel и/или Replit.
 
 ## Что реализовано (Phase 0 + Phase 1)
 

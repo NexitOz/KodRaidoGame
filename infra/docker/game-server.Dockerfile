@@ -27,4 +27,4 @@ COPY --from=build /repo/packages ./packages
 COPY --from=build /repo/apps/game-server ./apps/game-server
 WORKDIR /repo/apps/game-server
 EXPOSE 4000
-CMD ["node", "dist/main.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main.js"]
