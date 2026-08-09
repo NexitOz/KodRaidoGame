@@ -17,6 +17,7 @@ export type EffectTrigger =
 
 export type EffectTargetSelector =
   | 'SELF'
+  | 'TRIGGER_SOURCE'
   | 'FRIENDLY_RANDOM'
   | 'FRIENDLY_ALL'
   | 'FRIENDLY_CHOSEN'
@@ -27,7 +28,12 @@ export type EffectTargetSelector =
   | 'ENEMY_CONDUCTOR';
 
 export type EffectConditionType =
-  'RESONANCE_TIER_AT_LEAST' | 'HAS_TAG_ON_BOARD' | 'IS_FIRST_CARD_THIS_TURN' | 'ALWAYS';
+  | 'RESONANCE_TIER_AT_LEAST'
+  | 'HAS_TAG_ON_BOARD'
+  | 'IS_FIRST_CARD_THIS_TURN'
+  | 'ONCE_PER_TURN'
+  | 'TARGET_HAS_TAG'
+  | 'ALWAYS';
 
 export interface EffectCondition {
   type: EffectConditionType;
@@ -48,7 +54,7 @@ export type EffectActionType =
   | 'GAIN_ENERGY'
   | 'ADD_STATUS';
 
-export type StatusType = 'SHIELD' | 'IMPULSE' | 'HIDDEN' | 'CURSE';
+export type StatusType = 'SHIELD' | 'IMPULSE' | 'HIDDEN' | 'CURSE' | 'SILENCED';
 
 export interface EffectAction {
   type: EffectActionType;
@@ -59,6 +65,8 @@ export interface EffectAction {
   status?: StatusType;
   duration?: 'END_OF_TURN' | 'PERMANENT' | number;
   summonCardSlug?: string;
+  /** Restricts ALL/RANDOM target selectors (and COST_MODIFIER) to units/cards carrying this tag. */
+  tagFilter?: string;
 }
 
 export interface EffectDefinition {

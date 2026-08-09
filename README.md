@@ -4,8 +4,9 @@
 Монорепозиторий на TypeScript: Next.js фронтенд, NestJS игровой сервер, BullMQ воркер и общие
 пакеты (типы, игровой движок, UI-кит).
 
-Статус: **Phase 0 (Foundation) + Phase 1 (Collection)** реализованы. См. [`docs/progress.md`](./docs/progress.md)
-за подробным трекингом фаз и [`docs/cards.md`](./docs/cards.md) за списком стартовых карт.
+Статус: **Phase 0 (Foundation) + Phase 1 (Collection) + Phase 2 (Game engine)** реализованы. См.
+[`docs/progress.md`](./docs/progress.md) за подробным трекингом фаз и
+[`docs/cards.md`](./docs/cards.md) за списком стартовых карт.
 
 ## Структура монорепозитория
 
@@ -98,16 +99,20 @@ npm run dev:worker           # BullMQ worker
 - `/decks` — конструктор колод: добавление/удаление карт с учётом владения и лимитов редкости,
   кривая стоимости, синергия тегов, live-валидация
 - Тёмный премиальный UI «Код Райдо» (чёрный/графит/белый/красный, рунные акценты), mobile-first
-- Unit-тесты: resonance scoring, deck validation, auth service, decks service, API client
 - Docker Compose: Postgres, Redis, game-server, worker, web
+- **Детерминированный игровой движок** (`@kod-raido/game-engine`, без UI-зависимостей): ходы,
+  энергия 1→10, добор, бой, усталость, полный интерпретатор Effect DSL (12 эффектов, все триггеры
+  из раздела 19 ТЗ), статусы SHIELD/IMPULSE/HIDDEN/SILENCED, реактивные Руны, PvE-бот трёх
+  сложностей — 68 unit-тестов, включая полный симулированный матч бот-vs-бот до победителя
+- Unit-тесты по всему монорепо: resonance scoring, deck validation, auth service, decks service,
+  API client, весь игровой движок (84 теста суммарно)
 
 ## Что осталось (следующие фазы)
 
 См. подробности в [`docs/progress.md`](./docs/progress.md). Коротко:
 
-- **Phase 2:** детерминированный игровой движок (ходы/энергия/атаки/смерть/усталость), Effect DSL
-  исполнитель, PvE-бот
-- **Phase 3:** полноценный PvE-матч с наградами и историей
+- **Phase 3:** экран матча в web-приложении поверх готового движка, полноценный PvE-матч с
+  наградами и историей, seed-данные для 40 карт Дополнения №3
 - **Phase 4:** онлайн PvP, matchmaking, authoritative WebSocket game-server, reconnect
 - **Phase 5:** Resonance snapshots, ManualProvider/CSV импорт метрик, пересчёт Tier, страница
   «Пульс Райдо» с реальными трендами

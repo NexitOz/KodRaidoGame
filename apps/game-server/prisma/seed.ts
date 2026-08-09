@@ -12,7 +12,10 @@ const RARITY_GRADIENT: Record<string, [string, string]> = {
 };
 
 function escapeXml(text: string): string {
-  return text.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[c]!);
+  return text.replace(
+    /[&<>"']/g,
+    (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' })[c]!,
+  );
 }
 
 function wrapText(text: string, maxChars: number): string[] {
@@ -46,7 +49,10 @@ function generatePlaceholderArt(name: string, rarity: string): string {
 <circle cx="240" cy="220" r="92" fill="none" stroke="#e3123e" stroke-width="3" opacity="0.55"/>
 <text x="240" y="248" font-family="Georgia, serif" font-size="96" fill="#e3123e" text-anchor="middle" opacity="0.9">ᚱ</text>
 ${lines
-  .map((line, i) => `<text x="240" y="${nameY + i * 34}" font-family="sans-serif" font-size="26" fill="#f5f5f7" text-anchor="middle">${escapeXml(line)}</text>`)
+  .map(
+    (line, i) =>
+      `<text x="240" y="${nameY + i * 34}" font-family="sans-serif" font-size="26" fill="#f5f5f7" text-anchor="middle">${escapeXml(line)}</text>`,
+  )
   .join('\n')}
 <text x="240" y="600" font-family="sans-serif" font-size="16" letter-spacing="4" fill="#8a8a97" text-anchor="middle">KOD RAIDO</text>
 </svg>`;
@@ -180,12 +186,12 @@ const CARDS: SeedCard[] = [
     tags: ['Shadow', 'Guardian'],
     attack: 7,
     health: 6,
-    abilityText: 'Когда вражеский персонаж погибает в ваш ход, первый раз за ход получает +1/+1.',
+    abilityText: 'Когда Коррат погибает, нанесите 3 урона Проводнику противника.',
     effectJson: [
       {
         trigger: 'ON_DEATH',
         conditions: [],
-        effects: [{ type: 'BUFF', target: 'SELF', attack: 1, health: 1, duration: 'PERMANENT' }],
+        effects: [{ type: 'DAMAGE', target: 'ENEMY_CONDUCTOR', amount: 3 }],
       },
     ],
   },
@@ -247,7 +253,14 @@ const CARDS: SeedCard[] = [
         trigger: 'ON_TRACK_PLAYED',
         conditions: [],
         effects: [
-          { type: 'BUFF', target: 'FRIENDLY_ALL', attack: 2, health: 0, duration: 'END_OF_TURN' },
+          {
+            type: 'BUFF',
+            target: 'FRIENDLY_ALL',
+            tagFilter: 'Shadow',
+            attack: 2,
+            health: 0,
+            duration: 'END_OF_TURN',
+          },
         ],
       },
     ],
@@ -290,8 +303,7 @@ const CARDS: SeedCard[] = [
     rarity: 'RAIDO',
     cost: 5,
     tags: [],
-    abilityText:
-      'Выберите: добрать 2 карты, восстановить 5 HP Проводнику, или дать двум союзникам +1/+1.',
+    abilityText: 'Доберите 2 карты.',
     effectJson: [
       {
         trigger: 'ON_TRACK_PLAYED',
@@ -388,11 +400,11 @@ const CARDS: SeedCard[] = [
     effectJson: [
       {
         trigger: 'ON_PLAY',
-        conditions: [],
+        conditions: [{ type: 'ONCE_PER_TURN' }],
         effects: [
           {
             type: 'BUFF',
-            target: 'FRIENDLY_CHOSEN',
+            target: 'TRIGGER_SOURCE',
             attack: 1,
             health: 0,
             duration: 'END_OF_TURN',
@@ -429,7 +441,7 @@ const CARDS: SeedCard[] = [
       {
         trigger: 'TURN_START',
         conditions: [],
-        effects: [{ type: 'COST_MODIFIER', target: 'FRIENDLY_ALL', amount: -1 }],
+        effects: [{ type: 'COST_MODIFIER', tagFilter: 'Shadow', amount: -1 }],
       },
     ],
   },
@@ -445,7 +457,7 @@ const CARDS: SeedCard[] = [
       {
         trigger: 'TURN_START',
         conditions: [],
-        effects: [{ type: 'COST_MODIFIER', target: 'FRIENDLY_ALL', amount: -1 }],
+        effects: [{ type: 'COST_MODIFIER', tagFilter: 'Celestial', amount: -1 }],
       },
     ],
   },
