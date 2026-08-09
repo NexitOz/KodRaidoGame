@@ -75,3 +75,34 @@ export function computeResonanceScore(inputs: ResonanceScoreInputs): number {
     inputs.soundUsesTrend * SCORE_WEIGHTS.soundUsesTrend;
   return Math.max(0, Math.min(100, Math.round(raw * 100) / 100));
 }
+
+/**
+ * Percent growth of `current` over `previous`, clamped to [0, 100] so a
+ * single runaway metric (e.g. a post going from 1 to 10,000 views) can't
+ * blow out the weighted score above what `computeResonanceScore` already
+ * clamps to. A metric with no prior-window activity reads as 100 (new
+ * activity from nothing) or 0 (still nothing), never a division by zero.
+ */
+export function computeTrendPercent(current: number, previous: number): number {
+  if (previous <= 0) return current > 0 ? 100 : 0;
+  const change = ((current - previous) / previous) * 100;
+  return Math.max(0, Math.min(100, Math.round(change * 100) / 100));
+}
+
+export interface CardResonanceView {
+  cardId: string;
+  slug: string;
+  name: string;
+  tier: ResonanceTier;
+  score: number;
+  boostPercent: number;
+  calculatedAt?: string;
+  /** Score delta vs the previous recalculation, when at least two snapshots exist. */
+  scoreDelta?: number;
+}
+
+export interface ResonanceHistoryPoint {
+  score: number;
+  tier: ResonanceTier;
+  calculatedAt: string;
+}

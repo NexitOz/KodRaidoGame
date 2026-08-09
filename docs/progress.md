@@ -38,11 +38,9 @@
   Mysteries / Swallowed Star). Дополнение №3 явно помечено как design-reference с
   `rightsStatus`-проверкой и запланировано "после завершения базового game engine" — то есть
   после Phase 2.
-- Resonance Tier на всех картах сейчас статичный placeholder (`0`), реальные `metric_snapshots` /
-  `resonance_snapshots` таблицы, ManualProvider/CSV импорт и пересчёт появятся в Phase 5.
-- `/resonance` — статическая страница с легендой Tier 0–5, без живых данных.
-- `GET /api/resonance`, `GET /api/resonance/trending`, `/api/admin/*` — не реализованы, это
-  Phase 5 и админка.
+- Resonance Tier на момент Phase 0/1 был статичным placeholder (`0`) — с Phase 5 карты, у которых
+  есть импортированные метрики, получают реальный Tier; карты без данных остаются на `0`, что
+  тоже корректно (нет хайпа — нет буста).
 
 ## Phase 2 — Game engine ✅ Done
 
@@ -180,14 +178,60 @@
   сокет — это получить `disconnect` сразу после рукопожатия без валидного JWT, так что ужесточение
   до того же allowlist, что и у REST, оставлено как understood follow-up, а не блокер.
 
-## Phase 5 — Resonance ⏳ Not started
+## Phase 5 — Resonance ✅ Done
 
-- [ ] `metric_snapshots`, `resonance_snapshots` таблицы и recalculation job (BullMQ)
-- [ ] ManualProvider + CSV import (`POST /api/admin/metrics/import`)
-- [ ] Resonance scoring (rolling 7d/24h/30d, формула из раздела 5.4 ТЗ), Tier 0–5
-- [ ] Boost snapshot, фиксируемый при старте матча
-- [ ] `GET /api/resonance`, `GET /api/resonance/trending`, страница `/resonance` с реальными
-      данными и графиком 7d
+- [x] Prisma: `MetricSnapshot` (сырые метрики по `MediaAsset`) и `ResonanceSnapshot` (история
+      score/tier/boost по карте) таблицы, `@@unique([provider, externalId])` на `MediaAsset` для
+      идемпотентного апсерта при повторном импорте
+- [x] `RESONANCE_QUEUE_NAME`/`ResonanceRecalculateJobData` вынесены в `packages/shared`
+      (dependency-free контракт), чтобы продюсер (game-server) и консьюмер (apps/worker) не могли
+      разойтись по имени очереди/форме джобы — сам BullMQ-клиент у каждого свой
+- [x] `apps/worker`: `recalculateCard`/`recalculateAll` — реальный пересчёт по rolling 7-дневному
+      окну (текущие 7д против предыдущих 7д, как и было заложено в Phase 0/1 формулой
+      `computeResonanceScore`), с денормализацией результата в `Card.resonanceTier`, чтобы уже
+      существующие экраны (коллекция, конструктор колод, рука в матче) увидели новый Tier без
+      правок — они и так читают это поле
+- [x] `POST /api/admin/metrics/import` — CSV-импорт метрик (ManualProvider по умолчанию,
+      апсертит `MediaAsset` по `provider+externalId`, привязывает к треку по `trackSlug`, пишет
+      `MetricSnapshot`, ставит джобу пересчёта `ALL` в очередь). Гейт — общий секрет
+      `ADMIN_API_KEY` в заголовке `x-admin-key` (fail closed, если переменная не задана) — полноценной
+      ролевой системы ещё нет, это осознанно "скелет" под админку из ТЗ
+- [x] `GET /api/resonance` (текущий tier/score/boost по всем активным картам), `GET
+      /api/resonance/trending` (карты с положительной динамикой между двумя последними
+      пересчётами), `GET /api/resonance/:cardId/history` (снапшоты за 7 дней для графика) —
+      публичные, без авторизации, как и `/api/cards`
+- [x] Boost snapshot фиксируется в `MatchesService.createPveMatch`/`createPvpMatch` в момент
+      старта матча (снимок текущих `ResonanceSnapshot` → `BoostSnapshotEntry[]`, передаётся в
+      `createMatch` движка и параллельно сохраняется в `Match.boostSnapshotJson`) — сила карты не
+      может измениться посреди матча, даже если хайп резко скакнёт
+- [x] `@Cron('0 3 * * *')` в game-server ежедневно ставит `ALL`-пересчёт в очередь — не только
+      по факту импорта метрик
+- [x] `/resonance` в `apps/web` — живые данные вместо статичной легенды: полный список карт по
+      убыванию score с Tier-бейджем и `+N% в Ranked`, блок "Растёт прямо сейчас" по
+      `/resonance/trending`, разворачиваемая по клику мини-график (inline SVG sparkline,
+      без сторонних chart-библиотек) по `/resonance/:cardId/history`
+- [x] 33 новых unit-теста: `computeTrendPercent` (shared), `recalculateCard`/`recalculateAll`
+      (worker, fake Prisma), CSV-парсер и `AdminMetricsService` (game-server, fake Prisma),
+      `ResonanceService` — getAll/getTrending/getHistory/buildBoostSnapshot (game-server, fake
+      Prisma)
+- [x] Полный прогон вручную (реальные Postgres/Redis/game-server/worker/web): CSV-импорт с двумя
+      снапшотами метрик → воркер реально забрал джобу из очереди и посчитал → `GET
+      /api/resonance` показал Tier 5/Score 100/+10% для двух карт, привязанных к треку → создан
+      PvE-матч, `Match.boostSnapshotJson` в базе содержит именно эти две карты → страница
+      `/resonance` в браузере отрисовала список, бейджи и разворачивающийся спарклайн
+
+### Осознанные упрощения Phase 5
+
+- Формула читает раздел 5.4 ТЗ как "rolling 7d" для основного score/tier (текущие 7 дней метрик
+  против предыдущих 7) — 24h/30d окна отдельно не реализованы как самостоятельные метрики
+  (например отдельный "24h velocity" индикатор), только рекомендации на будущее; "trending"
+  сейчас считается как позитивная дельта между двумя последними пересчётами, а не строго
+  скользящее 24-часовое окно.
+- CSV-парсер намеренно простой (`split(',')`, без экранирования кавычек) — это внутренний
+  инструмент под контролируемый формат экспорта, не приём произвольных файлов от пользователей.
+- Матчмейкинг из Phase 4 не учитывает Resonance при подборе — это, как и было, отдельная задача.
+- Реальные провайдеры (TikTok/YouTube API) — Phase 6; сейчас единственный источник метрик —
+  ручной CSV-импорт (`provider: "manual"` по умолчанию).
 
 ## Phase 6 — External providers ⏳ Not started
 

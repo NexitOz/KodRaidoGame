@@ -1,8 +1,10 @@
+import { PrismaClient } from '@prisma/client';
 import { createResonanceWorker } from './processors/resonance-processor.js';
 import { createRedisConnection } from './redis.js';
 
 const connection = createRedisConnection();
-const resonanceWorker = createResonanceWorker(connection);
+const prisma = new PrismaClient();
+const resonanceWorker = createResonanceWorker(connection, prisma);
 
 resonanceWorker.on('completed', (job) => {
   // eslint-disable-next-line no-console
@@ -18,6 +20,7 @@ console.log('[worker] Kod Raido worker started, listening for jobs...');
 
 async function shutdown() {
   await resonanceWorker.close();
+  await prisma.$disconnect();
   connection.disconnect();
   process.exit(0);
 }

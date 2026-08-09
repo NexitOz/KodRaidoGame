@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { computeResonanceScore, tierFromScore, RANKED_BOOST_PERCENT_BY_TIER } from './resonance.js';
+import {
+  computeResonanceScore,
+  computeTrendPercent,
+  tierFromScore,
+  RANKED_BOOST_PERCENT_BY_TIER,
+} from './resonance.js';
 
 describe('tierFromScore', () => {
   it('maps boundary scores to the documented tiers', () => {
@@ -53,6 +58,31 @@ describe('computeResonanceScore', () => {
     expect(listensOnly).toBeGreaterThan(commentsOnly);
     expect(listensOnly).toBe(30);
     expect(commentsOnly).toBe(15);
+  });
+});
+
+describe('computeTrendPercent', () => {
+  it('computes plain percent growth', () => {
+    expect(computeTrendPercent(150, 100)).toBe(50);
+    expect(computeTrendPercent(200, 100)).toBe(100);
+  });
+
+  it('clamps growth above 100%', () => {
+    expect(computeTrendPercent(10_000, 1)).toBe(100);
+  });
+
+  it('never returns negative for a decline', () => {
+    expect(computeTrendPercent(50, 100)).toBe(0);
+    expect(computeTrendPercent(0, 100)).toBe(0);
+  });
+
+  it('treats new activity from a zero baseline as 100, and no activity as 0', () => {
+    expect(computeTrendPercent(50, 0)).toBe(100);
+    expect(computeTrendPercent(0, 0)).toBe(0);
+  });
+
+  it('is flat (0) when nothing changed', () => {
+    expect(computeTrendPercent(100, 100)).toBe(0);
   });
 });
 

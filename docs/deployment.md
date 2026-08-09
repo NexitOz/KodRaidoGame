@@ -49,6 +49,7 @@ Railway: game-server (API) + worker + Postgres + Redis
    | `WEB_ORIGIN`        | пока `http://localhost:3000` — вернётесь и добавите сюда URL с Vercel/Replit через запятую после шага 2     |
    | `NODE_ENV`          | `production`                                                                                                |
    | `PORT`              | Railway передаёт `PORT` автоматически, отдельно можно не задавать                                           |
+   | `ADMIN_API_KEY`     | случайная строка — секрет для `POST /api/admin/metrics/import` (заголовок `x-admin-key`)                    |
 
 5. Deploy. При первом старте контейнер сам выполняет `prisma migrate deploy` (миграции создают
    таблицы) — ничего вручную запускать не нужно.
@@ -60,9 +61,11 @@ Railway: game-server (API) + worker + Postgres + Redis
 7. Скопируйте публичный домен сервиса (Settings → Networking → **Generate Domain**), например
    `https://game-server-production-xxxx.up.railway.app`. Это и есть бэкенд-URL — API будет по
    адресу `<этот домен>/api`.
-8. (Опционально, но рекомендуется) Добавьте ещё один сервис `worker` из того же репозитория с
-   Dockerfile Path `infra/docker/worker.Dockerfile` и переменной `REDIS_URL`. Он пока ничего не
-   делает для UI (Resonance-джобы — это Phase 5), можно пропустить на этом шаге.
+8. Добавьте ещё один сервис `worker` из того же репозитория с Dockerfile Path
+   `infra/docker/worker.Dockerfile` и переменными `REDIS_URL` (тот же, что у `game-server`) и
+   `DATABASE_URL` (тот же Postgres) — с Phase 5 он реально пересчитывает Resonance-очки по
+   `metric_snapshots` и пишет `resonance_snapshots`, без него импорт метрик через
+   `/api/admin/metrics/import` просто копится в очереди и никогда не применяется.
 
 ---
 
