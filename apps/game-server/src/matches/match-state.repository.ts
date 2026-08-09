@@ -16,15 +16,20 @@ export class MatchStateRepository {
     return `match:${matchId}:events`;
   }
 
-  private ownerKey(matchId: string): string {
-    return `match:${matchId}:owner`;
+  private participantsKey(matchId: string): string {
+    return `match:${matchId}:participants`;
   }
 
-  async save(matchId: string, state: MatchState, humanPlayerId: string): Promise<void> {
+  /**
+   * `participantIds` is every real human in the match — just the human for
+   * PvE (the bot isn't a participant), both players for PvP — and is the
+   * authorization boundary for `getView`/`applyPlayerAction`/etc.
+   */
+  async save(matchId: string, state: MatchState, participantIds: string[]): Promise<void> {
     await this.redis
       .multi()
       .set(this.stateKey(matchId), JSON.stringify(state), 'EX', MATCH_TTL_SECONDS)
-      .set(this.ownerKey(matchId), humanPlayerId, 'EX', MATCH_TTL_SECONDS)
+      .set(this.participantsKey(matchId), JSON.stringify(participantIds), 'EX', MATCH_TTL_SECONDS)
       .exec();
   }
 
@@ -33,8 +38,14 @@ export class MatchStateRepository {
     return raw ? (JSON.parse(raw) as MatchState) : null;
   }
 
-  async getOwner(matchId: string): Promise<string | null> {
-    return this.redis.get(this.ownerKey(matchId));
+  async getParticipants(matchId: string): Promise<string[] | null> {
+    const raw = await this.redis.get(this.participantsKey(matchId));
+    return raw ? (JSON.parse(raw) as string[]) : null;
+  }
+
+  async isParticipant(matchId: string, userId: string): Promise<boolean> {
+    const participants = await this.getParticipants(matchId);
+    return participants !== null && participants.includes(userId);
   }
 
   async appendEvents(matchId: string, events: GameEvent[]): Promise<void> {
@@ -49,6 +60,10 @@ export class MatchStateRepository {
   }
 
   async delete(matchId: string): Promise<void> {
-    await this.redis.del(this.stateKey(matchId), this.eventsKey(matchId), this.ownerKey(matchId));
+    await this.redis.del(
+      this.stateKey(matchId),
+      this.eventsKey(matchId),
+      this.participantsKey(matchId),
+    );
   }
 }

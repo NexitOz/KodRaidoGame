@@ -126,12 +126,59 @@
   dev-only режим для карт с anime/donghua референсами) по-прежнему отложено — движок и экран матча
   их уже полностью поддерживают, это чисто content-задача.
 
-## Phase 4 — Online PvP ⏳ Not started
+## Phase 4 — Online PvP ✅ Done
 
-- [ ] Matchmaking (`POST /api/matchmaking/join|leave`)
-- [ ] Authoritative WebSocket game-server (Socket.IO), event log, state diff
-- [ ] Reconnect (60s, Redis match state)
-- [ ] Ranked skeleton (MMR, ранги Iron→Raido)
+- [x] Prisma: `User.mmr` (старт 1000), `Match.player1MmrDelta`/`player2MmrDelta` и
+      `player2XpAwarded`/`player2SoftCurrencyAwarded` для несимметричных PvP-наград
+- [x] `packages/shared`: `RANK_TIERS`/`rankForMmr` (Iron/Bronze/Silver/Gold/Platinum/Diamond/Raido
+      по порогам mmr) и `computeMmrDelta` (Elo, K=32) с 9 unit-тестами; `PVP_REWARDS`
+      (win/loss/draw); типизированный WS-контракт `packages/shared/src/types/pvp.ts`
+      (`MatchActionInput`, `MatchmakingStatus`, `Match{Join,Action,Found,State,Presence,Error}Payload`)
+      — общий и для game-server, и для web, чтобы клиент и сервер не могли разойтись по форме событий
+- [x] `MatchStateRepository` обобщён с единственного `humanPlayerId` на список `participantIds` —
+      PvE (1 человек) и PvP (2 человека) используют одно и то же хранилище/проверку владения
+- [x] `MatchesService`: `createPvpMatch`/`applyPvpAction` (без авто-хода бота — ходят два реальных
+      игрока), `forfeitPvpMatch` (техническое поражение при таймауте переподключения),
+      `finishPvpMatch` (транзакционно начисляет разный XP/валюту победителю и проигравшему,
+      считает MMR-дельту для обоих через `computeMmrDelta`); `listHistory` учитывает роль
+      (player1/player2) и подставляет реальный ник соперника вместо "Бот"
+- [x] `MatchmakingService`: FIFO-очередь на Redis sorted set (`POST /api/matchmaking/join|leave`,
+      `GET /api/matchmaking/status`), `@Interval(2000)` пара́ует двух самых давно ждущих игроков и
+      создаёт PvP-матч — осознанно "скелет" без учёта MMR-диапазонов и без координации между
+      несколькими инстансами game-server (см. упрощения ниже)
+- [x] `MatchGateway` (Socket.IO, namespace `/pvp`): JWT-аутентификация при подключении
+      (`handshake.auth.token`), `match:join`/`match:action` от клиента, `match:found`/`match:state`/
+      `match:opponent_disconnected`/`match:opponent_reconnected`/`match:error` от сервера,
+      редактированный вид состояния рассылается каждому участнику отдельно; при разрыве соединения
+      — таймер на 60 секунд, затем автоматическое техническое поражение через `forfeitPvpMatch`
+- [x] 16 новых backend-тестов: `MatchmakingService` (валидация колоды, FIFO-пара, нечётный игрок в
+      очереди), `MatchesService` PvP (создание, чужой участник, ход не по очереди, полный матч с
+      симметричной MMR-дельтой при равном рейтинге, форфейт, история с обеих сторон)
+- [x] `apps/web`: `/pvp` (выбор колоды, "Найти матч", живой статус поиска, отмена),
+      `/pvp/[matchId]` (тот же интерфейс боя, что и `/play/[matchId]`, но управляемый WebSocket-
+      событиями, а не REST-мутациями; баннер "соперник отключился" с обратным отсчётом)
+- [x] Общий презентационный компонент `MatchBoard` вынесен из `/play/[matchId]`, чтобы PvE- и
+      PvP-экраны не расходились в вёрстке — оба сейчас рендерят один и тот же компонент с разными
+      обработчиками действий (REST-мутация против WS-эмита)
+- [x] Полный прогон вручную через Playwright с двумя независимыми браузерными контекстами (два
+      реальных игрока, два аккаунта, два сокета): регистрация → колода → очередь → матч → бой до
+      победителя через реальный UI → модалка результата с MMR-дельтой → история совпадает у обеих
+      сторон
+
+### Осознанные упрощения Phase 4
+
+- Матчмейкинг — честный FIFO без учёта MMR-диапазонов ("пара́ует двух самых давно ждущих", а не
+  "ищет соперника близко по рейтингу") и без блокировки между несколькими инстансами game-server
+  (`@Interval` тик читает-и-удаляет из общей Redis-очереди без распределённой блокировки) — вполне
+  достаточно для одного инстанса, что и требовалось словом "скелет" в самой формулировке фазы в ТЗ.
+- Ник соперника в PvP не подставляется в сам `MatchStateView` (карта игрового поля показывает
+  нейтральное "Соперник") — `PlayerStateView` в движке не хранит username, только `playerId`; в
+  списке истории боёв (`/me/matches`) реальный ник уже показывается, потому что там он берётся из
+  Prisma-связи `Match.player1`/`player2`, а не из состояния матча.
+- CORS у WebSocket-шлюза сейчас permissive (`origin: true`), в отличие от REST API, где список
+  разрешённых доменов явно берётся из `WEB_ORIGIN` — единственное, что может сделать неавторизованный
+  сокет — это получить `disconnect` сразу после рукопожатия без валидного JWT, так что ужесточение
+  до того же allowlist, что и у REST, оставлено как understood follow-up, а не блокер.
 
 ## Phase 5 — Resonance ⏳ Not started
 

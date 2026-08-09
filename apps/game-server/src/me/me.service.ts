@@ -17,6 +17,7 @@ export class MeService {
       level: user.level,
       xp: user.xp,
       softCurrency: user.softCurrency,
+      mmr: user.mmr,
       createdAt: user.createdAt.toISOString(),
     };
   }

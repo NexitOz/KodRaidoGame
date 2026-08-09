@@ -51,6 +51,7 @@ model User {
   level        Int      @default(1)
   xp           Int      @default(0)
   softCurrency Int      @default(500)
+  mmr          Int      @default(1000)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -199,8 +200,15 @@ model Match {
   seed                String
   winnerId            String?
   boostSnapshotJson   Json           @default("[]")
+  /// player1's reward (the only human's reward for PvE matches).
   xpAwarded           Int            @default(0)
   softCurrencyAwarded Int            @default(0)
+  /// player2's reward - only set for ranked PvP matches (player2IsBot = false).
+  player2XpAwarded           Int?
+  player2SoftCurrencyAwarded Int?
+  /// Only set for ranked PvP matches - signed MMR change for player1/player2 respectively.
+  player1MmrDelta     Int?
+  player2MmrDelta     Int?
   startedAt           DateTime       @default(now())
   finishedAt          DateTime?
 

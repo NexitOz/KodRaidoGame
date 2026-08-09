@@ -95,14 +95,17 @@ interface FakeDeck {
 
 interface FakeUser {
   id: string;
+  username: string;
   xp: number;
   softCurrency: number;
   level: number;
+  mmr: number;
 }
 
 interface FakeMatch {
   id: string;
   player1Id: string;
+  player2Id: string | null;
   player2IsBot: boolean;
   botDifficulty: string | null;
   seed: string;
@@ -112,6 +115,10 @@ interface FakeMatch {
   finishedAt: Date | null;
   xpAwarded: number | null;
   softCurrencyAwarded: number | null;
+  player2XpAwarded: number | null;
+  player2SoftCurrencyAwarded: number | null;
+  player1MmrDelta: number | null;
+  player2MmrDelta: number | null;
 }
 
 function createFakePrisma(cards: FakeCardRow[]) {
@@ -133,14 +140,24 @@ function createFakePrisma(cards: FakeCardRow[]) {
       },
     },
     match: {
-      async create({ data }: { data: Omit<FakeMatch, 'winnerId' | 'startedAt' | 'finishedAt' | 'xpAwarded' | 'softCurrencyAwarded'> }) {
+      async create({
+        data,
+      }: {
+        data: Partial<FakeMatch> & Pick<FakeMatch, 'id' | 'player1Id' | 'player2IsBot' | 'seed' | 'status'>;
+      }) {
         const row: FakeMatch = {
-          ...data,
+          player2Id: null,
+          botDifficulty: null,
           winnerId: null,
           startedAt: new Date(),
           finishedAt: null,
           xpAwarded: null,
           softCurrencyAwarded: null,
+          player2XpAwarded: null,
+          player2SoftCurrencyAwarded: null,
+          player1MmrDelta: null,
+          player2MmrDelta: null,
+          ...data,
         };
         matches.push(row);
         return row;
@@ -153,11 +170,23 @@ function createFakePrisma(cards: FakeCardRow[]) {
         Object.assign(row, data);
         return row;
       },
-      async findMany({ where, take }: { where: { player1Id: string }; take?: number }) {
+      async findMany({
+        where,
+        take,
+      }: {
+        where: { OR: Array<{ player1Id?: string; player2Id?: string }> };
+        take?: number;
+      }) {
+        const userId = where.OR.find((clause) => clause.player1Id)?.player1Id ?? '';
         return matches
-          .filter((m) => m.player1Id === where.player1Id)
+          .filter((m) => m.player1Id === userId || m.player2Id === userId)
           .sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime())
-          .slice(0, take ?? matches.length);
+          .slice(0, take ?? matches.length)
+          .map((m) => ({
+            ...m,
+            player1: { username: users.get(m.player1Id)?.username ?? 'Игрок' },
+            player2: m.player2Id ? { username: users.get(m.player2Id)?.username ?? 'Игрок' } : null,
+          }));
       },
     },
     matchEvent: {
@@ -190,20 +219,25 @@ function createFakePrisma(cards: FakeCardRow[]) {
 
 class FakeMatchStateRepository {
   private states = new Map<string, MatchState>();
-  private owners = new Map<string, string>();
+  private participants = new Map<string, string[]>();
   private events = new Map<string, GameEvent[]>();
 
-  async save(matchId: string, state: MatchState, humanPlayerId: string): Promise<void> {
+  async save(matchId: string, state: MatchState, participantIds: string[]): Promise<void> {
     this.states.set(matchId, state);
-    this.owners.set(matchId, humanPlayerId);
+    this.participants.set(matchId, participantIds);
   }
 
   async load(matchId: string): Promise<MatchState | null> {
     return this.states.get(matchId) ?? null;
   }
 
-  async getOwner(matchId: string): Promise<string | null> {
-    return this.owners.get(matchId) ?? null;
+  async getParticipants(matchId: string): Promise<string[] | null> {
+    return this.participants.get(matchId) ?? null;
+  }
+
+  async isParticipant(matchId: string, userId: string): Promise<boolean> {
+    const participants = this.participants.get(matchId);
+    return participants !== undefined && participants.includes(userId);
   }
 
   async appendEvents(matchId: string, events: GameEvent[]): Promise<void> {
@@ -218,7 +252,7 @@ class FakeMatchStateRepository {
 
   async delete(matchId: string): Promise<void> {
     this.states.delete(matchId);
-    this.owners.delete(matchId);
+    this.participants.delete(matchId);
     this.events.delete(matchId);
   }
 }
@@ -237,6 +271,20 @@ async function playToFinish(service: MatchesService, userId: string, matchId: st
   return result;
 }
 
+async function playPvpToFinish(service: MatchesService, matchId: string, player1Id: string) {
+  let activePlayerId = (await service.getView(player1Id, matchId)).activePlayerId;
+  let result: Awaited<ReturnType<typeof service.applyPvpAction>> | undefined;
+  let guard = 0;
+  while (guard < 200) {
+    guard += 1;
+    result = await service.applyPvpAction(activePlayerId, matchId, endTurn());
+    if (result.state.finished) break;
+    activePlayerId = result.state.activePlayerId;
+  }
+  if (!result) throw new Error(`playPvpToFinish never took an action for match ${matchId} (guard=${guard})`);
+  return result;
+}
+
 describe('MatchesService', () => {
   let prisma: ReturnType<typeof createFakePrisma>;
   let repo: FakeMatchStateRepository;
@@ -246,7 +294,14 @@ describe('MatchesService', () => {
     const cards = buildCardCatalog();
     prisma = createFakePrisma(cards);
     repo = new FakeMatchStateRepository();
-    prisma._internal.users.set('user-1', { id: 'user-1', xp: 0, softCurrency: 0, level: 1 });
+    prisma._internal.users.set('user-1', {
+      id: 'user-1',
+      username: 'user-1',
+      xp: 0,
+      softCurrency: 0,
+      level: 1,
+      mmr: 1000,
+    });
     prisma._internal.decks.push({
       id: 'deck-1',
       userId: 'user-1',
@@ -319,7 +374,7 @@ describe('MatchesService', () => {
 
     const user = prisma._internal.users.get('user-1')!;
     expect(user.xp).toBe(result.rewards!.xp);
-    expect(await repo.getOwner(view.matchId)).toBeNull();
+    expect(await repo.getParticipants(view.matchId)).toBeNull();
   });
 
   it('lists match history with the finished result after a match ends', async () => {
@@ -330,5 +385,138 @@ describe('MatchesService', () => {
     expect(history).toHaveLength(1);
     expect(history[0]!.status).toBe('FINISHED');
     expect(typeof history[0]!.won).toBe('boolean');
+  });
+
+  describe('PvP matches', () => {
+    const PLAYER1 = 'user-1';
+    const PLAYER2 = 'user-2';
+
+    beforeEach(() => {
+      prisma._internal.users.set(PLAYER2, {
+        id: PLAYER2,
+        username: 'user-2',
+        xp: 0,
+        softCurrency: 0,
+        level: 1,
+        mmr: 1000,
+      });
+      prisma._internal.decks.push({
+        id: 'deck-2',
+        userId: PLAYER2,
+        cards: Array.from({ length: 15 }, (_, i) => ({ cardId: `human-${i}`, quantity: 2 })),
+      });
+    });
+
+    it('creates a PvP match for two valid decks and lets both participants view it', async () => {
+      const { matchId } = await service.createPvpMatch(
+        { userId: PLAYER1, deckId: 'deck-1' },
+        { userId: PLAYER2, deckId: 'deck-2' },
+      );
+      const view1 = await service.getView(PLAYER1, matchId);
+      const view2 = await service.getView(PLAYER2, matchId);
+
+      expect(view1.you.playerId).toBe(PLAYER1);
+      expect(view1.opponent.playerId).toBe(PLAYER2);
+      expect(view2.you.playerId).toBe(PLAYER2);
+      expect(view2.opponent.playerId).toBe(PLAYER1);
+      expect(view1.finished).toBe(false);
+    });
+
+    it('rejects a PvP match when either deck is invalid', async () => {
+      await expect(
+        service.createPvpMatch({ userId: PLAYER1, deckId: 'deck-1' }, { userId: PLAYER2, deckId: 'nope' }),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('rejects an action from a non-participant', async () => {
+      const { matchId } = await service.createPvpMatch(
+        { userId: PLAYER1, deckId: 'deck-1' },
+        { userId: PLAYER2, deckId: 'deck-2' },
+      );
+      await expect(
+        service.applyPvpAction('some-other-user', matchId, endTurn()),
+      ).rejects.toBeInstanceOf(NotFoundException);
+    });
+
+    it('rejects an action taken out of turn', async () => {
+      const { matchId } = await service.createPvpMatch(
+        { userId: PLAYER1, deckId: 'deck-1' },
+        { userId: PLAYER2, deckId: 'deck-2' },
+      );
+      const view = await service.getView(PLAYER1, matchId);
+      const notActive = view.activePlayerId === PLAYER1 ? PLAYER2 : PLAYER1;
+      await expect(service.applyPvpAction(notActive, matchId, endTurn())).rejects.toBeInstanceOf(
+        BadRequestException,
+      );
+    });
+
+    it('plays a full match to completion with symmetric MMR deltas and clears redis state', async () => {
+      const { matchId } = await service.createPvpMatch(
+        { userId: PLAYER1, deckId: 'deck-1' },
+        { userId: PLAYER2, deckId: 'deck-2' },
+      );
+      const result = await playPvpToFinish(service, matchId, PLAYER1);
+
+      expect(result.state.finished).toBe(true);
+      const rewards = result.rewardsByPlayer!;
+      const winnerId = result.state.winnerId!;
+      const loserId = winnerId === PLAYER1 ? PLAYER2 : PLAYER1;
+
+      expect(rewards[winnerId]!.mmrDelta).toBeGreaterThan(0);
+      expect(rewards[loserId]!.mmrDelta).toBeLessThan(0);
+      // Both players start at the same 1000 mmr, so the Elo swing must be exactly symmetric.
+      expect(rewards[winnerId]!.mmrDelta).toBe(-rewards[loserId]!.mmrDelta!);
+
+      const winnerUser = prisma._internal.users.get(winnerId)!;
+      const loserUser = prisma._internal.users.get(loserId)!;
+      expect(winnerUser.mmr).toBe(1000 + rewards[winnerId]!.mmrDelta!);
+      expect(loserUser.mmr).toBe(1000 + rewards[loserId]!.mmrDelta!);
+
+      expect(await repo.getParticipants(matchId)).toBeNull();
+    });
+
+    it('forfeits the match in favor of the other participant when one disconnects', async () => {
+      const { matchId } = await service.createPvpMatch(
+        { userId: PLAYER1, deckId: 'deck-1' },
+        { userId: PLAYER2, deckId: 'deck-2' },
+      );
+      const result = await service.forfeitPvpMatch(matchId, PLAYER1);
+
+      expect(result).not.toBeNull();
+      expect(result!.state.winnerId).toBe(PLAYER2);
+      expect(result!.rewardsByPlayer[PLAYER2]!.mmrDelta).toBeGreaterThan(0);
+      expect(result!.rewardsByPlayer[PLAYER1]!.mmrDelta).toBeLessThan(0);
+      expect(await repo.getParticipants(matchId)).toBeNull();
+    });
+
+    it('returns null when forfeiting a match that is already finished', async () => {
+      const { matchId } = await service.createPvpMatch(
+        { userId: PLAYER1, deckId: 'deck-1' },
+        { userId: PLAYER2, deckId: 'deck-2' },
+      );
+      await playPvpToFinish(service, matchId, PLAYER1);
+      expect(await service.forfeitPvpMatch(matchId, PLAYER1)).toBeNull();
+    });
+
+    it('records PvP results in both participants match history with the correct perspective', async () => {
+      const { matchId } = await service.createPvpMatch(
+        { userId: PLAYER1, deckId: 'deck-1' },
+        { userId: PLAYER2, deckId: 'deck-2' },
+      );
+      const result = await playPvpToFinish(service, matchId, PLAYER1);
+      const winnerId = result.state.winnerId!;
+
+      const history1 = await service.listHistory(PLAYER1);
+      const history2 = await service.listHistory(PLAYER2);
+
+      expect(history1).toHaveLength(1);
+      expect(history2).toHaveLength(1);
+      expect(history1[0]!.won).toBe(winnerId === PLAYER1);
+      expect(history2[0]!.won).toBe(winnerId === PLAYER2);
+      expect(history1[0]!.opponentLabel).toBe('user-2');
+      expect(history2[0]!.opponentLabel).toBe('user-1');
+      expect(history1[0]!.mmrDelta).toBeDefined();
+      expect(history2[0]!.mmrDelta).toBeDefined();
+    });
   });
 });

@@ -1,20 +1,16 @@
 import type {
   Card,
+  MatchActionInput,
   MatchActionResponse,
   MatchHistoryEntry,
+  MatchmakingStatus,
   MatchStateView,
   UpsertDeckInput,
 } from '@kod-raido/shared';
 import type { AuthResponse, CollectionEntryDto, DeckDto } from './types';
 
+export type { MatchActionInput } from '@kod-raido/shared';
 export type BotDifficulty = 'EASY' | 'NORMAL' | 'HARD';
-
-export interface MatchActionInput {
-  type: 'PLAY_CARD' | 'ATTACK' | 'END_TURN';
-  cardId?: string;
-  attackerId?: string;
-  targetId?: string;
-}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';
 
@@ -96,4 +92,15 @@ export const api = {
     }),
   getMatchHistory: (accessToken: string) =>
     request<MatchHistoryEntry[]>('/me/matches', { accessToken }),
+
+  joinMatchmaking: (accessToken: string, deckId: string) =>
+    request<{ queued: boolean }>('/matchmaking/join', {
+      method: 'POST',
+      body: JSON.stringify({ deckId }),
+      accessToken,
+    }),
+  leaveMatchmaking: (accessToken: string) =>
+    request<{ queued: boolean }>('/matchmaking/leave', { method: 'POST', accessToken }),
+  getMatchmakingStatus: (accessToken: string) =>
+    request<MatchmakingStatus>('/matchmaking/status', { accessToken }),
 };

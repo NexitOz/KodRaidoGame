@@ -74,6 +74,7 @@ export class AuthController {
         level: result.user.level,
         xp: result.user.xp,
         softCurrency: result.user.softCurrency,
+        mmr: result.user.mmr,
         createdAt: result.user.createdAt,
       },
       accessToken: result.accessToken,

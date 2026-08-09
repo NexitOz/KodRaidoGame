@@ -4,6 +4,7 @@ export * from './types/user.js';
 export * from './types/deck.js';
 export * from './types/match.js';
 export * from './types/match-view.js';
+export * from './types/pvp.js';
 export * from './constants.js';
 export * from './schemas.js';
 export * from './progression.js';

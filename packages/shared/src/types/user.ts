@@ -6,6 +6,7 @@ export interface PublicUser {
   level: number;
   xp: number;
   softCurrency: number;
+  mmr: number;
   createdAt: string;
 }
 

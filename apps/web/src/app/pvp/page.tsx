@@ -1,22 +1,18 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { DECK_SIZE } from '@kod-raido/shared';
 import { Button } from '@kod-raido/ui';
-import { api, ApiError, type BotDifficulty } from '@/lib/api';
+import type { Socket } from 'socket.io-client';
+import { api, ApiError } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
+import { createMatchSocket } from '@/lib/socket';
 
-const DIFFICULTIES: Array<{ value: BotDifficulty; label: string; description: string }> = [
-  { value: 'EASY', label: 'Легко', description: 'Бот играет осторожно, редко меняется' },
-  { value: 'NORMAL', label: 'Средне', description: 'Бот разменивается и атакует по приоритету' },
-  { value: 'HARD', label: 'Сложно', description: 'Бот считает выгодные размены наперёд' },
-];
-
-export default function PlayPage() {
+export default function PvpPage() {
   const router = useRouter();
   const user = useAuthStore((s) => s.user);
   const accessToken = useAuthStore((s) => s.accessToken);
@@ -36,26 +32,60 @@ export default function PlayPage() {
   );
 
   const [deckId, setDeckId] = useState<string | null>(null);
-  const [difficulty, setDifficulty] = useState<BotDifficulty>('NORMAL');
+  const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const socketRef = useRef<Socket | null>(null);
 
   const activeDeckId = deckId ?? readyDecks[0]?.id ?? null;
 
-  const startMutation = useMutation({
-    mutationFn: () => {
-      if (!activeDeckId) throw new Error('Choose a deck first.');
-      return api.createPveMatch(accessToken as string, activeDeckId, difficulty);
-    },
-    onSuccess: (view) => router.push(`/play/${view.matchId}`),
-    onError: (err) => setError(err instanceof ApiError ? err.message : 'Не удалось начать бой.'),
-  });
+  useEffect(() => {
+    return () => {
+      socketRef.current?.disconnect();
+    };
+  }, []);
+
+  async function startSearching() {
+    if (!activeDeckId || !accessToken) return;
+    setError(null);
+    setSearching(true);
+
+    const socket = createMatchSocket(accessToken);
+    socketRef.current = socket;
+
+    socket.on('connect_error', () => {
+      setError('Не удалось подключиться к серверу боёв.');
+      setSearching(false);
+    });
+
+    socket.on('match:found', (payload: { matchId: string }) => {
+      router.push(`/pvp/${payload.matchId}`);
+    });
+
+    socket.once('connect', () => {
+      api.joinMatchmaking(accessToken, activeDeckId).catch((err) => {
+        setError(err instanceof ApiError ? err.message : 'Не удалось встать в очередь.');
+        setSearching(false);
+        socket.disconnect();
+        socketRef.current = null;
+      });
+    });
+  }
+
+  async function cancelSearching() {
+    setSearching(false);
+    if (accessToken) {
+      await api.leaveMatchmaking(accessToken).catch(() => undefined);
+    }
+    socketRef.current?.disconnect();
+    socketRef.current = null;
+  }
 
   if (!user) {
     return (
       <div className="mx-auto flex max-w-md flex-col items-center gap-4 pt-16 text-center">
-        <h1 className="font-display text-2xl font-bold">Бой с ботом доступен после входа</h1>
+        <h1 className="font-display text-2xl font-bold">Бой с игроком доступен после входа</h1>
         <p className="text-sm text-raido-mist">
-          Войди и собери колоду из 30 карт, чтобы сыграть PvE-матч.
+          Войди и собери колоду из 30 карт, чтобы найти соперника в рейтинговом бою.
         </p>
         <div className="flex gap-3">
           <Link href="/login">
@@ -69,12 +99,34 @@ export default function PlayPage() {
     );
   }
 
+  if (searching) {
+    return (
+      <div className="mx-auto flex max-w-md flex-col items-center gap-6 pt-16 text-center">
+        <div className="h-12 w-12 animate-spin rounded-full border-2 border-raido-red border-t-transparent" />
+        <div>
+          <h1 className="font-display text-xl font-bold">Ищем соперника…</h1>
+          <p className="mt-1 text-sm text-raido-mist">
+            Матч начнётся автоматически, как только найдётся пара.
+          </p>
+        </div>
+        <Button variant="secondary" onClick={cancelSearching}>
+          Отменить поиск
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="mx-auto flex max-w-lg flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="font-display text-2xl font-bold">Бой с ботом</h1>
-        <Link href="/pvp" className="text-sm text-raido-red hover:underline">
-          Рейтинговый бой →
+        <div>
+          <h1 className="font-display text-2xl font-bold">Рейтинговый бой</h1>
+          <p className="mt-1 text-sm text-raido-mist">
+            {user.mmr} MMR · матчи считаются в общий рейтинг Iron → Raido.
+          </p>
+        </div>
+        <Link href="/play" className="text-sm text-raido-red hover:underline">
+          Бой с ботом →
         </Link>
       </div>
 
@@ -88,7 +140,7 @@ export default function PlayPage() {
             <Link href="/decks" className="underline">
               Собери колоду
             </Link>
-            , чтобы начать бой.
+            , чтобы найти соперника.
           </div>
         ) : (
           <div className="flex flex-col gap-2">
@@ -112,36 +164,10 @@ export default function PlayPage() {
         )}
       </section>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-semibold text-raido-mist">Сложность бота</h2>
-        <div className="grid gap-2 sm:grid-cols-3">
-          {DIFFICULTIES.map((d) => (
-            <button
-              key={d.value}
-              type="button"
-              onClick={() => setDifficulty(d.value)}
-              className={clsx(
-                'flex flex-col gap-1 rounded-lg border px-3 py-2.5 text-left transition-colors',
-                difficulty === d.value
-                  ? 'border-raido-red bg-raido-red/15'
-                  : 'border-white/10 hover:border-white/30',
-              )}
-            >
-              <span className="text-sm font-semibold text-raido-white">{d.label}</span>
-              <span className="text-[11px] text-raido-mist">{d.description}</span>
-            </button>
-          ))}
-        </div>
-      </section>
-
       {error ? <p className="text-sm text-raido-redGlow">{error}</p> : null}
 
-      <Button
-        onClick={() => startMutation.mutate()}
-        disabled={!activeDeckId || startMutation.isPending}
-        className="w-full"
-      >
-        {startMutation.isPending ? 'Начинаем бой…' : 'Начать бой'}
+      <Button onClick={startSearching} disabled={!activeDeckId} className="w-full">
+        Найти матч
       </Button>
     </div>
   );

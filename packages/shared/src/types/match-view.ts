@@ -47,10 +47,19 @@ export interface MatchEventView {
   payload: Record<string, unknown>;
 }
 
+export interface MatchRewards {
+  xp: number;
+  softCurrency: number;
+  leveledUp: boolean;
+  /** Only set for ranked PvP matches. */
+  mmrDelta?: number;
+  newMmr?: number;
+}
+
 export interface MatchActionResponse {
   view: MatchStateView;
   events: MatchEventView[];
-  rewards?: { xp: number; softCurrency: number; leveledUp: boolean };
+  rewards?: MatchRewards;
 }
 
 export interface MatchHistoryEntry {
@@ -62,4 +71,5 @@ export interface MatchHistoryEntry {
   finishedAt?: string;
   xpAwarded: number;
   softCurrencyAwarded: number;
+  mmrDelta?: number;
 }
