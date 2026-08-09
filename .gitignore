@@ -12,3 +12,4 @@ coverage/
 generated/
 apps/game-server/prisma/migrations/.gitkeep_ignore
 *.tsbuildinfo
+dump.rdb

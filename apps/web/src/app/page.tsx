@@ -25,7 +25,7 @@ export default function LandingPage() {
           решают колода и твои решения.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-3">
-          <Link href={user ? '/collection' : '/register'}>
+          <Link href={user ? '/play' : '/register'}>
             <Button variant="primary">Играть</Button>
           </Link>
           <Link href="/resonance">

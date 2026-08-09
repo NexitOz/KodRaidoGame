@@ -38,4 +38,24 @@ describe('api client', () => {
     });
     await expect(api.login({ email: 'a@b.com', password: 'x' })).rejects.toBeInstanceOf(ApiError);
   });
+
+  it('posts a PvE match creation request with the deck and difficulty', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ matchId: 'match-1' }),
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await api.createPveMatch('token', 'deck-1', 'NORMAL');
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringContaining('/matches/pve'),
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ deckId: 'deck-1', difficulty: 'NORMAL' }),
+        headers: expect.objectContaining({ Authorization: 'Bearer token' }),
+      }),
+    );
+  });
 });

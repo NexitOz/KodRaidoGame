@@ -1,5 +1,20 @@
-import type { Card, UpsertDeckInput } from '@kod-raido/shared';
+import type {
+  Card,
+  MatchActionResponse,
+  MatchHistoryEntry,
+  MatchStateView,
+  UpsertDeckInput,
+} from '@kod-raido/shared';
 import type { AuthResponse, CollectionEntryDto, DeckDto } from './types';
+
+export type BotDifficulty = 'EASY' | 'NORMAL' | 'HARD';
+
+export interface MatchActionInput {
+  type: 'PLAY_CARD' | 'ATTACK' | 'END_TURN';
+  cardId?: string;
+  attackerId?: string;
+  targetId?: string;
+}
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';
 
@@ -64,4 +79,21 @@ export const api = {
     }),
   deleteDeck: (accessToken: string, id: string) =>
     request<{ success: boolean }>(`/me/decks/${id}`, { method: 'DELETE', accessToken }),
+
+  createPveMatch: (accessToken: string, deckId: string, difficulty: BotDifficulty) =>
+    request<MatchStateView>('/matches/pve', {
+      method: 'POST',
+      body: JSON.stringify({ deckId, difficulty }),
+      accessToken,
+    }),
+  getMatch: (accessToken: string, matchId: string) =>
+    request<MatchStateView>(`/matches/${matchId}`, { accessToken }),
+  sendMatchAction: (accessToken: string, matchId: string, action: MatchActionInput) =>
+    request<MatchActionResponse>(`/matches/${matchId}/actions`, {
+      method: 'POST',
+      body: JSON.stringify(action),
+      accessToken,
+    }),
+  getMatchHistory: (accessToken: string) =>
+    request<MatchHistoryEntry[]>('/me/matches', { accessToken }),
 };
