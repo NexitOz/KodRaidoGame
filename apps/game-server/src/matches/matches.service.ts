@@ -26,6 +26,7 @@ import {
 } from '@kod-raido/shared';
 import { toCardDto } from '../cards/cards.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { ResonanceService } from '../resonance/resonance.service';
 import { BOT_DECKS, pickRandomBotArchetype, type BotArchetype } from './bot-decks';
 import { MatchActionDto } from './dto/match-action.dto';
 import { MatchStateRepository } from './match-state.repository';
@@ -52,6 +53,7 @@ export class MatchesService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly repo: MatchStateRepository,
+    private readonly resonance: ResonanceService,
   ) {}
 
   async createPveMatch(
@@ -64,6 +66,7 @@ export class MatchesService {
     const matchCtx = await this.buildMatchContext();
     const botArchetype = pickRandomBotArchetype();
     const botDeckEntries = this.resolveBotDeck(botArchetype, matchCtx.cards);
+    const boostSnapshot = await this.resonance.buildBoostSnapshot();
 
     const matchId = randomUUID();
     const seed = randomUUID();
@@ -74,7 +77,7 @@ export class MatchesService {
       rulesVersion: RULES_VERSION,
       player1: { playerId: userId, deck: playerDeckEntries },
       player2: { playerId: BOT_PLAYER_ID, deck: botDeckEntries },
-      boostSnapshot: [],
+      boostSnapshot,
     });
     state = beginMatch(state, matchCtx).state;
     const opening = this.driveBotTurns(state, matchCtx, difficulty);
@@ -88,6 +91,7 @@ export class MatchesService {
         botDifficulty: difficulty,
         seed,
         status: 'ACTIVE',
+        boostSnapshotJson: boostSnapshot as object,
       },
     });
 
@@ -117,6 +121,7 @@ export class MatchesService {
     ]);
 
     const matchCtx = await this.buildMatchContext();
+    const boostSnapshot = await this.resonance.buildBoostSnapshot();
     const matchId = randomUUID();
     const seed = randomUUID();
 
@@ -126,7 +131,7 @@ export class MatchesService {
       rulesVersion: RULES_VERSION,
       player1: { playerId: player1.userId, deck: entries1 },
       player2: { playerId: player2.userId, deck: entries2 },
-      boostSnapshot: [],
+      boostSnapshot,
     });
     state = beginMatch(state, matchCtx).state;
 
@@ -138,6 +143,7 @@ export class MatchesService {
         player2IsBot: false,
         seed,
         status: 'ACTIVE',
+        boostSnapshotJson: boostSnapshot as object,
       },
     });
 

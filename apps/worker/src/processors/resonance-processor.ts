@@ -1,22 +1,22 @@
 import { Worker, type Job } from 'bullmq';
 import type { Redis } from 'ioredis';
-import {
-  RESONANCE_QUEUE_NAME,
-  type ResonanceRecalculateJobData,
-} from '../queues/resonance-queue.js';
+import type { PrismaClient } from '@prisma/client';
+import { RESONANCE_QUEUE_NAME, type ResonanceRecalculateJobData } from '@kod-raido/shared';
+import { recalculateAll, recalculateCard } from '../resonance/recalculate.js';
 
-/**
- * Phase 0/1 skeleton processor. Real Resonance scoring (Phase 5) will read
- * metric_snapshots and write resonance_snapshots here; for now it only
- * proves the queue/worker wiring end to end.
- */
-export function createResonanceWorker(connection: Redis): Worker<ResonanceRecalculateJobData> {
+export function createResonanceWorker(
+  connection: Redis,
+  prisma: PrismaClient,
+): Worker<ResonanceRecalculateJobData> {
   return new Worker<ResonanceRecalculateJobData>(
     RESONANCE_QUEUE_NAME,
     async (job: Job<ResonanceRecalculateJobData>) => {
-      // eslint-disable-next-line no-console
-      console.log(`[worker] resonance recalculate requested for card=${job.data.cardId}`);
-      return { processed: true };
+      if (job.data.cardId === 'ALL') {
+        const recalculated = await recalculateAll(prisma);
+        return { processed: true, recalculated };
+      }
+      const didRecalculate = await recalculateCard(prisma, job.data.cardId);
+      return { processed: true, recalculated: didRecalculate ? 1 : 0 };
     },
     { connection },
   );

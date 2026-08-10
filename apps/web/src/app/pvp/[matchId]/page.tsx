@@ -15,6 +15,8 @@ import type {
 import type { Socket } from 'socket.io-client';
 import { useAuthStore } from '@/lib/auth-store';
 import { createMatchSocket } from '@/lib/socket';
+import { playSfx } from '@/lib/sfx';
+import { playSfxForEvents } from '@/lib/match-sfx';
 import { MatchBoard, type MatchSelection } from '@/components/MatchBoard';
 
 type ConnectionState = 'connecting' | 'connected' | 'error';
@@ -56,6 +58,12 @@ export default function PvpMatchPage() {
       setActionError(null);
       setOpponentGone(null);
       if (payload.rewards) setRewards(payload.rewards);
+
+      if (payload.view.finished) {
+        playSfx(payload.view.winnerId === payload.view.you.playerId ? 'match-win' : 'match-loss');
+      } else {
+        playSfxForEvents(payload.events);
+      }
     });
 
     socket.on('match:error', (payload: { message: string }) => {

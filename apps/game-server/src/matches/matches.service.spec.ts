@@ -307,8 +307,9 @@ describe('MatchesService', () => {
       userId: 'user-1',
       cards: Array.from({ length: 15 }, (_, i) => ({ cardId: `human-${i}`, quantity: 2 })),
     });
+    const fakeResonance = { buildBoostSnapshot: async () => [] };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    service = new MatchesService(prisma as any, repo as any);
+    service = new MatchesService(prisma as any, repo as any, fakeResonance as any);
   });
 
   it('creates a PvE match against a random bot deck for a valid 30-card deck', async () => {

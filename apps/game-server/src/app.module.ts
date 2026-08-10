@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { AdminModule } from './admin/admin.module';
 import { AuthModule } from './auth/auth.module';
 import { CardsModule } from './cards/cards.module';
 import { DecksModule } from './decks/decks.module';
@@ -12,6 +13,7 @@ import { MeModule } from './me/me.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { PvpModule } from './pvp/pvp.module';
 import { RedisModule } from './redis/redis.module';
+import { ResonanceModule } from './resonance/resonance.module';
 import { TracksModule } from './tracks/tracks.module';
 
 @Module({
@@ -28,6 +30,8 @@ import { TracksModule } from './tracks/tracks.module';
     DecksModule,
     MatchesModule,
     PvpModule,
+    ResonanceModule,
+    AdminModule,
     HealthModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

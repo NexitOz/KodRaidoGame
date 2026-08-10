@@ -1,10 +1,12 @@
 import type {
   Card,
+  CardResonanceView,
   MatchActionInput,
   MatchActionResponse,
   MatchHistoryEntry,
   MatchmakingStatus,
   MatchStateView,
+  ResonanceHistoryPoint,
   UpsertDeckInput,
 } from '@kod-raido/shared';
 import type { AuthResponse, CollectionEntryDto, DeckDto } from './types';
@@ -103,4 +105,9 @@ export const api = {
     request<{ queued: boolean }>('/matchmaking/leave', { method: 'POST', accessToken }),
   getMatchmakingStatus: (accessToken: string) =>
     request<MatchmakingStatus>('/matchmaking/status', { accessToken }),
+
+  getResonance: () => request<CardResonanceView[]>('/resonance'),
+  getResonanceTrending: () => request<CardResonanceView[]>('/resonance/trending'),
+  getResonanceHistory: (cardId: string) =>
+    request<ResonanceHistoryPoint[]>(`/resonance/${cardId}/history`),
 };
