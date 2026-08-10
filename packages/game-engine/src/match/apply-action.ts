@@ -102,6 +102,11 @@ function handlePlayCard(
       events,
     });
     broadcastToRunes(state, matchCtx, 'ON_TRACK_PLAYED', playerId, events);
+
+    const trackDefinition = card.effects.find((e) => e.trigger === 'ON_TRACK_PLAYED');
+    if (trackDefinition && !trackDefinition.effects.some((a) => a.type === 'REPEAT_LAST_TRACK')) {
+      state.lastTrackEffect[playerId] = { cardId: card.id, effects: trackDefinition.effects };
+    }
   } else if (card.type === 'RUNE') {
     player.runes.push(card.id);
     events.push({ type: 'RUNE_ACTIVATED', payload: { playerId, cardId: card.id } });
@@ -141,6 +146,7 @@ function handleAttack(
   if (attacker.summonedThisTurn && !attacker.statuses.includes('IMPULSE')) {
     return invalid(state, 'This unit cannot attack the turn it was summoned.');
   }
+  if (attacker.statuses.includes('CURSE')) return invalid(state, 'This unit is cursed and cannot attack.');
 
   const opponentId = Object.keys(state.players).find((id) => id !== playerId)!;
   if (targetId !== opponentId) {

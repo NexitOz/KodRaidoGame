@@ -21,7 +21,8 @@ export interface DeckValidationIssue {
     | 'CARD_NOT_PLAYABLE'
     | 'CARD_NOT_FOUND'
     | 'CARD_RIGHTS_BLOCKED'
-    | 'CARD_NOT_OWNED';
+    | 'CARD_NOT_OWNED'
+    | 'CARD_IS_TOKEN';
   cardId?: string;
   message: string;
 }

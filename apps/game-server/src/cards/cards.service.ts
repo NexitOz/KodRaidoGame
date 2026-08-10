@@ -24,6 +24,12 @@ export function toCardDto(card: PrismaCard): Card {
     active: card.active,
     isToken: card.isToken,
     resonanceTier: card.resonanceTier as Card['resonanceTier'],
+    faction: card.faction,
+    subFactions: card.subFactions,
+    archetypeTags: card.archetypeTags,
+    isNeutral: card.isNeutral,
+    isCrossoverEligible: card.isCrossoverEligible,
+    isReferenceContent: card.isReferenceContent,
   };
 
   switch (card.type) {
@@ -56,13 +62,27 @@ export function toCardDto(card: PrismaCard): Card {
   }
 }
 
+/**
+ * Reference/dev-only content (isReferenceContent = true) is never seeded to production,
+ * never granted to users, and must never appear in the public API or collection unless
+ * this flag is explicitly enabled. Content Pack 01's cards are all original IP and are
+ * never gated by this flag - it exists purely as forward-looking infrastructure.
+ */
+function isReferenceContentEnabled(): boolean {
+  return process.env.REFERENCE_CONTENT_ENABLED === 'true';
+}
+
 @Injectable()
 export class CardsService {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAllPlayable(): Promise<Card[]> {
     const cards = await this.prisma.card.findMany({
-      where: { active: true, rightsStatus: { not: 'blocked' } },
+      where: {
+        active: true,
+        rightsStatus: { not: 'blocked' },
+        ...(isReferenceContentEnabled() ? {} : { isReferenceContent: false }),
+      },
       orderBy: [{ type: 'asc' }, { cost: 'asc' }],
     });
     return cards.map(toCardDto);
@@ -70,7 +90,12 @@ export class CardsService {
 
   async findOnePlayable(id: string): Promise<Card | null> {
     const card = await this.prisma.card.findFirst({
-      where: { id, active: true, rightsStatus: { not: 'blocked' } },
+      where: {
+        id,
+        active: true,
+        rightsStatus: { not: 'blocked' },
+        ...(isReferenceContentEnabled() ? {} : { isReferenceContent: false }),
+      },
     });
     return card ? toCardDto(card) : null;
   }

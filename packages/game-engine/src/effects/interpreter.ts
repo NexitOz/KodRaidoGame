@@ -1,16 +1,25 @@
 import {
   MAX_BOARD_UNITS,
   type Card,
+  type CharacterCard,
   type EffectAction,
   type EffectTrigger,
+  type StatusType,
 } from '@kod-raido/shared';
 import { createRng } from '../rng.js';
 import { drawCard } from '../match/draw.js';
 import type { GameEvent, MatchContext, MatchState, UnitInstance } from '../match/types.js';
 import { applyBoost, boostPercentFor, nextInstanceId } from '../match/util.js';
-import { checkConditions, markOncePerTurnUsed } from './conditions.js';
+import { checkConditions, markOncePerTurnUsed, markOncePerMatchUsed } from './conditions.js';
 import { checkWinConditions, dealDamageToTarget, destroyTarget, healTarget } from './primitives.js';
 import { resolveTargets, type ResolvedTarget } from './targets.js';
+
+const NEGATIVE_STATUSES: StatusType[] = ['CURSE', 'SILENCED'];
+
+/** Deterministic percent scaling used by REVIVE_FROM_DISCARD and REPEAT_LAST_TRACK. Always floors. */
+function scaleByPercent(value: number, percent: number): number {
+  return Math.floor((value * percent) / 100);
+}
 
 export interface RunEffectsInput {
   state: MatchState;
@@ -49,6 +58,9 @@ export function runEffects(input: RunEffectsInput): void {
     if (definition.conditions?.some((c) => c.type === 'ONCE_PER_TURN')) {
       markOncePerTurnUsed(input.state, effectKey);
     }
+    if (definition.conditions?.some((c) => c.type === 'ONCE_PER_MATCH')) {
+      markOncePerMatchUsed(input.state, effectKey);
+    }
 
     for (const action of definition.effects) {
       executeAction(action, input, rng);
@@ -78,7 +90,15 @@ function executeAction(action: EffectAction, input: RunEffectsInput, rng: () => 
     }
 
     case 'HEAL': {
-      for (const t of targets()) healTarget(input.state, t, action.amount ?? 0, input.events);
+      for (const t of targets()) {
+        const before = healthOf(input.state, t);
+        healTarget(input.state, t, action.amount ?? 0, input.events);
+        if (healthOf(input.state, t) > before) {
+          const healedOwnerId = t.kind === 'conductor' ? t.playerId : t.ownerId;
+          const healedInstanceId = t.kind === 'unit' ? t.instanceId : undefined;
+          broadcastToRunes(input.state, input.matchCtx, 'ON_HEAL', healedOwnerId, input.events, healedInstanceId);
+        }
+      }
       break;
     }
 
@@ -205,9 +225,151 @@ function executeAction(action: EffectAction, input: RunEffectsInput, rng: () => 
       break;
     }
 
+    case 'CLEANSE': {
+      const toRemove = action.status ? [action.status] : NEGATIVE_STATUSES;
+      for (const t of targets()) {
+        if (t.kind !== 'unit') continue;
+        const unit = findUnitOn(input.state, t);
+        if (!unit) continue;
+        const before = unit.statuses.length;
+        unit.statuses = unit.statuses.filter((s) => !toRemove.includes(s));
+        if (unit.statuses.length !== before) {
+          input.events.push({
+            type: 'STATUS_CLEANSED',
+            payload: { instanceId: unit.instanceId, removed: toRemove },
+          });
+        }
+      }
+      break;
+    }
+
+    case 'REVIVE_FROM_DISCARD': {
+      reviveFromDiscard(action, input);
+      processDeaths(input.state, input.matchCtx, input.events);
+      break;
+    }
+
+    case 'REORDER_TOP': {
+      reorderTop(action, input);
+      break;
+    }
+
+    case 'REPEAT_LAST_TRACK': {
+      repeatLastTrack(action, input, rng);
+      break;
+    }
+
+    case 'CHOOSE_ONE': {
+      const branch = isFriendlyTarget(input.state, input.ownerId, input.explicitTargetId)
+        ? action.ifFriendlyTarget
+        : action.ifEnemyTarget;
+      for (const inner of branch ?? []) executeAction(inner, input, rng);
+      break;
+    }
+
     default:
       break;
   }
+}
+
+function healthOf(state: MatchState, target: ResolvedTarget): number {
+  if (target.kind === 'conductor') return state.players[target.playerId]?.conductorHp ?? 0;
+  return state.players[target.ownerId]?.board.find((u) => u.instanceId === target.instanceId)
+    ?.health ?? -Infinity;
+}
+
+/** True when explicitTargetId resolves to the caster's own conductor or a unit on their board. */
+function isFriendlyTarget(state: MatchState, ownerId: string, explicitTargetId?: string): boolean {
+  if (!explicitTargetId) return false;
+  if (explicitTargetId === ownerId) return true;
+  return state.players[ownerId]?.board.some((u) => u.instanceId === explicitTargetId) ?? false;
+}
+
+function reviveFromDiscard(action: EffectAction, input: RunEffectsInput): void {
+  const player = input.state.players[input.ownerId]!;
+  const count = action.amount ?? 1;
+  const percent = action.percent ?? 100;
+
+  for (let i = 0; i < count; i += 1) {
+    if (player.board.length >= MAX_BOARD_UNITS) break;
+    const idx = player.discard.findIndex((entry) => {
+      const def = input.matchCtx.cards.get(entry.cardId);
+      return (
+        def?.type === 'CHARACTER' && (!action.tagFilter || def.tags.includes(action.tagFilter))
+      );
+    });
+    if (idx === -1) break;
+
+    const [entry] = player.discard.splice(idx, 1);
+    const def = input.matchCtx.cards.get(entry!.cardId) as CharacterCard;
+    const boost = boostPercentFor(input.state, def.id);
+    const attack = Math.max(0, scaleByPercent(applyBoost(def.attack, boost), percent));
+    const health = Math.max(1, scaleByPercent(applyBoost(def.health, boost), percent));
+
+    const unit: UnitInstance = {
+      instanceId: nextInstanceId(input.state, 'unit'),
+      cardId: def.id,
+      ownerId: input.ownerId,
+      attack,
+      health,
+      maxHealth: health,
+      statuses: [],
+      summonedThisTurn: true,
+      attackedThisTurn: false,
+    };
+    player.board.push(unit);
+    input.events.push({
+      type: 'UNIT_REVIVED',
+      payload: { instanceId: unit.instanceId, cardId: def.id, ownerId: input.ownerId },
+    });
+  }
+}
+
+function reorderTop(action: EffectAction, input: RunEffectsInput): void {
+  const player = input.state.players[input.ownerId]!;
+  const windowSize = action.amount ?? 3;
+  const window = player.deck.slice(0, windowSize);
+  const idx = window.findIndex((entry) => {
+    if (!action.tagFilter) return true;
+    return input.matchCtx.cards.get(entry.cardId)?.tags.includes(action.tagFilter) ?? false;
+  });
+  if (idx === -1) return;
+
+  const [entry] = player.deck.splice(idx, 1);
+  if (action.destination === 'BOTTOM') {
+    player.deck.push(entry!);
+  } else {
+    player.deck.unshift(entry!);
+  }
+  input.events.push({
+    type: 'DECK_REORDERED',
+    payload: {
+      playerId: input.ownerId,
+      cardId: entry!.cardId,
+      destination: action.destination ?? 'TOP',
+    },
+  });
+}
+
+function repeatLastTrack(action: EffectAction, input: RunEffectsInput, rng: () => number): void {
+  const entry = input.state.lastTrackEffect[input.ownerId];
+  if (!entry) return;
+  const percent = action.percent ?? 50;
+
+  for (const inner of entry.effects) {
+    if (inner.type === 'REPEAT_LAST_TRACK') continue;
+    const scaled: EffectAction = {
+      ...inner,
+      attack: inner.attack !== undefined ? scaleByPercent(inner.attack, percent) : undefined,
+      health: inner.health !== undefined ? scaleByPercent(inner.health, percent) : undefined,
+      amount: inner.amount !== undefined ? scaleByPercent(inner.amount, percent) : undefined,
+    };
+    executeAction(scaled, input, rng);
+  }
+  input.events.push({
+    type: 'TRACK_ECHOED',
+    payload: { playerId: input.ownerId, cardId: entry.cardId, percent },
+  });
 }
 
 function findUnitOn(state: MatchState, target: ResolvedTarget): UnitInstance | undefined {
@@ -294,6 +456,9 @@ export function processDeaths(
             events,
           });
         }
+        // Generic "react to any ally death" hook (e.g. Shadow archetype runes), independent
+        // of whether the dying unit's own deathrattle was silenced.
+        broadcastToRunes(state, matchCtx, 'ON_DEATH', player.playerId, events, unit.instanceId);
         more = true;
       }
     }

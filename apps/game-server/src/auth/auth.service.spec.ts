@@ -64,7 +64,9 @@ function createFakePrisma() {
       },
     },
     card: {
-      async findMany() {
+      lastFindManyWhere: undefined as Record<string, unknown> | undefined,
+      async findMany({ where }: { where: Record<string, unknown> }) {
+        this.lastFindManyWhere = where;
         return [];
       },
     },
@@ -142,6 +144,14 @@ describe('AuthService', () => {
     await expect(service.refresh(registered.refreshToken)).rejects.toBeInstanceOf(
       UnauthorizedException,
     );
+  });
+
+  it('excludes tokens and reference-content cards from the starter collection grant', async () => {
+    await service.register('starter@kodraido.io', 'starteruser', 'password123');
+    expect(prisma.card.lastFindManyWhere).toMatchObject({
+      isToken: false,
+      isReferenceContent: false,
+    });
   });
 
   it('logout revokes the refresh token', async () => {

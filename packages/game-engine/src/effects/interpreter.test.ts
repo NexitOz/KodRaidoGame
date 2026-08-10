@@ -486,6 +486,418 @@ describe('runEffects — conditions', () => {
   });
 });
 
+describe('runEffects — ON_DEATH / ON_HEAL rune broadcasts (Content Pack 01)', () => {
+  it('broadcasts ON_DEATH to runes for ANY ally death, not just the dying unit itself', async () => {
+    const { makeCharacter, makeRune } = await import('../test-helpers.js');
+    const { processDeaths } = await import('./interpreter.js');
+    const rune = makeRune({
+      id: 'death-rune',
+      effects: [
+        {
+          trigger: 'ON_DEATH',
+          conditions: [],
+          effects: [{ type: 'GAIN_ENERGY', amount: 1 }],
+        },
+      ],
+    });
+    const victim = makeUnit({ ownerId: 'p1', cardId: 'victim', health: 0, maxHealth: 3 });
+    const survivor = makeCharacter({ id: 'survivor' });
+    const state = makeBareMatchState({
+      activePlayerId: 'p1',
+      player1: { playerId: 'p1', board: [victim], runes: [rune.id], energy: 0 },
+      player2: { playerId: 'p2' },
+    });
+
+    processDeaths(state, makeContext([rune, survivor]), []);
+
+    expect(state.players.p1!.energy).toBe(1);
+  });
+
+  it('broadcasts ON_HEAL to runes only when a unit actually gains health', async () => {
+    const { makeCharacter, makeRune } = await import('../test-helpers.js');
+    const rune = makeRune({
+      id: 'heal-rune',
+      effects: [
+        { trigger: 'ON_HEAL', conditions: [], effects: [{ type: 'GAIN_ENERGY', amount: 1 }] },
+      ],
+    });
+    const healer = makeCharacter({
+      id: 'healer',
+      effects: [
+        {
+          trigger: 'ON_PLAY',
+          conditions: [],
+          effects: [{ type: 'HEAL', target: 'FRIENDLY_CHOSEN', amount: 3 }],
+        },
+      ],
+    });
+    const fullHealth = makeUnit({ ownerId: 'p1', cardId: 'full', health: 3, maxHealth: 3 });
+    const state = makeBareMatchState({
+      activePlayerId: 'p1',
+      player1: { playerId: 'p1', board: [fullHealth], runes: [rune.id], energy: 0 },
+      player2: { playerId: 'p2' },
+    });
+
+    // Already at max health: heal is a no-op, so ON_HEAL must NOT fire.
+    runEffects({
+      state,
+      matchCtx: makeContext([healer, rune]),
+      trigger: 'ON_PLAY',
+      ownerId: 'p1',
+      sourceCardId: healer.id,
+      explicitTargetId: fullHealth.instanceId,
+      events: [],
+    });
+    expect(state.players.p1!.energy).toBe(0);
+
+    fullHealth.health = 1;
+    runEffects({
+      state,
+      matchCtx: makeContext([healer, rune]),
+      trigger: 'ON_PLAY',
+      ownerId: 'p1',
+      sourceCardId: healer.id,
+      explicitTargetId: fullHealth.instanceId,
+      events: [],
+    });
+    expect(state.players.p1!.energy).toBe(1);
+  });
+});
+
+describe('runEffects — CLEANSE', () => {
+  it('removes CURSE and SILENCED by default but leaves SHIELD/HIDDEN alone', async () => {
+    const { makeCharacter } = await import('../test-helpers.js');
+    const target = makeUnit({
+      ownerId: 'p1',
+      cardId: 'cursed',
+      statuses: ['CURSE', 'SILENCED', 'SHIELD'],
+    });
+    const card = makeCharacter({
+      id: 'cleanser',
+      effects: [
+        { trigger: 'ON_PLAY', conditions: [], effects: [{ type: 'CLEANSE', target: 'SELF' }] },
+      ],
+    });
+    const state = makeBareMatchState({
+      activePlayerId: 'p1',
+      player1: { playerId: 'p1', board: [target] },
+      player2: { playerId: 'p2' },
+    });
+
+    runEffects({
+      state,
+      matchCtx: makeContext([card]),
+      trigger: 'ON_PLAY',
+      ownerId: 'p1',
+      sourceCardId: card.id,
+      sourceInstanceId: target.instanceId,
+      events: [],
+    });
+
+    expect(state.players.p1!.board[0]!.statuses).toEqual(['SHIELD']);
+  });
+});
+
+describe('runEffects — REVIVE_FROM_DISCARD', () => {
+  it('revives the first matching CHARACTER from discard as a fresh unit, deterministically', async () => {
+    const { makeCharacter } = await import('../test-helpers.js');
+    const fallen = makeCharacter({ id: 'fallen', slug: 'fallen', attack: 4, health: 4 });
+    const card = makeCharacter({
+      id: 'necromancer',
+      effects: [
+        {
+          trigger: 'ON_PLAY',
+          conditions: [],
+          effects: [{ type: 'REVIVE_FROM_DISCARD', amount: 1, percent: 50 }],
+        },
+      ],
+    });
+    const state = makeBareMatchState({
+      activePlayerId: 'p1',
+      player1: { playerId: 'p1', discard: [{ instanceId: 'd1', cardId: 'fallen' }] },
+      player2: { playerId: 'p2' },
+    });
+
+    runEffects({
+      state,
+      matchCtx: makeContext([card, fallen]),
+      trigger: 'ON_PLAY',
+      ownerId: 'p1',
+      sourceCardId: card.id,
+      events: [],
+    });
+
+    expect(state.players.p1!.discard).toHaveLength(0);
+    expect(state.players.p1!.board).toHaveLength(1);
+    expect(state.players.p1!.board[0]!.cardId).toBe('fallen');
+    expect(state.players.p1!.board[0]!.attack).toBe(2); // floor(4 * 50%)
+    expect(state.players.p1!.board[0]!.health).toBe(2);
+  });
+
+  it('is a no-op when the board is full or discard has no matching CHARACTER', async () => {
+    const { makeCharacter } = await import('../test-helpers.js');
+    const card = makeCharacter({
+      id: 'necromancer2',
+      effects: [
+        {
+          trigger: 'ON_PLAY',
+          conditions: [],
+          effects: [{ type: 'REVIVE_FROM_DISCARD', amount: 1 }],
+        },
+      ],
+    });
+    const state = makeBareMatchState({
+      activePlayerId: 'p1',
+      player1: { playerId: 'p1', discard: [] },
+      player2: { playerId: 'p2' },
+    });
+
+    runEffects({
+      state,
+      matchCtx: makeContext([card]),
+      trigger: 'ON_PLAY',
+      ownerId: 'p1',
+      sourceCardId: card.id,
+      events: [],
+    });
+
+    expect(state.players.p1!.board).toHaveLength(0);
+  });
+});
+
+describe('runEffects — REORDER_TOP', () => {
+  it('moves the first tag-matching card within the scan window to the top', async () => {
+    const { makeCharacter } = await import('../test-helpers.js');
+    const card = makeCharacter({
+      id: 'seer',
+      effects: [
+        {
+          trigger: 'ON_PLAY',
+          conditions: [],
+          effects: [{ type: 'REORDER_TOP', amount: 3, tagFilter: 'Mystery' }],
+        },
+      ],
+    });
+    const state = makeBareMatchState({
+      activePlayerId: 'p1',
+      player1: {
+        playerId: 'p1',
+        deck: [
+          { instanceId: 'd1', cardId: 'other' },
+          { instanceId: 'd2', cardId: 'other' },
+          { instanceId: 'd3', cardId: 'mystery-card' },
+          { instanceId: 'd4', cardId: 'other' },
+        ],
+      },
+      player2: { playerId: 'p2' },
+    });
+    const mysteryCard = makeCharacter({ id: 'mystery-card', tags: ['Mystery'] });
+
+    runEffects({
+      state,
+      matchCtx: makeContext([card, mysteryCard]),
+      trigger: 'ON_PLAY',
+      ownerId: 'p1',
+      sourceCardId: card.id,
+      events: [],
+    });
+
+    expect(state.players.p1!.deck[0]!.instanceId).toBe('d3');
+    expect(state.players.p1!.deck).toHaveLength(4);
+  });
+
+  it('sends a scanned card to the bottom when destination is BOTTOM', async () => {
+    const { makeCharacter } = await import('../test-helpers.js');
+    const card = makeCharacter({
+      id: 'diviner',
+      effects: [
+        {
+          trigger: 'ON_PLAY',
+          conditions: [],
+          effects: [{ type: 'REORDER_TOP', amount: 1, destination: 'BOTTOM' }],
+        },
+      ],
+    });
+    const state = makeBareMatchState({
+      activePlayerId: 'p1',
+      player1: {
+        playerId: 'p1',
+        deck: [
+          { instanceId: 'd1', cardId: 'x' },
+          { instanceId: 'd2', cardId: 'x' },
+        ],
+      },
+      player2: { playerId: 'p2' },
+    });
+
+    runEffects({
+      state,
+      matchCtx: makeContext([card]),
+      trigger: 'ON_PLAY',
+      ownerId: 'p1',
+      sourceCardId: card.id,
+      events: [],
+    });
+
+    expect(state.players.p1!.deck.map((c) => c.instanceId)).toEqual(['d2', 'd1']);
+  });
+});
+
+describe('runEffects — REPEAT_LAST_TRACK (deterministic Echo scaling)', () => {
+  it('re-applies the last friendly Track effect at the given percent, floored', async () => {
+    const { makeCharacter } = await import('../test-helpers.js');
+    const echoCard = makeCharacter({
+      id: 'echo',
+      effects: [
+        {
+          trigger: 'ON_PLAY',
+          conditions: [],
+          effects: [{ type: 'REPEAT_LAST_TRACK', percent: 50 }],
+        },
+      ],
+    });
+    const state = makeBareMatchState({
+      activePlayerId: 'p1',
+      player1: { playerId: 'p1', conductorHp: 10 },
+      player2: { playerId: 'p2' },
+    });
+    state.lastTrackEffect.p1 = {
+      cardId: 'some-track',
+      effects: [{ type: 'HEAL', target: 'FRIENDLY_CONDUCTOR', amount: 5 }],
+    };
+
+    runEffects({
+      state,
+      matchCtx: makeContext([echoCard]),
+      trigger: 'ON_PLAY',
+      ownerId: 'p1',
+      sourceCardId: echoCard.id,
+      events: [],
+    });
+
+    expect(state.players.p1!.conductorHp).toBe(12); // 10 + floor(5 * 50%)
+  });
+
+  it('does nothing if no Track has been played yet this match', async () => {
+    const { makeCharacter } = await import('../test-helpers.js');
+    const echoCard = makeCharacter({
+      id: 'echo2',
+      effects: [
+        { trigger: 'ON_PLAY', conditions: [], effects: [{ type: 'REPEAT_LAST_TRACK' }] },
+      ],
+    });
+    const state = makeBareMatchState({
+      activePlayerId: 'p1',
+      player1: { playerId: 'p1', conductorHp: 10 },
+      player2: { playerId: 'p2' },
+    });
+
+    runEffects({
+      state,
+      matchCtx: makeContext([echoCard]),
+      trigger: 'ON_PLAY',
+      ownerId: 'p1',
+      sourceCardId: echoCard.id,
+      events: [],
+    });
+
+    expect(state.players.p1!.conductorHp).toBe(10);
+  });
+});
+
+describe('runEffects — CHOOSE_ONE', () => {
+  it('runs ifFriendlyTarget when the chosen target is friendly, ifEnemyTarget otherwise', async () => {
+    const { makeCharacter } = await import('../test-helpers.js');
+    const card = makeCharacter({
+      id: 'chooser',
+      effects: [
+        {
+          trigger: 'ON_PLAY',
+          conditions: [],
+          effects: [
+            {
+              type: 'CHOOSE_ONE',
+              ifFriendlyTarget: [{ type: 'HEAL', target: 'FRIENDLY_CHOSEN', amount: 3 }],
+              ifEnemyTarget: [{ type: 'DAMAGE', target: 'ENEMY_CHOSEN', amount: 3 }],
+            },
+          ],
+        },
+      ],
+    });
+    const ally = makeUnit({ ownerId: 'p1', cardId: 'ally', health: 1, maxHealth: 5 });
+    const enemy = makeUnit({ ownerId: 'p2', cardId: 'enemy', health: 5, maxHealth: 5 });
+    const state = makeBareMatchState({
+      activePlayerId: 'p1',
+      player1: { playerId: 'p1', board: [ally] },
+      player2: { playerId: 'p2', board: [enemy] },
+    });
+
+    runEffects({
+      state,
+      matchCtx: makeContext([card]),
+      trigger: 'ON_PLAY',
+      ownerId: 'p1',
+      sourceCardId: card.id,
+      explicitTargetId: ally.instanceId,
+      events: [],
+    });
+    expect(state.players.p1!.board[0]!.health).toBe(4);
+    expect(state.players.p2!.board[0]!.health).toBe(5);
+
+    runEffects({
+      state,
+      matchCtx: makeContext([card]),
+      trigger: 'ON_PLAY',
+      ownerId: 'p1',
+      sourceCardId: card.id,
+      explicitTargetId: enemy.instanceId,
+      events: [],
+    });
+    expect(state.players.p2!.board[0]!.health).toBe(2);
+  });
+});
+
+describe('runEffects — ONCE_PER_MATCH', () => {
+  it('allows exactly one execution for the whole match, across turns', async () => {
+    const { makeCharacter } = await import('../test-helpers.js');
+    const card = makeCharacter({
+      id: 'once-per-match-card',
+      effects: [
+        {
+          trigger: 'ON_PLAY',
+          conditions: [{ type: 'ONCE_PER_MATCH' }],
+          effects: [{ type: 'GAIN_ENERGY', amount: 1 }],
+        },
+      ],
+    });
+    const state = makeBareMatchState({
+      activePlayerId: 'p1',
+      player1: { playerId: 'p1', energy: 0 },
+      player2: { playerId: 'p2' },
+    });
+
+    runEffects({
+      state,
+      matchCtx: makeContext([card]),
+      trigger: 'ON_PLAY',
+      ownerId: 'p1',
+      sourceCardId: card.id,
+      events: [],
+    });
+    state.turn += 1;
+    runEffects({
+      state,
+      matchCtx: makeContext([card]),
+      trigger: 'ON_PLAY',
+      ownerId: 'p1',
+      sourceCardId: card.id,
+      events: [],
+    });
+
+    expect(state.players.p1!.energy).toBe(1);
+  });
+});
+
 describe('runEffects — TRIGGER_SOURCE target (reactive rune pattern)', () => {
   it('buffs the unit that triggered the reaction, not the rune itself', async () => {
     const { makeCharacter } = await import('../test-helpers.js');

@@ -17,10 +17,16 @@ function makeCharacter(overrides: Partial<CharacterCard>): CharacterCard {
     rightsStatus: overrides.rightsStatus ?? 'placeholder',
     isPlayable: overrides.isPlayable ?? true,
     active: overrides.active ?? true,
-    isToken: false,
-    resonanceTier: 0,
+    isToken: overrides.isToken ?? false,
+    resonanceTier: overrides.resonanceTier ?? 0,
     attack: 2,
     health: 2,
+    faction: overrides.faction ?? 'NEUTRAL',
+    subFactions: overrides.subFactions ?? [],
+    archetypeTags: overrides.archetypeTags ?? [],
+    isNeutral: overrides.isNeutral ?? true,
+    isCrossoverEligible: overrides.isCrossoverEligible ?? true,
+    isReferenceContent: overrides.isReferenceContent ?? false,
     ...overrides,
   };
 }
@@ -97,6 +103,15 @@ describe('validateDeck', () => {
     const result = validateDeck([{ cardId: 'blocked', quantity: 2 }], cardsById);
     expect(result.valid).toBe(false);
     expect(result.issues.some((issue) => issue.code === 'CARD_RIGHTS_BLOCKED')).toBe(true);
+  });
+
+  it('rejects token cards from being added to a deck', () => {
+    const cardsById = new Map<string, Card>([
+      ['token-1', makeCharacter({ id: 'token-1', isToken: true })],
+    ]);
+    const result = validateDeck([{ cardId: 'token-1', quantity: 2 }], cardsById);
+    expect(result.valid).toBe(false);
+    expect(result.issues.some((issue) => issue.code === 'CARD_IS_TOKEN')).toBe(true);
   });
 
   it('flags unknown card ids', () => {

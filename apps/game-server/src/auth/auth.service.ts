@@ -84,8 +84,15 @@ export class AuthService {
   }
 
   private async grantStarterCollection(userId: string): Promise<void> {
+    // Tokens aren't collectible (summon-only) and reference/dev content is never granted
+    // to real users regardless of REFERENCE_CONTENT_ENABLED - see cards.service.ts.
     const starterCards = await this.prisma.card.findMany({
-      where: { active: true, rightsStatus: { not: 'blocked' } },
+      where: {
+        active: true,
+        rightsStatus: { not: 'blocked' },
+        isToken: false,
+        isReferenceContent: false,
+      },
       select: { id: true },
     });
     if (starterCards.length === 0) return;

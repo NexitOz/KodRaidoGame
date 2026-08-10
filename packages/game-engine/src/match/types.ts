@@ -1,4 +1,10 @@
-import type { BoostSnapshotEntry, Card, GameAction, StatusType } from '@kod-raido/shared';
+import type {
+  BoostSnapshotEntry,
+  Card,
+  EffectAction,
+  GameAction,
+  StatusType,
+} from '@kod-raido/shared';
 
 export type { GameAction };
 
@@ -59,6 +65,12 @@ export interface MatchState {
   instanceCounter: number;
   effectUsage: Record<string, number>;
   pendingEndOfTurnReverts: EndOfTurnRevert[];
+  /**
+   * Most recently resolved ON_TRACK_PLAYED effect list per player, keyed by playerId.
+   * Powers REPEAT_LAST_TRACK (deterministic Echo scaling). A track whose own effects
+   * already contain a REPEAT_LAST_TRACK action is never stored here, so echoing can't chain.
+   */
+  lastTrackEffect: Record<string, { cardId: string; effects: EffectAction[] } | undefined>;
   finished: boolean;
   winnerId?: string;
 }

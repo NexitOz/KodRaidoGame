@@ -38,6 +38,15 @@ export function validateDeck(
       continue;
     }
 
+    if (card.isToken) {
+      issues.push({
+        code: 'CARD_IS_TOKEN',
+        cardId: entry.cardId,
+        message: `${card.name} is a token and cannot be added to a deck.`,
+      });
+      continue;
+    }
+
     const limit = deckLimitForRarity(card.rarity);
     if (entry.quantity > limit) {
       issues.push({
