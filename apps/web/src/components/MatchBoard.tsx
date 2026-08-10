@@ -1,44 +1,36 @@
 'use client';
 
-import type { ReactNode } from 'react';
-import Link from 'next/link';
+import { useState, type ReactNode } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
-import type { MatchEventView, MatchRewards, MatchStateView, UnitInstanceView } from '@kod-raido/shared';
-import { Button, CardView } from '@kod-raido/ui';
-import { UnitToken } from './UnitToken';
+import type {
+  Card,
+  MatchEventView,
+  MatchRewards,
+  MatchStateView,
+  RankTierDefinition,
+  UnitInstanceView,
+} from '@kod-raido/shared';
+import { Button } from '@kod-raido/ui';
+import { api } from '@/lib/api';
+import { useCombatFeedback } from '@/lib/use-combat-feedback';
+import { computeViewerResonanceHeat } from '@/lib/resonance-heat';
+import { ConductorPanel } from './battlefield/ConductorPanel';
+import { CreatureRow } from './battlefield/CreatureRow';
+import { OpponentHandBacks } from './battlefield/OpponentHandBacks';
+import { HandFan } from './battlefield/HandFan';
+import { HandCardPreview } from './battlefield/HandCardPreview';
+import { ResonancePulse } from './battlefield/ResonancePulse';
+import { TrackZone } from './battlefield/TrackZone';
+import { RuneZone } from './battlefield/RuneZone';
+import { TurnOverlay } from './battlefield/TurnOverlay';
+import { EventLogSheet } from './battlefield/EventLogSheet';
+import { ResultModal } from './battlefield/ResultModal';
 
 export type MatchSelection =
   | { kind: 'hand'; instanceId: string; cost: number }
   | { kind: 'unit'; instanceId: string }
   | null;
-
-const EVENT_LABEL: Record<string, string> = {
-  CARD_PLAYED: 'сыграл карту',
-  UNIT_SUMMONED: 'призвал существо',
-  RUNE_ACTIVATED: 'активировал руну',
-  ATTACK: 'атаковал',
-  ATTACK_DECLARED: 'объявил атаку',
-  DAMAGE: 'нанёс урон',
-  UNIT_DAMAGED: 'нанёс урон существу',
-  UNIT_DIED: 'существо погибло',
-  UNIT_HEALED: 'существо исцелено',
-  CONDUCTOR_DAMAGED: 'урон по Проводнику',
-  CONDUCTOR_HEALED: 'Проводник исцелён',
-  TURN_START: 'начался ход',
-  TURN_END: 'ход завершён',
-  CARD_DRAWN: 'взял карту',
-  CARD_BURNED: 'сжёг карту',
-  FATIGUE_DAMAGE: 'урон от истощения',
-  SHIELD: 'получил щит',
-  SHIELD_CONSUMED: 'щит поглотил урон',
-  SILENCE: 'наложено безмолвие',
-  STATUS_ADDED: 'наложен статус',
-  MATCH_FINISHED: 'матч завершён',
-};
-
-function eventLabel(event: MatchEventView): string {
-  return EVENT_LABEL[event.type] ?? event.type;
-}
 
 export interface MatchBoardProps {
   view: MatchStateView;
@@ -62,6 +54,8 @@ export interface MatchBoardProps {
   onEndTurn: () => void;
   /** Extra status banner rendered above the board (e.g. PvP reconnect notices). */
   banner?: ReactNode;
+  /** Viewer's own rank, shown on their conductor panel — PvP only, "при наличии данных". */
+  viewerRank?: RankTierDefinition;
 }
 
 export function MatchBoard({
@@ -84,179 +78,150 @@ export function MatchBoard({
   onConfirmPlayNoTarget,
   onEndTurn,
   banner,
+  viewerRank,
 }: MatchBoardProps) {
   const { you, opponent } = view;
   const targetingEnemy = Boolean(selection);
   const readyAttackers = new Set(
     you.board.filter((u) => !u.summonedThisTurn && !u.attackedThisTurn).map((u) => u.instanceId),
   );
+  const ownTargetable = selection?.kind === 'hand';
+  const ownInteractive = new Set<string>([
+    ...readyAttackers,
+    ...(ownTargetable ? you.board.map((u) => u.instanceId) : []),
+  ]);
+  const opponentTargetable = new Set(targetingEnemy ? opponent.board.map((u) => u.instanceId) : []);
+
+  const { data: cards } = useQuery({ queryKey: ['cards'], queryFn: api.getCards });
+  const cardsById = new Map<string, Card>((cards ?? []).map((c) => [c.id, c]));
+
+  const { items, deathToasts, resonanceTriggerKey, runeTriggerKey, trackTrigger } = useCombatFeedback(events);
+  const feedbackByTarget = new Map<string, typeof items>();
+  for (const item of items) {
+    const list = feedbackByTarget.get(item.target) ?? [];
+    list.push(item);
+    feedbackByTarget.set(item.target, list);
+  }
+
+  const [previewCard, setPreviewCard] = useState<Card | null>(null);
+
+  const resonanceHeat = computeViewerResonanceHeat(view);
+  const opponentDeathToasts = deathToasts.filter((d) => d.ownerId === opponent.playerId);
+  const ownDeathToasts = deathToasts.filter((d) => d.ownerId === you.playerId);
+  const opponentRunePulse = runeTriggerKey?.playerId === opponent.playerId ? runeTriggerKey.key : 0;
+  const ownRunePulse = runeTriggerKey?.playerId === you.playerId ? runeTriggerKey.key : 0;
 
   return (
-    <div className="flex flex-col gap-4 pb-24">
+    <div className="mx-auto flex w-full max-w-md flex-col gap-1.5 pb-20">
+      <TurnOverlay activePlayerId={view.activePlayerId} isMyTurn={isMyTurn} />
+
       <header className="flex items-center justify-between text-xs text-raido-mist">
-        <span>Ход {view.turn}</span>
-        <span className={isMyTurn ? 'text-raido-red' : ''}>
-          {isMyTurn ? 'Твой ход' : opponentTurnLabel}
+        <span>
+          Ход {view.turn} · <span className={isMyTurn ? 'font-semibold text-raido-red' : ''}>
+            {isMyTurn ? 'Твой ход' : opponentTurnLabel}
+          </span>
         </span>
+        <EventLogSheet events={events} />
       </header>
 
       {banner}
 
-      <section className="flex flex-col gap-2 rounded-xl border border-white/10 bg-raido-graphite/60 p-3">
+      <section className="flex flex-col gap-1.5">
+        <ConductorPanel
+          player={opponent}
+          name={opponentName}
+          icon={opponentIcon}
+          align="left"
+          targetable={targetingEnemy}
+          onTap={onTapEnemyConductor}
+          feedback={feedbackByTarget.get(`conductor:${opponent.playerId}`) ?? []}
+        />
         <div className="flex items-center justify-between">
-          <button
-            type="button"
-            onClick={onTapEnemyConductor}
-            disabled={!targetingEnemy}
-            className={clsx(
-              'flex items-center gap-2 rounded-lg px-2 py-1 text-left transition-colors',
-              targetingEnemy && 'ring-1 ring-emerald-400/60',
-            )}
-          >
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-raido-black text-sm font-bold">
-              {opponentIcon}
-            </span>
-            <span className="text-sm">
-              <span className="block font-semibold text-raido-white">{opponentName}</span>
-              <span className="text-raido-mist">
-                ♥ {opponent.conductorHp} · ⚡ {opponent.energy}/{opponent.maxEnergy}
-              </span>
-            </span>
-          </button>
-          <span className="text-[11px] text-raido-mist">
-            Рука {opponent.handCount} · Колода {opponent.deckCount}
-          </span>
+          <OpponentHandBacks count={opponent.handCount} />
+          <RuneZone runeCardIds={opponent.runeCardIds} cardsById={cardsById} pulseKey={opponentRunePulse} />
         </div>
-        <div className="flex min-h-[72px] flex-wrap gap-1.5">
-          {opponent.board.map((unit) => (
-            <UnitToken
-              key={unit.instanceId}
-              unit={unit}
-              targetable={targetingEnemy}
-              onSelect={onTapEnemyUnit}
-            />
-          ))}
-        </div>
+        <CreatureRow
+          units={opponent.board}
+          targetableIds={opponentTargetable}
+          hasActiveSelection={targetingEnemy}
+          interactiveIds={opponentTargetable}
+          onSelect={onTapEnemyUnit}
+          feedbackByTarget={feedbackByTarget}
+          deathToasts={opponentDeathToasts}
+        />
       </section>
 
-      {events.length > 0 ? (
-        <details className="rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-xs text-raido-mist">
-          <summary className="cursor-pointer select-none font-semibold text-raido-white">
-            Журнал событий
-          </summary>
-          <ul className="mt-2 flex flex-col gap-1">
-            {events
-              .slice(-15)
-              .reverse()
-              .map((e, i) => (
-                <li key={i}>{eventLabel(e)}</li>
-              ))}
-          </ul>
-        </details>
-      ) : null}
+      <section className="relative flex items-center justify-center py-1">
+        <ResonancePulse tier={resonanceHeat} triggerKey={resonanceTriggerKey} />
+        <TrackZone trigger={trackTrigger} cardsById={cardsById} />
+      </section>
 
-      <section className="flex flex-col gap-2 rounded-xl border border-white/10 bg-raido-graphite/60 p-3">
-        <div className="flex min-h-[72px] flex-wrap gap-1.5">
-          {you.board.map((unit) => (
-            <UnitToken
-              key={unit.instanceId}
-              unit={unit}
-              selectable={readyAttackers.has(unit.instanceId)}
-              selected={selection?.kind === 'unit' && selection.instanceId === unit.instanceId}
-              targetable={selection?.kind === 'hand'}
-              onSelect={onSelectOwnUnit}
-            />
-          ))}
-        </div>
+      <section className="flex flex-col gap-1.5">
+        <CreatureRow
+          units={you.board}
+          selectedInstanceId={selection?.kind === 'unit' ? selection.instanceId : null}
+          readyAttackerIds={readyAttackers}
+          targetableIds={ownTargetable ? new Set(you.board.map((u) => u.instanceId)) : undefined}
+          hasActiveSelection={ownTargetable}
+          interactiveIds={ownInteractive}
+          onSelect={onSelectOwnUnit}
+          feedbackByTarget={feedbackByTarget}
+          deathToasts={ownDeathToasts}
+        />
         <div className="flex items-center justify-between">
+          <RuneZone runeCardIds={you.runeCardIds} cardsById={cardsById} pulseKey={ownRunePulse} />
           <span className="text-[11px] text-raido-mist">
             Колода {you.deckCount} · Сброс {you.discardCount}
           </span>
-          <button
-            type="button"
-            onClick={onTapOwnConductor}
-            disabled={selection?.kind !== 'hand'}
-            className={clsx(
-              'flex items-center gap-2 rounded-lg px-2 py-1 transition-colors',
-              selection?.kind === 'hand' && 'ring-1 ring-emerald-400/60',
-            )}
-          >
-            <span className="text-sm">
-              <span className="block text-right font-semibold text-raido-white">Ты</span>
-              <span className="text-raido-mist">
-                ♥ {you.conductorHp} · ⚡ {you.energy}/{you.maxEnergy}
-              </span>
-            </span>
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-raido-black text-sm font-bold">
-              🧑
-            </span>
-          </button>
         </div>
+        <ConductorPanel
+          player={you}
+          name="Ты"
+          icon="🧑"
+          align="right"
+          targetable={ownTargetable}
+          onTap={onTapOwnConductor}
+          feedback={feedbackByTarget.get(`conductor:${you.playerId}`) ?? []}
+          rank={viewerRank}
+        />
       </section>
 
-      <section className="flex flex-col gap-2">
-        <div className="flex gap-2 overflow-x-auto pb-2">
-          {you.hand.map(({ instanceId, card }) => (
-            <div key={instanceId} className="shrink-0">
-              <CardView
-                card={card}
-                size="sm"
-                onSelect={() => onSelectHand(instanceId, card.cost)}
-                className={clsx(
-                  selection?.kind === 'hand' && selection.instanceId === instanceId
-                    ? 'ring-2 ring-raido-red'
-                    : '',
-                  card.cost > you.energy && 'opacity-40',
-                )}
-              />
-            </div>
-          ))}
-        </div>
+      <section className="flex flex-col gap-1.5">
+        <HandFan
+          cards={you.hand}
+          energy={you.energy}
+          selectedInstanceId={selection?.kind === 'hand' ? selection.instanceId : null}
+          disabled={!isMyTurn || pending}
+          onSelect={onSelectHand}
+          onPreview={setPreviewCard}
+        />
 
-        {actionError ? <p className="text-xs text-raido-redGlow">{actionError}</p> : null}
+        {actionError ? (
+          <p className="text-center text-xs text-raido-redGlow" role="alert">
+            {actionError}
+          </p>
+        ) : null}
 
         <div className="flex gap-2">
           {selection?.kind === 'hand' ? (
-            <Button
-              variant="secondary"
-              onClick={onConfirmPlayNoTarget}
-              disabled={pending}
-              className="flex-1"
-            >
+            <Button variant="secondary" onClick={onConfirmPlayNoTarget} disabled={pending} className="flex-1">
               Сыграть без цели
             </Button>
           ) : null}
-          <Button onClick={onEndTurn} disabled={!isMyTurn || pending} className="flex-1">
+          <Button
+            onClick={onEndTurn}
+            disabled={!isMyTurn || pending}
+            className={clsx('min-h-12 flex-1 text-base', isMyTurn && !pending && 'shadow-glow')}
+          >
             {pending ? 'Обработка…' : 'Завершить ход'}
           </Button>
         </div>
       </section>
 
+      <HandCardPreview card={previewCard} onClose={() => setPreviewCard(null)} />
+
       {view.finished ? (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/80 p-4">
-          <div className="flex w-full max-w-sm flex-col items-center gap-4 rounded-2xl border border-white/10 bg-raido-graphite p-6 text-center">
-            <h2 className="font-display text-2xl font-bold">
-              {view.winnerId === you.playerId ? 'Победа!' : 'Поражение'}
-            </h2>
-            {rewards ? (
-              <p className="text-sm text-raido-mist">
-                +{rewards.xp} опыта · +{rewards.softCurrency} монет
-                {typeof rewards.mmrDelta === 'number'
-                  ? ` · рейтинг ${rewards.mmrDelta >= 0 ? '+' : ''}${rewards.mmrDelta}`
-                  : ''}
-                {rewards.leveledUp ? ' · Новый уровень!' : ''}
-              </p>
-            ) : null}
-            <div className="flex gap-3">
-              <Link href={rematchHref}>
-                <Button>Играть снова</Button>
-              </Link>
-              <Link href="/collection">
-                <Button variant="secondary">К коллекции</Button>
-              </Link>
-            </div>
-          </div>
-        </div>
+        <ResultModal won={view.winnerId === you.playerId} rewards={rewards} rematchHref={rematchHref} />
       ) : null}
     </div>
   );

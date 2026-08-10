@@ -4,13 +4,14 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { Button } from '@kod-raido/ui';
-import type {
-  MatchActionInput,
-  MatchEventView,
-  MatchPresencePayload,
-  MatchRewards,
-  MatchStateView,
-  UnitInstanceView,
+import {
+  rankForMmr,
+  type MatchActionInput,
+  type MatchEventView,
+  type MatchPresencePayload,
+  type MatchRewards,
+  type MatchStateView,
+  type UnitInstanceView,
 } from '@kod-raido/shared';
 import type { Socket } from 'socket.io-client';
 import { useAuthStore } from '@/lib/auth-store';
@@ -25,6 +26,7 @@ export default function PvpMatchPage() {
   const params = useParams<{ matchId: string }>();
   const matchId = params.matchId;
   const accessToken = useAuthStore((s) => s.accessToken);
+  const viewerMmr = useAuthStore((s) => s.user?.mmr);
 
   const socketRef = useRef<Socket | null>(null);
   const [connection, setConnection] = useState<ConnectionState>('connecting');
@@ -202,6 +204,7 @@ export default function PvpMatchPage() {
       onConfirmPlayNoTarget={confirmPlayNoTarget}
       onEndTurn={endTurn}
       banner={banner}
+      viewerRank={typeof viewerMmr === 'number' ? rankForMmr(viewerMmr) : undefined}
     />
   );
 }
