@@ -2,6 +2,13 @@
 
 Отслеживание реализации по фазам из технического задания.
 
+## Статус веток (актуально на момент этого коммита)
+
+Ветка `claude/execute-specification-tasks-jytvjm` синхронизирована с `main`: смержены
+production/Docker/OpenSSL-фиксы `game-server.Dockerfile` (два коммита `main`, не пересекались ни
+с одним файлом из Phase 5-7 — merge прошёл без конфликтов). Ветка содержит полный набор фаз
+0-6 плюс часть Phase 7 (см. ниже) и готова к мержу в `main` одним PR.
+
 ## Phase 0 — Foundation ✅ Done
 
 - [x] npm workspaces monorepo: `apps/*`, `packages/*`
