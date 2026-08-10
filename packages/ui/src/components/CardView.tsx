@@ -5,7 +5,7 @@ import { ResonanceBadge } from './ResonanceBadge.js';
 
 export interface CardViewProps {
   card: Card;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'xs' | 'sm' | 'md' | 'lg';
   trending?: boolean;
   onSelect?: (card: Card) => void;
   className?: string;
@@ -30,6 +30,7 @@ export function CardView({ card, size = 'md', trending, onSelect, className }: C
         'group relative flex w-full flex-col overflow-hidden rounded-2xl border bg-raido-graphite text-left transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-raido-red',
         'active:scale-[0.98] hover:-translate-y-0.5',
         RARITY_FRAME_CLASS[card.rarity],
+        size === 'xs' && 'max-w-[92px]',
         size === 'sm' && 'max-w-[140px]',
         size === 'md' && 'max-w-[200px]',
         size === 'lg' && 'max-w-[280px]',
@@ -43,14 +44,24 @@ export function CardView({ card, size = 'md', trending, onSelect, className }: C
           className="h-full w-full object-cover opacity-90 transition-opacity group-hover:opacity-100"
           loading="lazy"
         />
-        <div className="absolute inset-x-0 top-0 flex items-center justify-between p-2">
-          <span className="flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-sm font-bold text-raido-white ring-1 ring-white/10">
+        <div className={clsx('absolute inset-x-0 top-0 flex items-center justify-between', size === 'xs' ? 'p-1' : 'p-2')}>
+          <span
+            className={clsx(
+              'flex items-center justify-center rounded-full bg-black/70 font-bold text-raido-white ring-1 ring-white/10',
+              size === 'xs' ? 'h-5 w-5 text-xs' : 'h-7 w-7 text-sm',
+            )}
+          >
             {card.cost}
           </span>
-          <ResonanceBadge tier={card.resonanceTier} trending={trending} />
+          {size !== 'xs' ? <ResonanceBadge tier={card.resonanceTier} trending={trending} /> : null}
         </div>
         {isCharacter ? (
-          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between p-2 text-sm font-bold">
+          <div
+            className={clsx(
+              'absolute inset-x-0 bottom-0 flex items-center justify-between font-bold',
+              size === 'xs' ? 'p-1 text-xs' : 'p-2 text-sm',
+            )}
+          >
             <span className="rounded-md bg-black/70 px-1.5 py-0.5 text-raido-white">
               ⚔ {card.attack}
             </span>
@@ -60,12 +71,16 @@ export function CardView({ card, size = 'md', trending, onSelect, className }: C
           </div>
         ) : null}
       </div>
-      <div className="flex flex-1 flex-col gap-1 p-2.5">
-        <p className="truncate text-sm font-semibold text-raido-white">{card.name}</p>
-        <p className="text-[11px] uppercase tracking-wide text-raido-mist">
-          {TYPE_LABEL[card.type]} · {RARITY_LABEL[card.rarity]}
-        </p>
-      </div>
+      {size === 'xs' ? (
+        <p className="truncate px-1.5 py-1 text-[11px] font-semibold text-raido-white">{card.name}</p>
+      ) : (
+        <div className="flex flex-1 flex-col gap-1 p-2.5">
+          <p className="truncate text-sm font-semibold text-raido-white">{card.name}</p>
+          <p className="text-[11px] uppercase tracking-wide text-raido-mist">
+            {TYPE_LABEL[card.type]} · {RARITY_LABEL[card.rarity]}
+          </p>
+        </div>
+      )}
     </button>
   );
 }

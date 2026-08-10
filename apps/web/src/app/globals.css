@@ -20,9 +20,33 @@ body {
   @apply bg-raido-red/40 text-raido-white;
 }
 
-/* Low Data Mode turns off rarity glow animations to save battery/CPU on low-end devices. */
+/* Low Data Mode turns off continuous decorative glow/particle loops to save battery/CPU on
+   low-end devices. Short one-shot combat feedback (damage numbers, turn banner, hit flash) stays
+   on even in Low Data Mode — it's the primary way a player reads match state, not decoration. */
 [data-low-data='true'] .animate-pulse-rune,
 [data-low-data='true'] .animate-pulse-legendary,
-[data-low-data='true'] .animate-shimmer-epic {
+[data-low-data='true'] .animate-shimmer-epic,
+[data-low-data='true'] .animate-ready-glow,
+[data-low-data='true'] .animate-waveform-bar {
   animation: none;
+}
+
+/* prefers-reduced-motion (WCAG 2.3.3): drop movement/scale/looping animations entirely rather
+   than just speeding them up — a near-zero-duration transform animation would flash instead of
+   disappearing cleanly. Elements that carry state (e.g. a floating damage number) are still
+   mounted/unmounted on the same timer by JS, so removing the animation just makes them appear
+   and hold statically instead of flying/fading, which stays fully readable. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse-rune,
+  .animate-pulse-legendary,
+  .animate-shimmer-epic,
+  .animate-ready-glow,
+  .animate-waveform-bar,
+  .animate-float-up,
+  .animate-shake-hit,
+  .animate-card-in,
+  .animate-resonance-pulse,
+  .animate-turn-banner {
+    animation: none !important;
+  }
 }

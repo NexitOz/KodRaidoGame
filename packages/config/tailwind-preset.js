@@ -31,6 +31,14 @@ module.exports = {
         'pulse-rune': 'pulse-rune 2.4s ease-in-out infinite',
         'pulse-legendary': 'pulse-legendary 3s ease-in-out infinite',
         'shimmer-epic': 'shimmer-epic 1.8s ease-in-out infinite',
+        'ready-glow': 'ready-glow 2.6s ease-in-out infinite',
+        'resonance-pulse': 'resonance-pulse 0.6s ease-out',
+        'float-up': 'float-up 0.7s ease-out forwards',
+        'flash-hit': 'flash-hit 0.35s ease-out',
+        'shake-hit': 'shake-hit 0.3s ease-in-out',
+        'turn-banner': 'turn-banner 0.8s ease-in-out forwards',
+        'card-in': 'card-in 0.4s ease-out',
+        'waveform-bar': 'waveform-bar 0.5s ease-in-out infinite',
       },
       keyframes: {
         'pulse-rune': {
@@ -44,6 +52,44 @@ module.exports = {
         'shimmer-epic': {
           '0%, 100%': { opacity: '0.7', filter: 'drop-shadow(0 0 2px rgba(232,121,249,0.3))' },
           '50%': { opacity: '1', filter: 'drop-shadow(0 0 8px rgba(232,121,249,0.7))' },
+        },
+        /* Deliberately low-amplitude/slow (2.6s, opacity 0.8→1) — spec explicitly warns
+         * against an "irritating infinite flash" for ready-to-attack units. */
+        'ready-glow': {
+          '0%, 100%': { boxShadow: '0 0 0 1px rgba(52,211,153,0.5)', opacity: '0.85' },
+          '50%': { boxShadow: '0 0 10px 1px rgba(52,211,153,0.8)', opacity: '1' },
+        },
+        'resonance-pulse': {
+          '0%': { transform: 'scale(0.9)', opacity: '0.5' },
+          '55%': { transform: 'scale(1.18)', opacity: '1' },
+          '100%': { transform: 'scale(1)', opacity: '0.9' },
+        },
+        'float-up': {
+          '0%': { transform: 'translateY(0)', opacity: '1' },
+          '100%': { transform: 'translateY(-30px)', opacity: '0' },
+        },
+        'flash-hit': {
+          '0%, 100%': { filter: 'brightness(1)' },
+          '40%': { filter: 'brightness(1.9) saturate(1.3)' },
+        },
+        'shake-hit': {
+          '0%, 100%': { transform: 'translateX(0)' },
+          '25%': { transform: 'translateX(-3px)' },
+          '75%': { transform: 'translateX(3px)' },
+        },
+        'turn-banner': {
+          '0%': { opacity: '0', transform: 'scale(0.94)' },
+          '15%': { opacity: '1', transform: 'scale(1)' },
+          '80%': { opacity: '1', transform: 'scale(1)' },
+          '100%': { opacity: '0', transform: 'scale(1.02)' },
+        },
+        'card-in': {
+          '0%': { opacity: '0', transform: 'translateY(6px) scale(0.96)' },
+          '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
+        },
+        'waveform-bar': {
+          '0%, 100%': { transform: 'scaleY(0.3)' },
+          '50%': { transform: 'scaleY(1)' },
         },
       },
     },
