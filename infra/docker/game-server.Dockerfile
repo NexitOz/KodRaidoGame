@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1
 FROM node:20-slim AS base
 WORKDIR /repo
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 RUN corepack enable
 
 FROM base AS deps
@@ -22,6 +23,7 @@ RUN npm run build -w apps/game-server
 FROM node:20-slim AS runtime
 WORKDIR /repo
 ENV NODE_ENV=production
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 COPY --from=build /repo/node_modules ./node_modules
 COPY --from=build /repo/packages ./packages
 COPY --from=build /repo/apps/game-server ./apps/game-server
