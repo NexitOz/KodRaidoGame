@@ -4,6 +4,7 @@ import {
   makeCharacter,
   makeContext,
   makeRune,
+  makeTrack,
   makeUnit,
 } from '../test-helpers.js';
 import { applyAction } from './apply-action.js';
@@ -145,6 +146,33 @@ describe('applyAction — PLAY_CARD', () => {
     );
     expect(second.valid).toBe(false); // discount already used, full cost of 3 > 0 energy left
   });
+
+  it('records the last played Track effect for REPEAT_LAST_TRACK, but not for a self-echoing track', () => {
+    const track = makeTrack({
+      id: 'a-track',
+      effects: [
+        {
+          trigger: 'ON_TRACK_PLAYED',
+          conditions: [],
+          effects: [{ type: 'DRAW', amount: 1 }],
+        },
+      ],
+    });
+    const state = makeBareMatchState({
+      activePlayerId: 'p1',
+      player1: { playerId: 'p1', energy: 5, hand: [{ instanceId: 'hand-1', cardId: track.id }] },
+      player2: { playerId: 'p2' },
+    });
+
+    const result = applyAction(
+      state,
+      { type: 'PLAY_CARD', playerId: 'p1', cardId: 'hand-1' },
+      makeContext([track]),
+    );
+
+    expect(result.valid).toBe(true);
+    expect(result.state.lastTrackEffect.p1?.cardId).toBe('a-track');
+  });
 });
 
 describe('applyAction — ATTACK', () => {
@@ -187,6 +215,21 @@ describe('applyAction — ATTACK', () => {
 
   it('rejects a second attack from the same unit in one turn', () => {
     const attacker = makeUnit({ ownerId: 'p1', cardId: 'a', attackedThisTurn: true });
+    const state = makeBareMatchState({
+      activePlayerId: 'p1',
+      player1: { playerId: 'p1', board: [attacker] },
+      player2: { playerId: 'p2' },
+    });
+    const result = applyAction(
+      state,
+      { type: 'ATTACK', playerId: 'p1', attackerId: attacker.instanceId, targetId: 'p2' },
+      makeContext([]),
+    );
+    expect(result.valid).toBe(false);
+  });
+
+  it('rejects attacking with a CURSEd unit', () => {
+    const attacker = makeUnit({ ownerId: 'p1', cardId: 'a', statuses: ['CURSE'] });
     const state = makeBareMatchState({
       activePlayerId: 'p1',
       player1: { playerId: 'p1', board: [attacker] },

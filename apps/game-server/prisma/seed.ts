@@ -71,6 +71,13 @@ interface SeedCard {
   abilityText?: string;
   effectJson?: unknown[];
   linkedTrackSlug?: string;
+  isToken?: boolean;
+  isPlayable?: boolean;
+  faction?: string;
+  subFactions?: string[];
+  archetypeTags?: string[];
+  isNeutral?: boolean;
+  isCrossoverEligible?: boolean;
 }
 
 const TRACKS = [
@@ -96,7 +103,7 @@ const TRACKS = [
   },
 ];
 
-const CARDS: SeedCard[] = [
+const LEGACY_CARDS: SeedCard[] = [
   // --- Characters: Shadow Aggro archetype (8) ---
   {
     slug: 'kael-rider-of-ash',
@@ -463,9 +470,798 @@ const CARDS: SeedCard[] = [
   },
 ];
 
-const DECK_PRESETS: Array<{ name: string; entries: Array<{ slug: string; quantity: number }> }> = [
+// =====================================================================================
+// CONTENT PACK 01 - 40 fully original cards (10 Neutral + 6 test factions x 5 cards).
+// No third-party franchise IP: all names, lore, and abilities are original Kod Raido
+// content, written purely to stress-test the DSL/archetype/deckbuilding/Resonance/
+// Battlefield systems. No cardId-specific engine logic is used anywhere below - every
+// ability routes through the generic effect DSL. See docs/content-pack-01.md.
+// =====================================================================================
+
+function withFaction(
+  card: SeedCard,
+  faction: string,
+  subFactions: string[],
+  archetypeTags: string[],
+): SeedCard {
+  return {
+    ...card,
+    faction,
+    subFactions,
+    archetypeTags,
+    isNeutral: faction === 'NEUTRAL',
+    isCrossoverEligible: faction === 'NEUTRAL',
+  };
+}
+
+// --- Neutral (9 new; "Руна Райдо" already exists above and is reused as-is) ---
+const NEUTRAL_CARDS: SeedCard[] = [
   {
-    name: 'Shadow Aggro',
+    slug: 'resonance-impulse',
+    name: 'Импульс Резонанса',
+    type: 'EVENT',
+    rarity: 'COMMON',
+    cost: 2,
+    tags: [],
+    abilityText:
+      'Выбранный союзник получает Импульс (может атаковать в этот же ход). При Резонансе 3+: доберите 1 карту.',
+    effectJson: [
+      {
+        trigger: 'ON_PLAY',
+        conditions: [],
+        effects: [{ type: 'ADD_STATUS', target: 'FRIENDLY_CHOSEN', status: 'IMPULSE' }],
+      },
+      {
+        trigger: 'ON_PLAY',
+        conditions: [{ type: 'RESONANCE_TIER_AT_LEAST', value: 3 }],
+        effects: [{ type: 'DRAW', amount: 1 }],
+      },
+    ],
+  },
+  {
+    slug: 'edits-echo',
+    name: 'Эхо Эдита',
+    type: 'CHARACTER',
+    rarity: 'RARE',
+    cost: 4,
+    tags: [],
+    attack: 3,
+    health: 4,
+    abilityText:
+      'При выходе: повторите эффект последней разыгранной вами карты Трека с силой 50% (округление вниз). Не может повторить сама себя.',
+    effectJson: [
+      { trigger: 'ON_PLAY', conditions: [], effects: [{ type: 'REPEAT_LAST_TRACK', percent: 50 }] },
+    ],
+  },
+  {
+    slug: 'musical-burst',
+    name: 'Музыкальный Всплеск',
+    type: 'TRACK',
+    rarity: 'COMMON',
+    cost: 2,
+    tags: [],
+    abilityText: 'Доберите 1 карту. При Резонансе 3+: получите 1 доп. Энергию в этот ход.',
+    effectJson: [
+      { trigger: 'ON_TRACK_PLAYED', conditions: [], effects: [{ type: 'DRAW', amount: 1 }] },
+      {
+        trigger: 'ON_TRACK_PLAYED',
+        conditions: [{ type: 'RESONANCE_TIER_AT_LEAST', value: 3 }],
+        effects: [{ type: 'GAIN_ENERGY', amount: 1 }],
+      },
+    ],
+  },
+  {
+    slug: 'supporters-pulse',
+    name: 'Пульс Поддержки',
+    type: 'EVENT',
+    rarity: 'RARE',
+    cost: 2,
+    tags: [],
+    abilityText:
+      'Выберите: восстановите 3 здоровья союзнику ИЛИ нанесите 2 урона врагу - в зависимости от выбранной цели.',
+    effectJson: [
+      {
+        trigger: 'ON_PLAY',
+        conditions: [],
+        effects: [
+          {
+            type: 'CHOOSE_ONE',
+            ifFriendlyTarget: [{ type: 'HEAL', target: 'FRIENDLY_CHOSEN', amount: 3 }],
+            ifEnemyTarget: [{ type: 'DAMAGE', target: 'ENEMY_CHOSEN', amount: 2 }],
+          },
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'wave-of-comments',
+    name: 'Волна Комментариев',
+    type: 'TRACK',
+    rarity: 'RARE',
+    cost: 3,
+    tags: [],
+    abilityText:
+      'Доберите 1 карту. При Резонансе 3+: все ваши существа получают +1/+1 до конца хода.',
+    effectJson: [
+      { trigger: 'ON_TRACK_PLAYED', conditions: [], effects: [{ type: 'DRAW', amount: 1 }] },
+      {
+        trigger: 'ON_TRACK_PLAYED',
+        conditions: [{ type: 'RESONANCE_TIER_AT_LEAST', value: 3 }],
+        effects: [
+          { type: 'BUFF', target: 'FRIENDLY_ALL', attack: 1, health: 1, duration: 'END_OF_TURN' },
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'presave-signal',
+    name: 'Пресейв-Сигнал',
+    type: 'EVENT',
+    rarity: 'COMMON',
+    cost: 1,
+    tags: [],
+    abilityText: 'Получите 1 доп. Энергию в этот ход. При Резонансе 5+: доберите 1 карту.',
+    effectJson: [
+      { trigger: 'ON_PLAY', conditions: [], effects: [{ type: 'GAIN_ENERGY', amount: 1 }] },
+      {
+        trigger: 'ON_PLAY',
+        conditions: [{ type: 'RESONANCE_TIER_AT_LEAST', value: 5 }],
+        effects: [{ type: 'DRAW', amount: 1 }],
+      },
+    ],
+  },
+  {
+    slug: 'scene-transition',
+    name: 'Переход Сцены',
+    type: 'EVENT',
+    rarity: 'COMMON',
+    cost: 2,
+    tags: [],
+    abilityText: 'Переместите верхнюю карту вашей колоды в низ, затем доберите карту.',
+    effectJson: [
+      {
+        trigger: 'ON_PLAY',
+        conditions: [],
+        effects: [
+          { type: 'REORDER_TOP', amount: 1, destination: 'BOTTOM' },
+          { type: 'DRAW', amount: 1 },
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'voice-of-subscribers',
+    name: 'Голос Подписчиков',
+    type: 'RUNE',
+    rarity: 'EPIC',
+    cost: 3,
+    tags: [],
+    abilityText:
+      'Пока Резонанс этой карты 3+: первый разыгранный вами Персонаж каждый ход получает +1/+1 до конца хода.',
+    effectJson: [
+      {
+        trigger: 'ON_PLAY',
+        conditions: [{ type: 'ONCE_PER_TURN' }, { type: 'RESONANCE_TIER_AT_LEAST', value: 3 }],
+        effects: [
+          { type: 'BUFF', target: 'TRIGGER_SOURCE', attack: 1, health: 1, duration: 'END_OF_TURN' },
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'code-raido-resonance',
+    name: 'Код Райдо: Резонанс',
+    type: 'TRACK',
+    rarity: 'RAIDO',
+    cost: 5,
+    tags: [],
+    abilityText: 'Доберите 2 карты. При Резонансе 5+: все ваши существа получают Щит.',
+    effectJson: [
+      { trigger: 'ON_TRACK_PLAYED', conditions: [], effects: [{ type: 'DRAW', amount: 2 }] },
+      {
+        trigger: 'ON_TRACK_PLAYED',
+        conditions: [{ type: 'RESONANCE_TIER_AT_LEAST', value: 5 }],
+        effects: [{ type: 'SHIELD', target: 'FRIENDLY_ALL' }],
+      },
+    ],
+  },
+].map((c) => withFaction(c, 'NEUTRAL', [], []));
+
+// --- Shadow: "Орден Сумеречного Эха" - summon tokens, death triggers, revive, snowball ---
+const SHADOW_TOKEN: SeedCard = withFaction(
+  {
+    slug: 'shadow-echo-token',
+    name: 'Эхо-Тень',
+    type: 'CHARACTER',
+    rarity: 'COMMON',
+    cost: 1,
+    tags: ['Shadow', 'Token'],
+    attack: 1,
+    health: 1,
+    isToken: true,
+    isPlayable: false,
+  },
+  'SHADOW',
+  ['Орден Сумеречного Эха'],
+  ['Token'],
+);
+
+const SHADOW_CARDS: SeedCard[] = [
+  {
+    slug: 'whisper-of-the-forgotten',
+    name: 'Шёпот Заброшенных',
+    type: 'CHARACTER',
+    rarity: 'COMMON',
+    cost: 1,
+    tags: ['Shadow'],
+    attack: 1,
+    health: 2,
+    abilityText: 'При гибели призовите Эхо-Тень 1/1. При Резонансе 3+: призовите ещё одну.',
+    effectJson: [
+      {
+        trigger: 'ON_DEATH',
+        conditions: [],
+        effects: [{ type: 'SUMMON', summonCardSlug: 'shadow-echo-token', amount: 1 }],
+      },
+      {
+        trigger: 'ON_DEATH',
+        conditions: [{ type: 'RESONANCE_TIER_AT_LEAST', value: 3 }],
+        effects: [{ type: 'SUMMON', summonCardSlug: 'shadow-echo-token', amount: 1 }],
+      },
+    ],
+  },
+  {
+    slug: 'ashen-blade',
+    name: 'Клинок Пепла',
+    type: 'CHARACTER',
+    rarity: 'COMMON',
+    cost: 2,
+    tags: ['Shadow'],
+    attack: 3,
+    health: 1,
+  },
+  {
+    slug: 'keeper-of-smoldering-embers',
+    name: 'Хранитель Тлеющих Углей',
+    type: 'CHARACTER',
+    rarity: 'RARE',
+    cost: 3,
+    tags: ['Shadow'],
+    attack: 2,
+    health: 3,
+    abilityText: 'При выходе: призовите Эхо-Тень 1/1.',
+    effectJson: [
+      {
+        trigger: 'ON_PLAY',
+        conditions: [],
+        effects: [{ type: 'SUMMON', summonCardSlug: 'shadow-echo-token', amount: 1 }],
+      },
+    ],
+  },
+  {
+    slug: 'rune-of-the-echoing-dusk',
+    name: 'Рунный Страж Эха',
+    type: 'RUNE',
+    rarity: 'EPIC',
+    cost: 3,
+    tags: ['Shadow'],
+    abilityText:
+      'Когда любое ваше существо погибает, призовите на его место Эхо-Тень 1/1.',
+    effectJson: [
+      {
+        trigger: 'ON_DEATH',
+        conditions: [],
+        effects: [{ type: 'SUMMON', summonCardSlug: 'shadow-echo-token', amount: 1 }],
+      },
+    ],
+  },
+  {
+    slug: 'necromancer-of-the-twilight-order',
+    name: 'Некромант Сумеречного Ордена',
+    type: 'CHARACTER',
+    rarity: 'LEGENDARY',
+    cost: 5,
+    tags: ['Shadow'],
+    attack: 4,
+    health: 5,
+    abilityText:
+      'При выходе: верните на поле первого подходящего Shadow-персонажа из вашего сброса (100% характеристик).',
+    effectJson: [
+      {
+        trigger: 'ON_PLAY',
+        conditions: [],
+        effects: [{ type: 'REVIVE_FROM_DISCARD', amount: 1, tagFilter: 'Shadow', percent: 100 }],
+      },
+    ],
+  },
+].map((c) => withFaction(c, 'SHADOW', ['Орден Сумеречного Эха'], ['Summon', 'DeathTrigger', 'Snowball']));
+
+// --- Purification: "Стражи Белой Руны" - cleanse, curses, shields, control ---
+const PURIFICATION_CARDS: SeedCard[] = [
+  {
+    slug: 'acolyte-of-the-white-rune',
+    name: 'Послушник Белой Руны',
+    type: 'CHARACTER',
+    rarity: 'COMMON',
+    cost: 1,
+    tags: ['Purification'],
+    attack: 1,
+    health: 3,
+    abilityText: 'При выходе: снимите Проклятие и Заглушение с выбранного союзника.',
+    effectJson: [
+      { trigger: 'ON_PLAY', conditions: [], effects: [{ type: 'CLEANSE', target: 'FRIENDLY_CHOSEN' }] },
+    ],
+  },
+  {
+    slug: 'seal-of-the-curse',
+    name: 'Печать Проклятия',
+    type: 'EVENT',
+    rarity: 'RARE',
+    cost: 2,
+    tags: ['Purification'],
+    abilityText:
+      'Наложите Проклятие на выбранного вражеского персонажа - он не может атаковать, пока Проклятие не снято.',
+    effectJson: [
+      {
+        trigger: 'ON_PLAY',
+        conditions: [],
+        effects: [{ type: 'ADD_STATUS', target: 'ENEMY_CHOSEN', status: 'CURSE' }],
+      },
+    ],
+  },
+  {
+    slug: 'warden-of-the-barrier',
+    name: 'Хранительница Барьера',
+    type: 'CHARACTER',
+    rarity: 'RARE',
+    cost: 3,
+    tags: ['Purification'],
+    attack: 2,
+    health: 5,
+    abilityText:
+      'При выходе: получает Щит. При Резонансе 5+: снимите Проклятие и Заглушение со всех союзников.',
+    effectJson: [
+      { trigger: 'ON_PLAY', conditions: [], effects: [{ type: 'SHIELD', target: 'SELF' }] },
+      {
+        trigger: 'ON_PLAY',
+        conditions: [{ type: 'RESONANCE_TIER_AT_LEAST', value: 5 }],
+        effects: [{ type: 'CLEANSE', target: 'FRIENDLY_ALL' }],
+      },
+    ],
+  },
+  {
+    slug: 'rune-of-curse-breaking',
+    name: 'Руна Разрушения Проклятий',
+    type: 'RUNE',
+    rarity: 'EPIC',
+    cost: 3,
+    tags: ['Purification'],
+    abilityText: 'В начале каждого вашего хода снимите Проклятие и Заглушение со всех союзников.',
+    effectJson: [
+      { trigger: 'TURN_START', conditions: [], effects: [{ type: 'CLEANSE', target: 'FRIENDLY_ALL' }] },
+    ],
+  },
+  {
+    slug: 'high-warden-of-the-white-rune',
+    name: 'Верховная Хранительница Руны',
+    type: 'CHARACTER',
+    rarity: 'LEGENDARY',
+    cost: 6,
+    tags: ['Purification'],
+    attack: 5,
+    health: 7,
+    abilityText:
+      'Выберите: очистите и защитите союзника Щитом ИЛИ проклиньте врага - в зависимости от выбранной цели.',
+    effectJson: [
+      {
+        trigger: 'ON_PLAY',
+        conditions: [],
+        effects: [
+          {
+            type: 'CHOOSE_ONE',
+            ifFriendlyTarget: [
+              { type: 'CLEANSE', target: 'FRIENDLY_CHOSEN' },
+              { type: 'SHIELD', target: 'FRIENDLY_CHOSEN' },
+            ],
+            ifEnemyTarget: [{ type: 'ADD_STATUS', target: 'ENEMY_CHOSEN', status: 'CURSE' }],
+          },
+        ],
+      },
+    ],
+  },
+].map((c) =>
+  withFaction(c, 'PURIFICATION', ['Стражи Белой Руны'], ['Cleanse', 'Curse', 'Shield', 'Control']),
+);
+
+// --- Bond: "Дом Весеннего Света" - healing, protection, sustain ---
+const BOND_CARDS: SeedCard[] = [
+  {
+    slug: 'child-of-the-spring-light',
+    name: 'Дитя Весеннего Света',
+    type: 'CHARACTER',
+    rarity: 'COMMON',
+    cost: 1,
+    tags: ['Bond'],
+    attack: 1,
+    health: 3,
+    abilityText: 'При выходе: восстановите 1 здоровье Проводнику.',
+    effectJson: [
+      {
+        trigger: 'ON_PLAY',
+        conditions: [],
+        effects: [{ type: 'HEAL', target: 'FRIENDLY_CONDUCTOR', amount: 1 }],
+      },
+    ],
+  },
+  {
+    slug: 'keeper-of-the-promise',
+    name: 'Хранитель Обещания',
+    type: 'CHARACTER',
+    rarity: 'RARE',
+    cost: 3,
+    tags: ['Bond'],
+    attack: 2,
+    health: 5,
+    abilityText: 'При выходе: восстановите 3 здоровья выбранному союзнику.',
+    effectJson: [
+      { trigger: 'ON_PLAY', conditions: [], effects: [{ type: 'HEAL', target: 'FRIENDLY_CHOSEN', amount: 3 }] },
+    ],
+  },
+  {
+    slug: 'light-of-the-hearth',
+    name: 'Свет Очага',
+    type: 'TRACK',
+    rarity: 'RARE',
+    cost: 2,
+    tags: ['Bond'],
+    abilityText:
+      'Восстановите 3 здоровья Проводнику. При Резонансе 3+: восстановите 2 здоровья всем союзным существам.',
+    effectJson: [
+      {
+        trigger: 'ON_TRACK_PLAYED',
+        conditions: [],
+        effects: [{ type: 'HEAL', target: 'FRIENDLY_CONDUCTOR', amount: 3 }],
+      },
+      {
+        trigger: 'ON_TRACK_PLAYED',
+        conditions: [{ type: 'RESONANCE_TIER_AT_LEAST', value: 3 }],
+        effects: [{ type: 'HEAL', target: 'FRIENDLY_ALL', amount: 2 }],
+      },
+    ],
+  },
+  {
+    slug: 'rune-of-reflected-light',
+    name: 'Руна Отражённого Света',
+    type: 'RUNE',
+    rarity: 'EPIC',
+    cost: 3,
+    tags: ['Bond'],
+    abilityText: 'Первый раз за матч, когда союзник исцеляется, он получает Щит.',
+    effectJson: [
+      {
+        trigger: 'ON_HEAL',
+        conditions: [{ type: 'ONCE_PER_MATCH' }],
+        effects: [{ type: 'SHIELD', target: 'TRIGGER_SOURCE' }],
+      },
+    ],
+  },
+  {
+    slug: 'matriarch-of-the-spring-light',
+    name: 'Матриарх Дома Весеннего Света',
+    type: 'CHARACTER',
+    rarity: 'LEGENDARY',
+    cost: 5,
+    tags: ['Bond'],
+    attack: 4,
+    health: 7,
+    abilityText:
+      'При выходе: восстановите 2 здоровья всем союзникам. При Резонансе 5+: все союзники получают Щит.',
+    effectJson: [
+      { trigger: 'ON_PLAY', conditions: [], effects: [{ type: 'HEAL', target: 'FRIENDLY_ALL', amount: 2 }] },
+      {
+        trigger: 'ON_PLAY',
+        conditions: [{ type: 'RESONANCE_TIER_AT_LEAST', value: 5 }],
+        effects: [{ type: 'SHIELD', target: 'FRIENDLY_ALL' }],
+      },
+    ],
+  },
+].map((c) => withFaction(c, 'BOND', ['Дом Весеннего Света'], ['Heal', 'Sustain', 'Shield']));
+
+// --- Veil: "Двор Безымянной Тени" - Hidden, sequencing, ambush, cost manipulation ---
+const VEIL_CARDS: SeedCard[] = [
+  {
+    slug: 'blade-from-the-shadow',
+    name: 'Клинок из Тени',
+    type: 'CHARACTER',
+    rarity: 'COMMON',
+    cost: 2,
+    tags: ['Veil'],
+    attack: 3,
+    health: 2,
+    abilityText: 'При выходе: становится Скрытым (не может быть выбран целью, пока не атакует).',
+    effectJson: [
+      { trigger: 'ON_PLAY', conditions: [], effects: [{ type: 'ADD_STATUS', target: 'SELF', status: 'HIDDEN' }] },
+    ],
+  },
+  {
+    slug: 'scouting-of-the-court',
+    name: 'Разведка Двора',
+    type: 'EVENT',
+    rarity: 'COMMON',
+    cost: 1,
+    tags: ['Veil'],
+    abilityText: 'Следующая карта Veil, разыгранная в этот ход, стоит на 1 Энергию меньше.',
+    effectJson: [
+      {
+        trigger: 'ON_PLAY',
+        conditions: [],
+        effects: [{ type: 'COST_MODIFIER', tagFilter: 'Veil', amount: -1 }],
+      },
+    ],
+  },
+  {
+    slug: 'master-of-the-ambush',
+    name: 'Мастер Засады',
+    type: 'CHARACTER',
+    rarity: 'RARE',
+    cost: 3,
+    tags: ['Veil'],
+    attack: 3,
+    health: 3,
+    abilityText: 'При выходе: становится Скрытым и получает Импульс (может атаковать в этот же ход).',
+    effectJson: [
+      {
+        trigger: 'ON_PLAY',
+        conditions: [],
+        effects: [
+          { type: 'ADD_STATUS', target: 'SELF', status: 'HIDDEN' },
+          { type: 'ADD_STATUS', target: 'SELF', status: 'IMPULSE' },
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'rune-of-the-nameless-court',
+    name: 'Руна Безымянного Двора',
+    type: 'RUNE',
+    rarity: 'EPIC',
+    cost: 3,
+    tags: ['Veil'],
+    abilityText: 'В начале каждого вашего хода первая карта Veil стоит на 1 Энергию меньше.',
+    effectJson: [
+      {
+        trigger: 'TURN_START',
+        conditions: [],
+        effects: [{ type: 'COST_MODIFIER', tagFilter: 'Veil', amount: -1 }],
+      },
+    ],
+  },
+  {
+    slug: 'lord-of-the-nameless-shadow',
+    name: 'Владыка Безымянной Тени',
+    type: 'CHARACTER',
+    rarity: 'LEGENDARY',
+    cost: 5,
+    tags: ['Veil'],
+    attack: 5,
+    health: 4,
+    abilityText:
+      'Выберите: укройте союзника в Тени (Скрытый) ИЛИ заглушите врага - в зависимости от выбранной цели.',
+    effectJson: [
+      {
+        trigger: 'ON_PLAY',
+        conditions: [],
+        effects: [
+          {
+            type: 'CHOOSE_ONE',
+            ifFriendlyTarget: [{ type: 'ADD_STATUS', target: 'FRIENDLY_CHOSEN', status: 'HIDDEN' }],
+            ifEnemyTarget: [{ type: 'SILENCE', target: 'ENEMY_CHOSEN' }],
+          },
+        ],
+      },
+    ],
+  },
+].map((c) => withFaction(c, 'VEIL', ['Двор Безымянной Тени'], ['Hidden', 'Tempo', 'CostReduction']));
+
+// --- Mystery: "Архив Серого Тумана" - deck inspect/reorder, prediction, combo control ---
+const MYSTERY_CARDS: SeedCard[] = [
+  {
+    slug: 'archivist-of-the-grey-mist',
+    name: 'Архивариус Серого Тумана',
+    type: 'CHARACTER',
+    rarity: 'COMMON',
+    cost: 2,
+    tags: ['Mystery'],
+    attack: 2,
+    health: 2,
+    abilityText: 'При выходе: просмотрите верхние 3 карты колоды и поднимите наверх первую карту Mystery.',
+    effectJson: [
+      {
+        trigger: 'ON_PLAY',
+        conditions: [],
+        effects: [{ type: 'REORDER_TOP', amount: 3, tagFilter: 'Mystery' }],
+      },
+    ],
+  },
+  {
+    slug: 'fortune-teller-of-the-mist',
+    name: 'Предсказательница Тумана',
+    type: 'CHARACTER',
+    rarity: 'RARE',
+    cost: 3,
+    tags: ['Mystery'],
+    attack: 2,
+    health: 4,
+    abilityText: 'При выходе: доберите карту, затем переместите верхнюю карту колоды в низ.',
+    effectJson: [
+      {
+        trigger: 'ON_PLAY',
+        conditions: [],
+        effects: [
+          { type: 'DRAW', amount: 1 },
+          { type: 'REORDER_TOP', amount: 2, destination: 'BOTTOM' },
+        ],
+      },
+    ],
+  },
+  {
+    slug: 'scroll-of-the-grey-archive',
+    name: 'Свиток Серого Архива',
+    type: 'EVENT',
+    rarity: 'RARE',
+    cost: 2,
+    tags: ['Mystery'],
+    abilityText: 'Просмотрите верхние 4 карты колоды и поднимите наверх первую карту Mystery.',
+    effectJson: [
+      {
+        trigger: 'ON_PLAY',
+        conditions: [],
+        effects: [{ type: 'REORDER_TOP', amount: 4, tagFilter: 'Mystery' }],
+      },
+    ],
+  },
+  {
+    slug: 'rune-of-foresight',
+    name: 'Руна Предвидения',
+    type: 'RUNE',
+    rarity: 'EPIC',
+    cost: 3,
+    tags: ['Mystery'],
+    abilityText:
+      'В начале каждого вашего хода просмотрите верхние 2 карты колоды и поднимите наверх первую карту Mystery.',
+    effectJson: [
+      {
+        trigger: 'TURN_START',
+        conditions: [],
+        effects: [{ type: 'REORDER_TOP', amount: 2, tagFilter: 'Mystery' }],
+      },
+    ],
+  },
+  {
+    slug: 'keeper-of-the-grey-mist',
+    name: 'Хранитель Серого Тумана',
+    type: 'CHARACTER',
+    rarity: 'LEGENDARY',
+    cost: 6,
+    tags: ['Mystery'],
+    attack: 5,
+    health: 6,
+    abilityText:
+      'При выходе: доберите 2 карты. При Резонансе 3+: поднимите наверх первую карту Mystery среди верхних 3.',
+    effectJson: [
+      { trigger: 'ON_PLAY', conditions: [], effects: [{ type: 'DRAW', amount: 2 }] },
+      {
+        trigger: 'ON_PLAY',
+        conditions: [{ type: 'RESONANCE_TIER_AT_LEAST', value: 3 }],
+        effects: [{ type: 'REORDER_TOP', amount: 3, tagFilter: 'Mystery' }],
+      },
+    ],
+  },
+].map((c) =>
+  withFaction(c, 'MYSTERY', ['Архив Серого Тумана'], ['DeckManipulation', 'Prediction', 'ComboControl']),
+);
+
+// --- Cosmic: "Наследники Звёздного Потока" - temporary Energy, scaling, late-game ---
+const COSMIC_CARDS: SeedCard[] = [
+  {
+    slug: 'spark-of-the-stellar-stream',
+    name: 'Искра Звёздного Потока',
+    type: 'CHARACTER',
+    rarity: 'COMMON',
+    cost: 1,
+    tags: ['Cosmic'],
+    attack: 1,
+    health: 1,
+    abilityText: 'При выходе: получите 1 доп. Энергию в этот ход.',
+    effectJson: [
+      { trigger: 'ON_PLAY', conditions: [], effects: [{ type: 'GAIN_ENERGY', amount: 1 }] },
+    ],
+  },
+  {
+    slug: 'disciple-of-the-stellar-heirs',
+    name: 'Ученица Звёздных Наследников',
+    type: 'CHARACTER',
+    rarity: 'RARE',
+    cost: 2,
+    tags: ['Cosmic'],
+    attack: 1,
+    health: 3,
+    abilityText: 'При выходе: следующая карта Cosmic в этот ход стоит на 2 Энергии меньше.',
+    effectJson: [
+      {
+        trigger: 'ON_PLAY',
+        conditions: [],
+        effects: [{ type: 'COST_MODIFIER', tagFilter: 'Cosmic', amount: -2 }],
+      },
+    ],
+  },
+  {
+    slug: 'portal-of-the-stellar-stream',
+    name: 'Портал Звёздного Потока',
+    type: 'TRACK',
+    rarity: 'RARE',
+    cost: 3,
+    tags: ['Cosmic'],
+    abilityText: 'Получите 2 доп. Энергии в этот ход.',
+    effectJson: [
+      { trigger: 'ON_TRACK_PLAYED', conditions: [], effects: [{ type: 'GAIN_ENERGY', amount: 2 }] },
+    ],
+  },
+  {
+    slug: 'rune-of-the-stellar-tide',
+    name: 'Руна Звёздного Прилива',
+    type: 'RUNE',
+    rarity: 'EPIC',
+    cost: 4,
+    tags: ['Cosmic'],
+    abilityText: 'В начале каждого вашего хода получите 1 доп. Энергию.',
+    effectJson: [
+      { trigger: 'TURN_START', conditions: [], effects: [{ type: 'GAIN_ENERGY', amount: 1 }] },
+    ],
+  },
+  {
+    slug: 'lord-of-the-stellar-stream',
+    name: 'Владыка Звёздного Потока',
+    type: 'CHARACTER',
+    rarity: 'LEGENDARY',
+    cost: 8,
+    tags: ['Cosmic'],
+    attack: 7,
+    health: 8,
+    abilityText: 'При выходе: доберите карту. При Резонансе 5+: получает +2/+2 навсегда.',
+    effectJson: [
+      { trigger: 'ON_PLAY', conditions: [], effects: [{ type: 'DRAW', amount: 1 }] },
+      {
+        trigger: 'ON_PLAY',
+        conditions: [{ type: 'RESONANCE_TIER_AT_LEAST', value: 5 }],
+        effects: [{ type: 'BUFF', target: 'SELF', attack: 2, health: 2, duration: 'PERMANENT' }],
+      },
+    ],
+  },
+].map((c) => withFaction(c, 'COSMIC', ['Наследники Звёздного Потока'], ['Ramp', 'Scaling', 'CostReduction']));
+
+const CONTENT_PACK_01_CARDS: SeedCard[] = [
+  ...NEUTRAL_CARDS,
+  SHADOW_TOKEN,
+  ...SHADOW_CARDS,
+  ...PURIFICATION_CARDS,
+  ...BOND_CARDS,
+  ...VEIL_CARDS,
+  ...MYSTERY_CARDS,
+  ...COSMIC_CARDS,
+];
+
+const CARDS: SeedCard[] = [
+  ...LEGACY_CARDS.map((c) => withFaction(c, 'NEUTRAL', [], [])),
+  ...CONTENT_PACK_01_CARDS,
+];
+
+const LEGACY_DECK_PRESETS: Array<{
+  name: string;
+  entries: Array<{ slug: string; quantity: number }>;
+}> = [
+  {
+    name: 'Shadow Aggro (MVP Demo)',
     entries: [
       { slug: 'kael-rider-of-ash', quantity: 2 },
       { slug: 'vex-the-silent', quantity: 2 },
@@ -487,7 +1283,7 @@ const DECK_PRESETS: Array<{ name: string; entries: Array<{ slug: string; quantit
     ],
   },
   {
-    name: 'Resonance Midrange',
+    name: 'Resonance Midrange (MVP Demo)',
     entries: [
       { slug: 'bram-stonewarden', quantity: 2 },
       { slug: 'wren-songkeeper', quantity: 2 },
@@ -508,6 +1304,131 @@ const DECK_PRESETS: Array<{ name: string; entries: Array<{ slug: string; quantit
       { slug: 'kael-rider-of-ash', quantity: 2 },
     ],
   },
+];
+
+// Every Content Pack 01 starter deck runs all 10 Neutral cards at max legal copies (18),
+// all 5 cards of its own faction at max legal copies (9), plus a 3-copy "splash" from a
+// thematically complementary faction to reach exactly 30 - a playtesting baseline, not a
+// claim of perfect balance.
+const CP1_NEUTRAL_ENTRIES = [
+  { slug: 'rune-of-raido', quantity: 1 },
+  { slug: 'resonance-impulse', quantity: 2 },
+  { slug: 'edits-echo', quantity: 2 },
+  { slug: 'musical-burst', quantity: 2 },
+  { slug: 'supporters-pulse', quantity: 2 },
+  { slug: 'wave-of-comments', quantity: 2 },
+  { slug: 'presave-signal', quantity: 2 },
+  { slug: 'scene-transition', quantity: 2 },
+  { slug: 'voice-of-subscribers', quantity: 2 },
+  { slug: 'code-raido-resonance', quantity: 1 },
+];
+
+const CP1_FACTION_ENTRIES: Record<string, Array<{ slug: string; quantity: number }>> = {
+  SHADOW: [
+    { slug: 'whisper-of-the-forgotten', quantity: 2 },
+    { slug: 'ashen-blade', quantity: 2 },
+    { slug: 'keeper-of-smoldering-embers', quantity: 2 },
+    { slug: 'rune-of-the-echoing-dusk', quantity: 2 },
+    { slug: 'necromancer-of-the-twilight-order', quantity: 1 },
+  ],
+  PURIFICATION: [
+    { slug: 'acolyte-of-the-white-rune', quantity: 2 },
+    { slug: 'seal-of-the-curse', quantity: 2 },
+    { slug: 'warden-of-the-barrier', quantity: 2 },
+    { slug: 'rune-of-curse-breaking', quantity: 2 },
+    { slug: 'high-warden-of-the-white-rune', quantity: 1 },
+  ],
+  BOND: [
+    { slug: 'child-of-the-spring-light', quantity: 2 },
+    { slug: 'keeper-of-the-promise', quantity: 2 },
+    { slug: 'light-of-the-hearth', quantity: 2 },
+    { slug: 'rune-of-reflected-light', quantity: 2 },
+    { slug: 'matriarch-of-the-spring-light', quantity: 1 },
+  ],
+  VEIL: [
+    { slug: 'blade-from-the-shadow', quantity: 2 },
+    { slug: 'scouting-of-the-court', quantity: 2 },
+    { slug: 'master-of-the-ambush', quantity: 2 },
+    { slug: 'rune-of-the-nameless-court', quantity: 2 },
+    { slug: 'lord-of-the-nameless-shadow', quantity: 1 },
+  ],
+  MYSTERY: [
+    { slug: 'archivist-of-the-grey-mist', quantity: 2 },
+    { slug: 'fortune-teller-of-the-mist', quantity: 2 },
+    { slug: 'scroll-of-the-grey-archive', quantity: 2 },
+    { slug: 'rune-of-foresight', quantity: 2 },
+    { slug: 'keeper-of-the-grey-mist', quantity: 1 },
+  ],
+  COSMIC: [
+    { slug: 'spark-of-the-stellar-stream', quantity: 2 },
+    { slug: 'disciple-of-the-stellar-heirs', quantity: 2 },
+    { slug: 'portal-of-the-stellar-stream', quantity: 2 },
+    { slug: 'rune-of-the-stellar-tide', quantity: 2 },
+    { slug: 'lord-of-the-stellar-stream', quantity: 1 },
+  ],
+};
+
+const CP1_DECK_PRESETS: Array<{
+  name: string;
+  faction: string;
+  splash: Array<{ slug: string; quantity: number }>;
+}> = [
+  {
+    name: 'Shadow Aggro',
+    faction: 'SHADOW',
+    splash: [
+      { slug: 'blade-from-the-shadow', quantity: 2 },
+      { slug: 'scouting-of-the-court', quantity: 1 },
+    ],
+  },
+  {
+    name: 'Bond Sustain',
+    faction: 'BOND',
+    splash: [
+      { slug: 'acolyte-of-the-white-rune', quantity: 2 },
+      { slug: 'warden-of-the-barrier', quantity: 1 },
+    ],
+  },
+  {
+    name: 'Mystery Control',
+    faction: 'MYSTERY',
+    splash: [
+      { slug: 'seal-of-the-curse', quantity: 2 },
+      { slug: 'rune-of-curse-breaking', quantity: 1 },
+    ],
+  },
+  {
+    name: 'Cosmic Ramp',
+    faction: 'COSMIC',
+    splash: [
+      { slug: 'child-of-the-spring-light', quantity: 2 },
+      { slug: 'keeper-of-the-promise', quantity: 1 },
+    ],
+  },
+  {
+    name: 'Veil Tempo',
+    faction: 'VEIL',
+    splash: [
+      { slug: 'whisper-of-the-forgotten', quantity: 2 },
+      { slug: 'ashen-blade', quantity: 1 },
+    ],
+  },
+  {
+    name: 'Purification Control',
+    faction: 'PURIFICATION',
+    splash: [
+      { slug: 'archivist-of-the-grey-mist', quantity: 2 },
+      { slug: 'scroll-of-the-grey-archive', quantity: 1 },
+    ],
+  },
+];
+
+const DECK_PRESETS: Array<{ name: string; entries: Array<{ slug: string; quantity: number }> }> = [
+  ...LEGACY_DECK_PRESETS,
+  ...CP1_DECK_PRESETS.map((preset) => ({
+    name: preset.name,
+    entries: [...CP1_NEUTRAL_ENTRIES, ...CP1_FACTION_ENTRIES[preset.faction]!, ...preset.splash],
+  })),
 ];
 
 for (const preset of DECK_PRESETS) {
@@ -549,7 +1470,13 @@ async function main() {
         artworkUrl: generatePlaceholderArt(card.name, card.rarity),
         rightsStatus: 'placeholder',
         active: true,
-        isPlayable: true,
+        isPlayable: card.isPlayable ?? true,
+        isToken: card.isToken ?? false,
+        faction: card.faction ?? 'NEUTRAL',
+        subFactions: card.subFactions ?? [],
+        archetypeTags: card.archetypeTags ?? [],
+        isNeutral: card.isNeutral ?? true,
+        isCrossoverEligible: card.isCrossoverEligible ?? true,
       },
       create: {
         slug: card.slug,
@@ -566,7 +1493,13 @@ async function main() {
         artworkUrl: generatePlaceholderArt(card.name, card.rarity),
         rightsStatus: 'placeholder',
         active: true,
-        isPlayable: true,
+        isPlayable: card.isPlayable ?? true,
+        isToken: card.isToken ?? false,
+        faction: card.faction ?? 'NEUTRAL',
+        subFactions: card.subFactions ?? [],
+        archetypeTags: card.archetypeTags ?? [],
+        isNeutral: card.isNeutral ?? true,
+        isCrossoverEligible: card.isCrossoverEligible ?? true,
       },
     });
     cardIdBySlug.set(card.slug, row.id);
@@ -582,7 +1515,7 @@ async function main() {
   });
 
   await prisma.collectionEntry.createMany({
-    data: CARDS.map((card) => ({
+    data: CARDS.filter((card) => !card.isToken).map((card) => ({
       userId: demoUser.id,
       cardId: cardIdBySlug.get(card.slug)!,
       quantity: 2,

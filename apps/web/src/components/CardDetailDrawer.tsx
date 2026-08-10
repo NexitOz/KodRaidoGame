@@ -1,8 +1,11 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import type { Card } from '@kod-raido/shared';
 import { RARITY_LABEL, ResonanceBadge } from '@kod-raido/ui';
+import { api } from '@/lib/api';
+import { factionLabel } from '@/lib/factions';
 
 const TYPE_LABEL: Record<Card['type'], string> = {
   CHARACTER: 'Персонаж',
@@ -12,7 +15,30 @@ const TYPE_LABEL: Record<Card['type'], string> = {
   EDIT: 'Эдит',
 };
 
+/**
+ * Derives a human-readable Resonance behavior summary purely from the card's own DSL
+ * conditions - no card-specific branching, works for any card in any future pack.
+ */
+function describeResonanceBehavior(card: Card): string {
+  const tiers = new Set<number>();
+  for (const def of card.effects) {
+    for (const condition of def.conditions ?? []) {
+      if (condition.type === 'RESONANCE_TIER_AT_LEAST' && typeof condition.value === 'number') {
+        tiers.add(condition.value);
+      }
+    }
+  }
+  if (tiers.size === 0) {
+    return 'Резонанс этой карты влияет только на визуальный эффект (пульс) на поле боя - способность не меняется.';
+  }
+  const sorted = Array.from(tiers).sort((a, b) => a - b);
+  return `Способность этой карты усиливается при Резонансе ${sorted.map((t) => `${t}+`).join(', ')}.`;
+}
+
 export function CardDetailDrawer({ card, onClose }: { card: Card | null; onClose: () => void }) {
+  const { data: tracks } = useQuery({ queryKey: ['tracks'], queryFn: api.getTracks });
+  const linkedTrack = tracks?.find((t) => card?.linkedTrackIds.includes(t.id));
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') onClose();
@@ -47,6 +73,10 @@ export function CardDetailDrawer({ card, onClose }: { card: Card | null; onClose
             <p className="text-xs uppercase tracking-wide text-raido-mist">
               {TYPE_LABEL[card.type]} · {RARITY_LABEL[card.rarity]} · Стоимость {card.cost}
             </p>
+            <p className="text-xs text-raido-mist">
+              {factionLabel(card.faction)}
+              {card.subFactions.length ? ` · ${card.subFactions.join(', ')}` : ''}
+            </p>
             {card.type === 'CHARACTER' ? (
               <p className="text-sm font-semibold">
                 ⚔ {card.attack} ♥ {card.health}
@@ -76,10 +106,15 @@ export function CardDetailDrawer({ card, onClose }: { card: Card | null; onClose
         ) : null}
 
         <div className="mb-4 rounded-xl border border-dashed border-raido-mist/30 p-3 text-xs text-raido-mist">
-          Resonance-буст фиксируется в начале матча. Реальные метрики (прослушивания, лайки,
-          репосты) появятся здесь после запуска импорта в Phase 5 — сейчас показан базовый Tier{' '}
-          {card.resonanceTier}.
+          {describeResonanceBehavior(card)} Резонанс фиксируется в начале матча (Tier{' '}
+          {card.resonanceTier} сейчас).
         </div>
+
+        {linkedTrack ? (
+          <div className="mb-4 rounded-xl border border-white/5 bg-black/30 p-3 text-xs text-raido-mist">
+            Связанный трек: <span className="text-raido-white">{linkedTrack.title}</span>
+          </div>
+        ) : null}
 
         <div className="flex gap-2">
           <button

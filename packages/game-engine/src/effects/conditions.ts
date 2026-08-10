@@ -45,6 +45,9 @@ function checkCondition(condition: EffectCondition, ctx: ConditionContext): bool
     case 'ONCE_PER_TURN':
       return (ctx.state.effectUsage[`${ctx.state.turn}:${ctx.effectKey}`] ?? 0) === 0;
 
+    case 'ONCE_PER_MATCH':
+      return (ctx.state.effectUsage[`match:${ctx.effectKey}`] ?? 0) === 0;
+
     case 'TARGET_HAS_TAG':
       return true;
 
@@ -55,5 +58,11 @@ function checkCondition(condition: EffectCondition, ctx: ConditionContext): bool
 
 export function markOncePerTurnUsed(state: MatchState, effectKey: string): void {
   const key = `${state.turn}:${effectKey}`;
+  state.effectUsage[key] = (state.effectUsage[key] ?? 0) + 1;
+}
+
+/** Match-scoped usage tracking for ONCE_PER_MATCH, keyed independently of the per-turn map. */
+export function markOncePerMatchUsed(state: MatchState, effectKey: string): void {
+  const key = `match:${effectKey}`;
   state.effectUsage[key] = (state.effectUsage[key] ?? 0) + 1;
 }

@@ -59,6 +59,7 @@ export function createMatch(input: CreateMatchInput): MatchState {
     instanceCounter: 0,
     effectUsage: {},
     pendingEndOfTurnReverts: [],
+    lastTrackEffect: {},
     finished: false,
   };
 

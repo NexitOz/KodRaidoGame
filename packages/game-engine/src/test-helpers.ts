@@ -16,6 +16,15 @@ function nextId(prefix: string): string {
   return `${prefix}-${counter}`;
 }
 
+const FACTION_DEFAULTS = {
+  faction: 'NEUTRAL',
+  subFactions: [] as string[],
+  archetypeTags: [] as string[],
+  isNeutral: true,
+  isCrossoverEligible: true,
+  isReferenceContent: false,
+};
+
 interface CharacterOverrides {
   id?: string;
   slug?: string;
@@ -26,6 +35,9 @@ interface CharacterOverrides {
   attack?: number;
   health?: number;
   effects?: EffectDefinition[];
+  isToken?: boolean;
+  resonanceTier?: number;
+  faction?: string;
 }
 
 export function makeCharacter(overrides: CharacterOverrides = {}): CharacterCard {
@@ -44,10 +56,12 @@ export function makeCharacter(overrides: CharacterOverrides = {}): CharacterCard
     rightsStatus: 'placeholder',
     isPlayable: true,
     active: true,
-    isToken: false,
-    resonanceTier: 0,
+    isToken: overrides.isToken ?? false,
+    resonanceTier: (overrides.resonanceTier ?? 0) as CharacterCard['resonanceTier'],
     attack: overrides.attack ?? 2,
     health: overrides.health ?? 2,
+    ...FACTION_DEFAULTS,
+    faction: overrides.faction ?? FACTION_DEFAULTS.faction,
   };
 }
 
@@ -59,6 +73,7 @@ interface SimpleCardOverrides {
   cost?: number;
   tags?: string[];
   effects?: EffectDefinition[];
+  resonanceTier?: number;
 }
 
 export function makeEvent(overrides: SimpleCardOverrides = {}): EventCard {
@@ -78,7 +93,8 @@ export function makeEvent(overrides: SimpleCardOverrides = {}): EventCard {
     isPlayable: true,
     active: true,
     isToken: false,
-    resonanceTier: 0,
+    resonanceTier: (overrides.resonanceTier ?? 0) as EventCard['resonanceTier'],
+    ...FACTION_DEFAULTS,
   };
 }
 
@@ -100,7 +116,8 @@ export function makeTrack(overrides: SimpleCardOverrides = {}): TrackCard {
     isPlayable: true,
     active: true,
     isToken: false,
-    resonanceTier: 0,
+    resonanceTier: (overrides.resonanceTier ?? 0) as TrackCard['resonanceTier'],
+    ...FACTION_DEFAULTS,
   };
 }
 
@@ -121,7 +138,8 @@ export function makeRune(overrides: SimpleCardOverrides = {}): RuneCard {
     isPlayable: true,
     active: true,
     isToken: false,
-    resonanceTier: 0,
+    resonanceTier: (overrides.resonanceTier ?? 0) as RuneCard['resonanceTier'],
+    ...FACTION_DEFAULTS,
   };
 }
 
@@ -186,6 +204,7 @@ export function makeBareMatchState(options: BareMatchOptions): MatchState {
     instanceCounter: 1000,
     effectUsage: {},
     pendingEndOfTurnReverts: [],
+    lastTrackEffect: {},
     finished: false,
   };
 }

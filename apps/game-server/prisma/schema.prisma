@@ -164,6 +164,18 @@ model Card {
   active           Boolean      @default(true)
   isToken          Boolean      @default(false)
   resonanceTier    Int          @default(0)
+
+  // Content Pack 01: faction/subfaction/archetype schema
+  faction              String   @default("NEUTRAL")
+  subFactions          String[] @default([])
+  archetypeTags        String[] @default([])
+  isNeutral            Boolean  @default(true)
+  isCrossoverEligible  Boolean  @default(true)
+  /// Dev/reference-only content gated by REFERENCE_CONTENT_ENABLED. Never seeded to
+  /// production, granted to users, exposed via the API, or shown in a collection
+  /// unless the flag is on.
+  isReferenceContent   Boolean  @default(false)
+
   createdAt        DateTime     @default(now())
   updatedAt        DateTime     @updatedAt
 

@@ -4,10 +4,9 @@
 
 ## Статус веток (актуально на момент этого коммита)
 
-Ветка `claude/execute-specification-tasks-jytvjm` синхронизирована с `main`: смержены
-production/Docker/OpenSSL-фиксы `game-server.Dockerfile` (два коммита `main`, не пересекались ни
-с одним файлом из Phase 5-7 — merge прошёл без конфликтов). Ветка содержит полный набор фаз
-0-6 плюс часть Phase 7 (см. ниже) и готова к мержу в `main` одним PR.
+`main` содержит Phase 0-7 + Battlefield 2.0 (смержены через PR #2 и PR #3). Content Pack 01
+разрабатывается на отдельной ветке `content-pack-01`, созданной от актуального `main` — тот же
+паттерн "своя ветка на фазу + отдельный PR", что и для Battlefield 2.0.
 
 ## Phase 0 — Foundation ✅ Done
 
@@ -499,3 +498,156 @@ production/Docker/OpenSSL-фиксы `game-server.Dockerfile` (два комми
 - Фаворикон (`favicon.ico`) по-прежнему отсутствует (404 в консоли на любой странице) — известно
   с Phase 7, не имеет отношения к Battlefield 2.0, не исправлялось здесь по той же причине, что и
   тогда (нет дизайн-ассета, вне скоупа этой задачи).
+
+## Content Pack 01 / 40 original cards ✅ Done
+
+Полноценный стресс-тест карточной системы: 40 полностью оригинальных карт вселенной «Код Райдо»
+(10 нейтральных + 6 тестовых фракций × 5 карт), новые generic DSL-примитивы, faction/subfaction/
+archetype-схема, `REFERENCE_CONTENT_ENABLED` как инфраструктура на будущее, 6 стартовых колод,
+обновлённый Collection UI. **Никакого стороннего franchise IP** — см. `docs/content-pack-01.md`
+для полного списка карт и обоснования (тот же принцип, что уже задокументирован в `docs/cards.md`
+для "Дополнения").
+
+### Новые generic engine-примитивы (packages/game-engine, packages/shared)
+
+Все — без единой cardId-специфичной ветки; каждый добавлен потому, что как минимум один архетип
+физически не мог быть реализован существующим DSL:
+
+- **`ON_DEATH`-broadcast в `processDeaths`** — раньше умирающий юнит триггерил только свой
+  собственный deathrattle; теперь `broadcastToRunes(..., 'ON_DEATH', ...)` вызывается для *любой*
+  гибели союзника, независимо от Silence погибшего. Нужно Shadow ("react to any ally death").
+- **`ON_HEAL`-триггер + broadcast в `HEAL`-ветке `executeAction`** — новый `EffectTrigger`,
+  срабатывает только если здоровье цели реально выросло (без вызова на "лечение" уже полного
+  юнита). Нужно Bond ("survives damage, scales via healing").
+- **`ONCE_PER_MATCH`-условие** — переиспользует существующую `state.effectUsage`-карту с
+  префиксом `match:` вместо `${turn}:`, без нового поля в `MatchState`. Нужно для "first-per-match"
+  триггеров (Руна Отражённого Света).
+- **`CLEANSE`-экшен** — снимает `CURSE`/`SILENCED` (либо конкретный статус через `status`).
+  Нужно Purification ("breaks debuffs/curses").
+- **`CURSE` теперь реально что-то делает** — раньше статус существовал в типах, но нигде не
+  проверялся; добавлена одна строка в `handleAttack` (`apply-action.ts`): проклятый юнит не может
+  атаковать. Без этого "curse enemy" карты Purification были бы decorative no-op.
+- **`REVIVE_FROM_DISCARD`-экшен** — детерминированно (не случайно) находит первую подходящую
+  `CHARACTER`-карту по `tagFilter` в сбросе, призывает как новый юнит со статами, отмасштабированными
+  на `percent` (floor). Нужно Shadow ("graveyard/revive").
+- **`REORDER_TOP`-экшен** — сканирует верхние `amount` карт колоды, первую подходящую по
+  `tagFilter` (или первую вообще) переносит на `destination: 'TOP' | 'BOTTOM'`. Нужно Mystery
+  ("inspect deck, reorder").
+- **`REPEAT_LAST_TRACK`-экшен + `MatchState.lastTrackEffect`** — при розыгрыше Трека его
+  `ON_TRACK_PLAYED`-эффекты сохраняются per-player (кроме случая, когда сам Трек уже содержит
+  `REPEAT_LAST_TRACK` — защита от цепочек). Экшен масштабирует `attack`/`health`/`amount` на
+  `percent` (по умолчанию 50) через `Math.floor` — **явное детерминированное правило округления**
+  (задокументировано в комментарии кода и в `content-pack-01.md`; эффект может округлиться в 0).
+  Нужно нейтральной карте «Эхо Эдита».
+- **`CHOOSE_ONE`-экшен** (`ifFriendlyTarget`/`ifEnemyTarget`) — переиспользует уже существующий
+  таргетинг: игрок "выбирает" ветку тем, что тапает союзника или врага при розыгрыше карты. Ветка
+  выбирается по тому, кому принадлежит `explicitTargetId` (`isFriendlyTarget()`), без единого
+  нового поля в `GameAction`/PvP-протоколе/UI. Дешевле и надёжнее, чем протаскивать
+  `chosenOptionIndex` через весь стек (REST + WebSocket + UI-модалку выбора).
+
+### Уже существовавшая функциональность, которая закрыла часть задания без единой правки
+
+- «Temporary Energy this turn» — `player.energy` и так сбрасывается каждый ход (`startTurn`),
+  `GAIN_ENERGY` уже даёт ровно нужную семантику. Cosmic-рампу не потребовалось ничего нового.
+  Cost reduction ("next matching card costs less") — существующий `COST_MODIFIER` + `tagFilter`
+  уже turn-scoped и одноразовый; Veil/Cosmic используют свой собственный faction-тег (`Veil`,
+  `Cosmic`) как conventions-тег вместо отдельного `HEAVY`.
+- Rarity/deck-limit правила (`deckLimitForRarity`) уже точно соответствовали спецификации пака.
+
+### faction/subfaction/archetype-схема + `REFERENCE_CONTENT_ENABLED`
+
+- `CardBase` (`packages/shared`): `faction: string`, `subFactions: string[]`, `archetypeTags:
+  string[]`, `isNeutral: boolean`, `isCrossoverEligible: boolean`, `isReferenceContent: boolean`.
+- Prisma-миграция `20260810154115_content_pack_01_faction_schema` добавляет те же поля в `cards`
+  с безопасными default'ами (существующие карты автоматически стали `faction: 'NEUTRAL'`).
+- `CardsService.findAllPlayable/findOnePlayable` фильтруют `isReferenceContent: false`, если
+  `process.env.REFERENCE_CONTENT_ENABLED !== 'true'` — reference-контент никогда не попадает в
+  публичный API по умолчанию.
+- `AuthService.grantStarterCollection` исключает `isToken`/`isReferenceContent` карты из стартовой
+  выдачи при регистрации.
+- `validateDeck` отклоняет токены новым кодом `CARD_IS_TOKEN`.
+- В этом паке reference-контента нет (0 карт) — вся инфраструктура покрыта тестами
+  (`cards.service.spec.ts`), но пока не используется ни одной реальной картой.
+
+### 40 карт + 6 стартовых колод
+
+10 нейтральных + 6 фракций × 5 карт (SHADOW/PURIFICATION/BOND/VEIL/MYSTERY/COSMIC), 1 токен
+(Эхо-Тень, `isToken`/`isPlayable: false`). Полный список — `docs/content-pack-01.md`. 12 из 40
+карт реагируют на Resonance Tier осмысленно (T3/T5-примеры из задания: доп. токен, heal всем,
+Shield всем, +2/+2 навсегда — без auto-win на любом Tier), остальные — только визуальный pulse.
+
+6 стартовых 30-карточных колод (`Shadow Aggro`, `Bond Sustain`, `Mystery Control`, `Cosmic Ramp`,
+`Veil Tempo`, `Purification Control`) — все 10 нейтральных карт на максимум легальных копий (18) +
+все 5 карт своей фракции на максимум (9) + 3-карточный "сплэш" из тематически близкой фракции.
+Валидность подтверждена и модульными тестами, и прогоном настоящего `validateDeck` против реально
+засеянных в Postgres карт.
+
+### Web UI
+
+- Collection: добавлены фильтры по фракции, "дому" (subfaction, появляется только когда выбрана
+  фракция), редкости, Resonance Tier — поверх уже существовавших фильтра по типу и поиска.
+  Токены (`isToken`) исключены из выдачи коллекции клиентским фильтром (уже не попадают туда и
+  с бэкенда).
+- Card detail drawer: показывает фракцию + "дом", и **детерминированно выводит Resonance-поведение
+  прямо из DSL карты** (`describeResonanceBehavior()`: сканирует `card.effects` на
+  `RESONANCE_TIER_AT_LEAST`-условия — если есть, показывает "усиливается при Tier N+", если нет —
+  честно говорит "только визуальный эффект") — не hardcoded per-card текст, работает для любой
+  будущей карты автоматически. Плюс название связанного Трека, если есть.
+- **Battlefield 2.0 не тронут ни единой строкой** — рендерит все 40 карт (включая токен) через уже
+  существующий generic `cardsById`-lookup; проверено `grep` на отсутствие card-specific веток в
+  `apps/web/src/components/battlefield/` и `MatchBoard.tsx`.
+
+### Тесты и верификация
+
+- **18 новых unit-тестов** (подтверждено фактическим счётчиком в выводе `vitest`, не оценкой):
+  11 в `interpreter.test.ts` (ON_DEATH/ON_HEAL broadcast, CLEANSE, REVIVE_FROM_DISCARD ×2,
+  REORDER_TOP ×2, REPEAT_LAST_TRACK ×2, CHOOSE_ONE, ONCE_PER_MATCH), 2 в `apply-action.test.ts`
+  (CURSE блокирует атаку, `lastTrackEffect` запоминается и не запоминается для
+  self-echoing-трека), 1 в `deck-validation.test.ts` (токен нельзя добавить в колоду), 3 в новом
+  `cards.service.spec.ts` (gating по умолчанию выключен/включён флагом, faction-поля доезжают до
+  DTO), 1 в `auth.service.spec.ts` (стартовая выдача реально фильтрует `isToken`/
+  `isReferenceContent` в `where`-клозе, а не просто "предполагается"). Полный прогон
+  lint/typecheck/test/build по всем workspace'ам зелёный — **212 тестов**.
+- Живая проверка (Playwright + Chromium, реальные Postgres/Redis/game-server/web):
+  - `/api/cards` отдаёт 64 карты (24 legacy + 40 Content Pack 01), из них ровно 1 токен (виден
+    в API для рендера поля, но не в Collection — 63 карты в UI).
+  - Collection: фильтры по фракции проверены вживую (клик по "Орден Сумеречного Эха" → ровно 5
+    карт, аналогично для "Стражи Белой Руны" и "Дом Весеннего Света"), карточка открывается,
+    detail drawer показывает фракцию и корректный Resonance-текст.
+  - Полный API-driven PvE-плейтест (30-карточная showcase-колода из 18 уникальных карт всех 6
+    фракций): матч дошёл до `MATCH_FINISHED` за 33 хода, сыграны все 4 представленных в паке типа
+    карт (CHARACTER/TRACK/RUNE/EVENT — в игре по-прежнему нет ни одной EDIT-карты, как и во всём
+    остальном контенте проекта), разыграно 12 разных "showcase"-карт, событийный лог подтверждает
+    ≥5 сработавших Resonance-триггеров (T5-фикстуры проставлены заранее через
+    `ResonanceSnapshot` — так же, как реальные метрики приходят через worker/CSV-импорт в
+    проде) — `UNIT_SUMMONED` ×10, `STATUS_ADDED` ×7, `UNIT_BUFFED` ×5, `COST_MODIFIER_REGISTERED`
+    ×5, `DECK_REORDERED` ×1, `CONDUCTOR_HEALED` ×3, `RUNE_ACTIVATED` ×5.
+  - Настоящий Playwright-прогон (не только API): вход по localStorage, `/collection` с фильтрами,
+    `/decks`, `/play/[matchId]` с несколькими реальными кликами "Завершить ход" — на десктопе
+    (1280×800) и мобильном (390×844) вьюпортах, **ноль page errors на мобильном**, на десктопе
+    один `console.error` 404 без URL — воспроизведён отдельно и не связан ни с одной страницей
+    Content Pack 01: сайт не имеет `favicon.ico` вообще (тот же известный факт, что
+    задокументирован в Battlefield 2.0 выше, с Phase 7) — не регрессия этой фазы.
+  - Bot-vs-bot: 4 матча между разными стартовыми колодами прогнаны напрямую через
+    `@kod-raido/game-engine` (`chooseBotAction('NORMAL')` для обеих сторон, не PvE-эндпоинт) —
+    результаты и разбор counter-relationships в `docs/content-pack-01-balance.md`.
+
+### Осознанные упрощения / известные ограничения Content Pack 01
+
+- **"Play at least one card of every type" интерпретировано как 4 существующих типа**
+  (CHARACTER/TRACK/RUNE/EVENT), не 5: `EDIT`-карт нет ни в Content Pack 01, ни в легаси MVP-контенте
+  — этот тип никогда не имел карт за всю историю проекта, добавлять первую EDIT-карту специально
+  ради формального покрытия пятого типа означало бы придумывать контент не из этой фазы.
+- **CLEANSE/ADD_STATUS-эффекты, у которых нет валидной цели, тихо резолвятся в 0 целей**, а не
+  ошибкой — соответствует уже существующему поведению всех остальных target-based экшенов движка
+  (например, `HEAL` на пустой список целей), не новое исключение для этого пака.
+- **`REORDER_TOP` без `tagFilter` детерминированно двигает буквально верхнюю карту** (Предсказательница
+  Тумана) — не "лучшую" карту через эвристику; осознанно просто, чтобы поведение было предсказуемо
+  тестируемым, без скрытой RNG/оценочной функции внутри generic-примитива.
+- **`Дом` (subfaction)-фильтр в Collection показывает только 1 значение на фракцию** в этом паке
+  (каждая фракция Content Pack 01 имеет ровно один дом) — UI и схема уже поддерживают множественные
+  дома на фракцию для будущих паков, просто в этом паке они не используются.
+- **Balance — явно placeholder**: bot-vs-bot показал один довольно однобокий результат (Veil Tempo
+  громит Purification Control без потери HP) — задокументировано как кандидат на правку в
+  `docs/content-pack-01-balance.md`, не исправлялось в этой фазе намеренно (playtesting baseline,
+  не финальная балансировка).

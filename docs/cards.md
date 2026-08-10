@@ -4,10 +4,12 @@
 (`apps/game-server/prisma/seed.ts`). Все карты — `rightsStatus: placeholder`, artwork —
 сгенерированные placeholder-изображения (`placehold.co`), права не требуют проверки.
 
-> Дополнение №3 (40 карт по вселенным-референсам Solo Leveling / D.Gray-man / Fruits Basket /
-> The Eminence in Shadow / Lord of Mysteries / Swallowed Star) сознательно не включено в этот
-> сид: оно явно помечено в ТЗ как internal design-reference, требующее проверки rightsStatus и
-> dev-only режима, и запланировано после завершения Phase 2 (game engine).
+> Дополнение по вселенным-референсам (Solo Leveling / D.Gray-man / Fruits Basket / The Eminence
+> in Shadow / Lord of Mysteries / Swallowed Star) в сид **не включено и не будет включено** —
+> написание производного контента (именованные персонажи + их фирменные способности/лор) для
+> активно защищённых коммерческих франшиз является unauthorized derivative work вне зависимости
+> от dev-only гейтинга. Вместо этого начиная с Content Pack 01 (см. `docs/content-pack-01.md`)
+> весь новый контент — полностью оригинальная вселенная «Код Райдо».
 
 ## Персонажи (12)
 
