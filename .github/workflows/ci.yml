@@ -25,11 +25,18 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # apps/game-server, apps/web, and apps/worker all import these three packages by their
+      # published entry points (dist/), not their TS source - so on a fresh checkout (no dist/
+      # committed) typecheck/test/build for the apps must not run before these are built, or every
+      # consumer fails with "Cannot find module '@kod-raido/shared'" etc. Order matters here.
+      - name: Build dependency packages (shared, game-engine, ui)
+        run: npm run build -w @kod-raido/shared -w @kod-raido/game-engine -w @kod-raido/ui
+
       - name: Typecheck
         run: npm run typecheck
 
       - name: Test
         run: npm run test
 
-      - name: Build packages
-        run: npm run build -w @kod-raido/shared -w @kod-raido/game-engine -w @kod-raido/ui
+      - name: Build
+        run: npm run build
