@@ -20,7 +20,9 @@ body {
   @apply bg-raido-red/40 text-raido-white;
 }
 
-/* Low Data Mode turns off the RAIDO/legendary glow animation to save battery/CPU on low-end devices. */
-[data-low-data='true'] .animate-pulse-rune {
+/* Low Data Mode turns off rarity glow animations to save battery/CPU on low-end devices. */
+[data-low-data='true'] .animate-pulse-rune,
+[data-low-data='true'] .animate-pulse-legendary,
+[data-low-data='true'] .animate-shimmer-epic {
   animation: none;
 }
