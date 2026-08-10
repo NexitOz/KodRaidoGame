@@ -237,7 +237,46 @@
 
 - [ ] TikTok/YouTube/VK провайдеры (только официальные API, без scraping)
 
-## Phase 7 — Polish ⏳ Not started
+## Phase 7 — Polish ⏳ In progress
 
-- [ ] Web Audio/Howler, Music/SFX/Voice sliders, Low Data Mode
-- [ ] Анимации редкостей (Raido/Legendary/Epic), сезоны, косметика, аналитика
+- [x] `apps/web/src/lib/settings-store.ts` — zustand+persist store: `musicVolume`/`sfxVolume`/
+      `voiceVolume` (0-100, дефолт 70) и `lowDataMode`, ключ `kod-raido-settings` в localStorage
+- [x] `/settings` — три слайдера громкости, кнопка "Проверить звук", переключатель Low Data Mode;
+      ссылка на страницу добавлена в `TopBar` (иконка ⚙)
+- [x] `apps/web/src/lib/sfx.ts` — Web Audio SFX-движок без внешних аудио-ассетов (лицензированных
+      звуков в задаче нет и взять неоткуда): синтезированные тона через `OscillatorNode` +
+      `GainNode` envelope, ленивый singleton `AudioContext`, читает `useSettingsStore.getState()`
+      напрямую (корректный паттерн для вызова вне рендера), no-op при `lowDataMode`/`sfxVolume=0`.
+      Курсы: `card-play`, `attack`, `unit-death`, `turn-end`, `match-win`, `match-loss`
+- [x] `match-sfx.ts` — батч событий движка (например весь ход бота) схлопывается в один звук по
+      приоритету (`unit-death` > `attack` > `card-play` > `turn-end`), чтобы не звучало пулемётом
+- [x] SFX подключены в оба экрана матча (`/play/[matchId]` через `onSuccess` мутации,
+      `/pvp/[matchId]` через `socket.on('match:state', ...)`) — победа/поражение отдельным звуком,
+      иначе звук по приоритетному событию батча
+- [x] Low Data Mode отключает `animate-pulse-rune` (свечение легендарных/RAIDO карт) через
+      `[data-low-data='true']` в `globals.css`, синхронизируется `LowDataModeSync` (клиентский
+      компонент без вывода, пишет в `document.documentElement.dataset.lowData`)
+- [x] По ходу дела исправлена карта `EVENT_LABEL` в `MatchBoard.tsx` — старые ключи
+      (`TURN_STARTED`/`TURN_ENDED`/`DRAW`) не совпадали с реальными типами событий движка
+      (`TURN_START`/`TURN_END`/`CARD_DRAWN`), из-за чего журнал матча иногда показывал сырой тип
+      вместо русской подписи; заодно добавлены недостающие типы событий
+- [x] 4 unit-теста на `sfx.ts` (нет AudioContext / lowDataMode / sfxVolume=0 / точный набор
+      осцилляторов для `match-win`); полный прогон lint/typecheck/test/build по всем workspace'ам
+      зелёный (158 тестов)
+- [x] Ручная проверка в реальном браузере (Playwright + Chromium, не jsdom): слайдеры и Low Data
+      Mode переживают reload, `dataset.lowData` синхронизируется, кнопка "Проверить звук"
+      корректно задизейблена при Low Data Mode; реальный PvE-матч (через API созданы юзер/колода/
+      матч, состояние авторизации подставлено в localStorage) — `END_TURN` прошёл, SFX-код
+      отработал в настоящем `AudioContext` без единой ошибки в консоли
+- [ ] Музыка и голос — сами слайдеры и инфраструктура есть, но проигрывания фоновой музыки/войсовера
+      ещё нет (нет лицензированных аудио-ассетов, только синтезированные SFX)
+- [ ] Анимации редкостей (Raido/Legendary/Epic) — сейчас только базовый `animate-pulse-rune`,
+      отдельных анимаций под каждую редкость нет
+- [ ] Сезоны, косметика, аналитика — не начаты, требуют отдельного скоупа (контент/арт/трекинг)
+
+### Осознанные упрощения Phase 7 (текущий срез)
+
+- Звук синтезируется на лету (осцилляторы), а не проигрывается из файлов — в задаче нет
+  лицензированных аудио-ассетов, а генерировать/искать их отдельная задача вне кода.
+- Voice-слайдер существует в UI и сторе на будущее, но пока ничего не регулирует — голосовых
+  реплик в игре ещё нет.

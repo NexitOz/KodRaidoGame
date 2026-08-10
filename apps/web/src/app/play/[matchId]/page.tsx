@@ -8,6 +8,8 @@ import { Button } from '@kod-raido/ui';
 import type { MatchEventView, MatchRewards, MatchStateView, UnitInstanceView } from '@kod-raido/shared';
 import { api, ApiError, type MatchActionInput } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
+import { playSfx } from '@/lib/sfx';
+import { playSfxForEvents } from '@/lib/match-sfx';
 import { MatchBoard, type MatchSelection } from '@/components/MatchBoard';
 
 export default function MatchPage() {
@@ -41,6 +43,12 @@ export default function MatchPage() {
       setSelection(null);
       setActionError(null);
       if (result.rewards) setRewards(result.rewards);
+
+      if (result.view.finished) {
+        playSfx(result.view.winnerId === result.view.you.playerId ? 'match-win' : 'match-loss');
+      } else {
+        playSfxForEvents(result.events);
+      }
     },
     onError: (err) => {
       setActionError(err instanceof ApiError ? err.message : 'Действие не удалось.');
