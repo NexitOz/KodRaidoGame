@@ -1,6 +1,7 @@
 # syntax=docker/dockerfile:1
 FROM node:20-slim AS base
 WORKDIR /repo
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 RUN corepack enable
 
 FROM base AS deps
