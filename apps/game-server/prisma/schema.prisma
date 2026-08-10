@@ -40,6 +40,7 @@ enum BotDifficulty {
   EASY
   NORMAL
   HARD
+  TUTORIAL
 }
 
 model User {
@@ -54,6 +55,17 @@ model User {
   mmr          Int      @default(1000)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
+  // First Player Experience 1.0: tutorial progress, persisted so it survives
+  // refresh/logout/reconnect. tutorialCurrentStep is a client-driven resume
+  // bookmark only - never used server-side to gate anything. tutorialRewardClaimedAt
+  // is distinct from tutorialCompletedAt because replaying a completed tutorial
+  // must never grant the one-time reward again.
+  tutorialStartedAt       DateTime?
+  tutorialCompletedAt     DateTime?
+  tutorialSkippedAt       DateTime?
+  tutorialCurrentStep     Int?
+  tutorialRewardClaimedAt DateTime?
 
   collection       CollectionEntry[]
   decks            Deck[]
@@ -248,6 +260,10 @@ model Match {
   status              MatchStatus    @default(ACTIVE)
   seed                String
   winnerId            String?
+  /// Tutorial matches use a fixed deterministic seed/deck and never grant the
+  /// normal PvE XP/soft-currency reward or count toward match-history win/loss
+  /// stats or the firstPvEStarted/Finished analytics funnel - see TutorialService.
+  isTutorial          Boolean        @default(false)
   boostSnapshotJson   Json           @default("[]")
   /// player1's reward (the only human's reward for PvE matches).
   xpAwarded           Int            @default(0)
@@ -281,4 +297,23 @@ model MatchEvent {
 
   @@index([matchId, sequence])
   @@map("match_events")
+}
+
+/// First Player Experience 1.0: a minimal, generic first-party event log for
+/// onboarding funnel analytics (tutorialStarted/StepReached/Completed/Skipped,
+/// firstPvEStarted/Finished). Deliberately not a heavyweight third-party
+/// analytics pipeline - just a DB table the admin summary aggregates, matching
+/// how AnalyticsService already derives its numbers from User/Match/MatchEvent.
+/// No personal/sensitive data in payloadJson - only userId + coarse event facts
+/// (e.g. step number).
+model AnalyticsEvent {
+  id          String   @id @default(uuid())
+  type        String
+  userId      String?
+  payloadJson Json     @default("{}")
+  createdAt   DateTime @default(now())
+
+  @@index([type, createdAt])
+  @@index([userId])
+  @@map("analytics_events")
 }

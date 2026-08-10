@@ -62,6 +62,7 @@ export function CreatureSlot({
       type="button"
       disabled={!canInteract}
       onClick={() => onSelect?.(unit)}
+      data-tutorial-target={readyToAttack ? 'own-board' : undefined}
       aria-label={`${unit.card.name}: атака ${unit.attack}, здоровье ${unit.health}${targetable ? ' — доступная цель' : ''}${selected ? ' — выбран' : ''}`}
       aria-pressed={selected}
       className={clsx(

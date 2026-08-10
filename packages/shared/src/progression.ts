@@ -15,6 +15,9 @@ export const PVP_REWARDS = {
   draw: { xp: 15, softCurrency: 30 },
 } as const;
 
+/** One-time reward for completing the tutorial - never a power advantage, no premium currency. */
+export const TUTORIAL_REWARD = { xp: 100, softCurrency: 300 } as const;
+
 export const STARTING_MMR = 1000;
 
 export type RankTier = 'IRON' | 'BRONZE' | 'SILVER' | 'GOLD' | 'PLATINUM' | 'DIAMOND' | 'RAIDO';

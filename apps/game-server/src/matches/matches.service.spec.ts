@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { BOT_DECKS } from './bot-decks';
 import type { MatchActionDto } from './dto/match-action.dto';
 import { MatchesService } from './matches.service';
+import { TUTORIAL_DECK, TUTORIAL_RESONANCE_DEMO_SLUGS } from './tutorial-deck';
 
 interface FakeCardRow {
   id: string;
@@ -75,16 +76,23 @@ function makeCardRow(id: string, overrides: Partial<FakeCardRow> = {}): FakeCard
 const BOT_CARD_SLUGS = Array.from(
   new Set(Object.values(BOT_DECKS).flatMap((entries) => entries.map((e) => e.slug))),
 );
+const TUTORIAL_CARD_SLUGS = Array.from(
+  new Set([...TUTORIAL_DECK.map((e) => e.slug), ...TUTORIAL_RESONANCE_DEMO_SLUGS]),
+);
 
 function buildCardCatalog(): FakeCardRow[] {
   const botCards = BOT_CARD_SLUGS.map((slug, i) => {
     const cost = (i % 4) + 1;
     return makeCardRow(slug, { cost, attack: cost, health: cost + 1 });
   });
+  const tutorialCards = TUTORIAL_CARD_SLUGS.map((slug, i) => {
+    const cost = (i % 4) + 1;
+    return makeCardRow(slug, { cost, attack: cost, health: cost + 1 });
+  });
   const humanCards = Array.from({ length: 15 }, (_, i) =>
     makeCardRow(`human-${i}`, { cost: (i % 4) + 1, attack: 1, health: 1 }),
   );
-  return [...botCards, ...humanCards];
+  return [...botCards, ...tutorialCards, ...humanCards];
 }
 
 interface FakeDeck {
@@ -108,9 +116,11 @@ interface FakeMatch {
   player2Id: string | null;
   player2IsBot: boolean;
   botDifficulty: string | null;
+  isTutorial: boolean;
   seed: string;
   status: string;
   winnerId: string | null;
+  boostSnapshotJson: unknown;
   startedAt: Date;
   finishedAt: Date | null;
   xpAwarded: number | null;
@@ -148,6 +158,8 @@ function createFakePrisma(cards: FakeCardRow[]) {
         const row: FakeMatch = {
           player2Id: null,
           botDifficulty: null,
+          isTutorial: false,
+          boostSnapshotJson: [],
           winnerId: null,
           startedAt: new Date(),
           finishedAt: null,
@@ -174,12 +186,13 @@ function createFakePrisma(cards: FakeCardRow[]) {
         where,
         take,
       }: {
-        where: { OR: Array<{ player1Id?: string; player2Id?: string }> };
+        where: { OR: Array<{ player1Id?: string; player2Id?: string }>; isTutorial?: boolean };
         take?: number;
       }) {
         const userId = where.OR.find((clause) => clause.player1Id)?.player1Id ?? '';
         return matches
           .filter((m) => m.player1Id === userId || m.player2Id === userId)
+          .filter((m) => where.isTutorial === undefined || m.isTutorial === where.isTutorial)
           .sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime())
           .slice(0, take ?? matches.length)
           .map((m) => ({
@@ -308,8 +321,9 @@ describe('MatchesService', () => {
       cards: Array.from({ length: 15 }, (_, i) => ({ cardId: `human-${i}`, quantity: 2 })),
     });
     const fakeResonance = { buildBoostSnapshot: async () => [] };
+    const fakeAnalyticsEvents = { log: async () => undefined, logOnce: async () => true };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    service = new MatchesService(prisma as any, repo as any, fakeResonance as any);
+    service = new MatchesService(prisma as any, repo as any, fakeResonance as any, fakeAnalyticsEvents as any);
   });
 
   it('creates a PvE match against a random bot deck for a valid 30-card deck', async () => {
@@ -518,6 +532,48 @@ describe('MatchesService', () => {
       expect(history2[0]!.opponentLabel).toBe('user-1');
       expect(history1[0]!.mmrDelta).toBeDefined();
       expect(history2[0]!.mmrDelta).toBeDefined();
+    });
+  });
+
+  describe('createTutorialMatch', () => {
+    it('creates a match flagged isTutorial and playable through the normal action pipeline', async () => {
+      const view = await service.createTutorialMatch('user-1');
+      expect(view.you.playerId).toBe('user-1');
+      expect(view.opponent.isBot).toBe(true);
+
+      const stored = prisma._internal.matches.find((m) => m.id === view.matchId)!;
+      expect(stored.isTutorial).toBe(true);
+      expect(stored.botDifficulty).toBe('TUTORIAL');
+    });
+
+    it('grants a synthetic Resonance Tier 3 boost only to the tutorial demo cards, not real ResonanceSnapshot data', async () => {
+      const view = await service.createTutorialMatch('user-1');
+      const stored = prisma._internal.matches.find((m) => m.id === view.matchId)!;
+      const boostSnapshot = stored.boostSnapshotJson as Array<{ cardId: string; tier: number }>;
+
+      expect(boostSnapshot.length).toBe(TUTORIAL_RESONANCE_DEMO_SLUGS.length);
+      expect(boostSnapshot.every((entry) => entry.tier === 3)).toBe(true);
+    });
+
+    it('excludes tutorial matches from normal match history', async () => {
+      await service.createTutorialMatch('user-1');
+      const history = await service.listHistory('user-1');
+      expect(history).toHaveLength(0);
+    });
+
+    it('finishing a tutorial match never grants the normal PvE XP/soft-currency reward', async () => {
+      const view = await service.createTutorialMatch('user-1');
+      const before = prisma._internal.users.get('user-1')!;
+      const beforeXp = before.xp;
+      const beforeCurrency = before.softCurrency;
+
+      const result = await playToFinish(service, 'user-1', view.matchId);
+      expect(result.view.finished).toBe(true);
+      expect(result.rewards).toBeUndefined();
+
+      const after = prisma._internal.users.get('user-1')!;
+      expect(after.xp).toBe(beforeXp);
+      expect(after.softCurrency).toBe(beforeCurrency);
     });
   });
 });

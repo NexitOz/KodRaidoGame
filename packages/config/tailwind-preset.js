@@ -39,6 +39,8 @@ module.exports = {
         'turn-banner': 'turn-banner 0.8s ease-in-out forwards',
         'card-in': 'card-in 0.4s ease-out',
         'waveform-bar': 'waveform-bar 0.5s ease-in-out infinite',
+        'spotlight-ring': 'spotlight-ring 1.8s ease-in-out infinite',
+        'spotlight-ring-strong': 'spotlight-ring-strong 0.9s ease-in-out infinite',
       },
       keyframes: {
         'pulse-rune': {
@@ -90,6 +92,16 @@ module.exports = {
         'waveform-bar': {
           '0%, 100%': { transform: 'scaleY(0.3)' },
           '50%': { transform: 'scaleY(1)' },
+        },
+        /* Tutorial overlay spotlight ring - a pulsing border, not the darkening itself (that's a
+         * static inline box-shadow so it never fights this animation's timing). */
+        'spotlight-ring': {
+          '0%, 100%': { borderColor: 'rgba(217,180,106,0.55)' },
+          '50%': { borderColor: 'rgba(217,180,106,0.95)' },
+        },
+        'spotlight-ring-strong': {
+          '0%, 100%': { borderColor: 'rgba(227,18,62,0.65)', transform: 'scale(1)' },
+          '50%': { borderColor: 'rgba(227,18,62,1)', transform: 'scale(1.035)' },
         },
       },
     },

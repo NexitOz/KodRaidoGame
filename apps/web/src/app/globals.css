@@ -46,7 +46,9 @@ body {
   .animate-shake-hit,
   .animate-card-in,
   .animate-resonance-pulse,
-  .animate-turn-banner {
+  .animate-turn-banner,
+  .animate-spotlight-ring,
+  .animate-spotlight-ring-strong {
     animation: none !important;
   }
 }

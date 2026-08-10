@@ -16,6 +16,8 @@ export interface ConductorPanelProps {
   onTap: () => void;
   feedback: FeedbackItem[];
   rank?: RankTierDefinition;
+  /** data-tutorial-target value for the tutorial overlay to spotlight, if any. */
+  tutorialTarget?: string;
 }
 
 export function ConductorPanel({
@@ -27,6 +29,7 @@ export function ConductorPanel({
   onTap,
   feedback,
   rank,
+  tutorialTarget,
 }: ConductorPanelProps) {
   const hpPercent = Math.max(0, Math.min(100, (player.conductorHp / STARTING_CONDUCTOR_HP) * 100));
   const low = hpPercent <= 30;
@@ -46,6 +49,7 @@ export function ConductorPanel({
       type="button"
       onClick={onTap}
       disabled={!targetable}
+      data-tutorial-target={tutorialTarget}
       aria-label={`${name}: ${player.conductorHp} здоровья, ${player.energy} из ${player.maxEnergy} энергии${targetable ? ' — доступная цель' : ''}`}
       className={clsx(
         'group relative flex items-center gap-2.5 rounded-xl border bg-raido-graphite/70 px-2.5 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-raido-red',
