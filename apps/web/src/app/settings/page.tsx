@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@kod-raido/ui';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
@@ -51,10 +51,17 @@ export default function SettingsPage() {
   } = useSettingsStore();
 
   const router = useRouter();
+  const queryClient = useQueryClient();
   const accessToken = useAuthStore((s) => s.accessToken);
   const replayTutorialMutation = useMutation({
     mutationFn: () => api.startTutorial(accessToken as string),
-    onSuccess: (result) => router.push(`/tutorial/${result.matchId}`),
+    onSuccess: (result) => {
+      // Keeps OnboardingGate's cached progress in sync immediately - without this, its resume
+      // banner would only pick up this new active match on the next full page load/refetch
+      // trigger, not right after an in-app navigation away from here.
+      queryClient.setQueryData(['tutorial-progress', accessToken], result);
+      router.push(`/tutorial/${result.matchId}`);
+    },
   });
 
   return (

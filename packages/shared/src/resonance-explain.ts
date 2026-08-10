@@ -67,6 +67,17 @@ function describeAction(action: EffectAction): string {
 }
 
 /**
+ * True if any of the card's own effect definitions carry a `RESONANCE_TIER_AT_LEAST`
+ * condition - i.e. its ability actually changes at some Resonance tier. Purely a DSL scan,
+ * never a slug/id/name list, so it stays correct for any card in any future content pack.
+ * The single source of truth for "is this card Resonance-reactive" - `explainCardResonance`
+ * below reuses the same scan for its `isReactive` field.
+ */
+export function cardUsesResonance(card: Card): boolean {
+  return card.effects.some((def) => def.conditions?.some((c) => c.type === 'RESONANCE_TIER_AT_LEAST'));
+}
+
+/**
  * Derives a per-Tier explanation of what changes on a card's ability, purely
  * from its own DSL (`RESONANCE_TIER_AT_LEAST` conditions). No cardId-specific
  * branching - works unmodified for any card in any future content pack.

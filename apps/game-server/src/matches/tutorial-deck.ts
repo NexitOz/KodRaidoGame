@@ -2,10 +2,18 @@
  * First Player Experience 1.0: a curated 30-card deck built entirely from
  * existing Content Pack 01 cards (no new cards added), chosen so a fresh
  * player reliably sees a CHARACTER, a RUNE, a TRACK, and an EVENT within the
- * first several turns, plus one Resonance-reactive Rune ('voice-of-subscribers')
- * that also happens to be the deck's Rune-teaching card. Combined with
- * TUTORIAL_MATCH_SEED (fixed, deterministic) the opening draws are
- * reproducible - see docs/tutorial-fpx.md for the exact verified draw order.
+ * first several turns. Combined with TUTORIAL_MATCH_SEED (fixed,
+ * deterministic) the opening draws are reproducible - see
+ * docs/tutorial-fpx.md for the exact verified draw order.
+ *
+ * This list of slugs is only ever used to *build the deck itself* (which
+ * cards are in it, mirroring how any real deck is built from slugs/ids) -
+ * nothing downstream is allowed to treat these specific slugs as meaningful.
+ * Which of these cards demonstrate the Resonance bonus is discovered
+ * generically at match-creation time by scanning each card's own DSL for a
+ * `RESONANCE_TIER_AT_LEAST` condition (`cardUsesResonance()` in
+ * `@kod-raido/shared`, used by `MatchesService.buildTutorialBoostSnapshot`) -
+ * not by a hardcoded slug list.
  */
 export const TUTORIAL_DECK: Array<{ slug: string; quantity: number }> = [
   { slug: 'ashen-blade', quantity: 2 },
@@ -38,12 +46,3 @@ export const TUTORIAL_BOT_ARCHETYPE = 'RESONANCE_MIDRANGE' as const;
  * the player's actual userId. Never reused for a real PvE/PvP match.
  */
 export const TUTORIAL_MATCH_SEED = 'kod-raido-tutorial-fpx-1-v1-3';
-
-/**
- * Slugs of the cards this deck relies on to demonstrate a Resonance-tiered
- * bonus. TutorialService gives these a synthetic, match-scoped Tier 3 boost
- * (see TutorialService.buildTutorialBoostSnapshot) - real ResonanceSnapshot
- * rows in the database are never touched, so this never affects any other
- * match or the live Resonance system.
- */
-export const TUTORIAL_RESONANCE_DEMO_SLUGS = ['voice-of-subscribers', 'musical-burst'];

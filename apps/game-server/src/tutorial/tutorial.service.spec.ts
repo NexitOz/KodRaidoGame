@@ -23,11 +23,26 @@ interface FakeMatchRow {
   finishedAt: Date | null;
 }
 
+interface IntIncrement {
+  increment: number;
+}
+
+interface UserUpdateManyData {
+  tutorialRewardClaimedAt?: Date;
+  tutorialCompletedAt?: Date;
+  xp?: number | IntIncrement;
+  softCurrency?: number | IntIncrement;
+}
+
 interface FakePrisma {
   _internal: { users: Map<string, FakeUserRow>; matches: FakeMatchRow[] };
   user: {
     findUniqueOrThrow(args: { where: { id: string } }): Promise<FakeUserRow>;
     update(args: { where: { id: string }; data: Partial<FakeUserRow> }): Promise<FakeUserRow>;
+    updateMany(args: {
+      where: { id: string; tutorialRewardClaimedAt?: null };
+      data: UserUpdateManyData;
+    }): Promise<{ count: number }>;
   };
   match: {
     findFirst(args: {
@@ -54,6 +69,23 @@ function createFakePrisma(): FakePrisma {
         const row = users.get(where.id)!;
         Object.assign(row, data);
         return row;
+      },
+      // Mirrors Postgres's real "UPDATE ... WHERE tutorialRewardClaimedAt IS NULL" semantics:
+      // this is the fake's stand-in for the conditional-claim row lock, matching zero rows once
+      // another (synchronous, in this single-threaded fake) call has already claimed it.
+      async updateMany({ where, data }) {
+        const row = users.get(where.id);
+        if (!row) return { count: 0 };
+        if (where.tutorialRewardClaimedAt === null && row.tutorialRewardClaimedAt !== null) {
+          return { count: 0 };
+        }
+        if (typeof data.xp === 'number') row.xp = data.xp;
+        else if (data.xp) row.xp += data.xp.increment;
+        if (typeof data.softCurrency === 'number') row.softCurrency = data.softCurrency;
+        else if (data.softCurrency) row.softCurrency += data.softCurrency.increment;
+        if (data.tutorialRewardClaimedAt) row.tutorialRewardClaimedAt = data.tutorialRewardClaimedAt;
+        if (data.tutorialCompletedAt) row.tutorialCompletedAt = data.tutorialCompletedAt;
+        return { count: 1 };
       },
     },
     match: {
@@ -213,6 +245,32 @@ describe('TutorialService', () => {
     expect(prisma._internal.users.get('user-1')!.xp).toBe(xpAfterFirst);
   });
 
+  it('two concurrent complete() calls: exactly one grants the reward, xp/softCurrency increment exactly once', async () => {
+    prisma._internal.matches.push({
+      id: 'm1',
+      player1Id: 'user-1',
+      isTutorial: true,
+      status: 'FINISHED',
+      winnerId: 'user-1',
+      startedAt: new Date(),
+      finishedAt: new Date(),
+    });
+
+    const [first, second] = await Promise.all([service.complete('user-1'), service.complete('user-1')]);
+
+    const grantedResults = [first, second].filter((r) => r.rewardGranted);
+    const notGrantedResults = [first, second].filter((r) => !r.rewardGranted);
+    expect(grantedResults).toHaveLength(1);
+    expect(notGrantedResults).toHaveLength(1);
+    expect(notGrantedResults[0]).toEqual({ rewardGranted: false, xp: 0, softCurrency: 0 });
+
+    const user = prisma._internal.users.get('user-1')!;
+    expect(user.xp).toBe(grantedResults[0]!.xp);
+    expect(user.softCurrency).toBe(grantedResults[0]!.softCurrency);
+    expect(user.tutorialRewardClaimedAt).toBeInstanceOf(Date);
+    expect(user.tutorialCompletedAt).toBeInstanceOf(Date);
+  });
+
   it('skip does not permanently block the reward - completing afterwards still grants it once', async () => {
     await service.skip('user-1');
     prisma._internal.matches.push({
@@ -226,5 +284,52 @@ describe('TutorialService', () => {
     });
     const result = await service.complete('user-1');
     expect(result.rewardGranted).toBe(true);
+  });
+
+  it('getProgress reports a fresh active attempt via activeMatchId even after a prior skip - historical skippedAt is preserved', async () => {
+    await service.skip('user-1');
+
+    // Simulates a Settings replay: a brand new ACTIVE tutorial match row for this user.
+    prisma._internal.matches.push({
+      id: 'replay-match-1',
+      player1Id: 'user-1',
+      isTutorial: true,
+      status: 'ACTIVE',
+      winnerId: null,
+      startedAt: new Date(),
+      finishedAt: null,
+    });
+
+    const progress = await service.getProgress('user-1');
+    expect(progress.skippedAt).toBeTruthy();
+    expect(progress.activeMatchId).toBe('replay-match-1');
+  });
+
+  it('getProgress reports a fresh active attempt via activeMatchId even after a prior completion - historical completedAt is preserved', async () => {
+    prisma._internal.matches.push({
+      id: 'm1',
+      player1Id: 'user-1',
+      isTutorial: true,
+      status: 'FINISHED',
+      winnerId: 'user-1',
+      startedAt: new Date(),
+      finishedAt: new Date(),
+    });
+    await service.complete('user-1');
+
+    // Simulates a Settings replay: a brand new ACTIVE tutorial match row for this user.
+    prisma._internal.matches.push({
+      id: 'replay-match-1',
+      player1Id: 'user-1',
+      isTutorial: true,
+      status: 'ACTIVE',
+      winnerId: null,
+      startedAt: new Date(),
+      finishedAt: null,
+    });
+
+    const progress = await service.getProgress('user-1');
+    expect(progress.completedAt).toBeTruthy();
+    expect(progress.activeMatchId).toBe('replay-match-1');
   });
 });

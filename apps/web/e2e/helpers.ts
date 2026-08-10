@@ -18,9 +18,15 @@ const STEP_TITLE: Record<string, string> = {
 };
 
 export async function registerFreshUser(page: Page, tag: string) {
-  const suffix = Date.now() + Math.floor(Math.random() * 10_000);
+  // The uniqueness-bearing suffix must survive to the final username untruncated - slicing a
+  // long tag+timestamp string to 20 chars *before* stripping non-alphanumerics (the old code)
+  // chopped off the low-order, most-rapidly-changing digits of the timestamp for any tag longer
+  // than a few characters, so two runs close together in time could collide on the same
+  // truncated username. Building the suffix from base36 time + random up front and never
+  // truncating it avoids that regardless of tag length.
+  const suffix = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
   const email = `e2e-${tag}-${suffix}@test.local`;
-  const username = `e2e${tag}${suffix}`.slice(0, 20).replace(/[^a-zA-Z0-9_]/g, '');
+  const username = `u${suffix}`.slice(0, 20);
   await page.goto('/register');
   await page.locator('input[type=email]').fill(email);
   await page.locator('input[type=text]').fill(username);

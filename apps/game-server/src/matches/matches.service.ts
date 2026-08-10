@@ -12,6 +12,7 @@ import {
   type MatchState,
 } from '@kod-raido/game-engine';
 import {
+  cardUsesResonance,
   computeLevelForXp,
   computeMmrDelta,
   PVE_REWARDS,
@@ -32,12 +33,7 @@ import { ResonanceService } from '../resonance/resonance.service';
 import { BOT_DECKS, pickRandomBotArchetype, type BotArchetype } from './bot-decks';
 import { MatchActionDto } from './dto/match-action.dto';
 import { MatchStateRepository } from './match-state.repository';
-import {
-  TUTORIAL_BOT_ARCHETYPE,
-  TUTORIAL_DECK,
-  TUTORIAL_MATCH_SEED,
-  TUTORIAL_RESONANCE_DEMO_SLUGS,
-} from './tutorial-deck';
+import { TUTORIAL_BOT_ARCHETYPE, TUTORIAL_DECK, TUTORIAL_MATCH_SEED } from './tutorial-deck';
 import { buildMatchView } from './view/match-view';
 
 const BOT_PLAYER_ID = 'bot';
@@ -133,7 +129,7 @@ export class MatchesService {
     const matchCtx = await this.buildMatchContext();
     const playerDeckEntries = this.resolveDeckBySlug(TUTORIAL_DECK, matchCtx.cards);
     const botDeckEntries = this.resolveBotDeck(TUTORIAL_BOT_ARCHETYPE, matchCtx.cards);
-    const boostSnapshot = this.buildTutorialBoostSnapshot(matchCtx.cards);
+    const boostSnapshot = this.buildTutorialBoostSnapshot(playerDeckEntries, matchCtx.cards);
 
     const matchId = randomUUID();
 
@@ -416,21 +412,38 @@ export class MatchesService {
   }
 
   /**
-   * Synthetic, match-scoped Resonance boost for the tutorial's demo cards.
-   * Deliberately bypasses ResonanceService entirely - real ResonanceSnapshot
-   * rows are never written, so this never affects any other match.
+   * Synthetic, match-scoped Resonance boost for the tutorial deck's own
+   * Resonance-reactive cards. Deliberately bypasses ResonanceService
+   * entirely - real ResonanceSnapshot rows are never written, so this never
+   * affects any other match.
+   *
+   * Which cards get the boost is discovered generically: every card actually
+   * in the resolved tutorial deck is checked via `cardUsesResonance()` (a
+   * pure DSL scan for a `RESONANCE_TIER_AT_LEAST` condition) - never a
+   * hardcoded slug/id list. Swapping any card in `TUTORIAL_DECK` for another
+   * Resonance-reactive Content Pack 01 card keeps working with no code
+   * change here.
    */
-  private buildTutorialBoostSnapshot(cardsById: Map<string, Card>): BoostSnapshotEntry[] {
-    const bySlug = new Map<string, Card>();
-    for (const card of cardsById.values()) bySlug.set(card.slug, card);
+  private buildTutorialBoostSnapshot(
+    deckEntries: DeckCardEntry[],
+    cardsById: Map<string, Card>,
+  ): BoostSnapshotEntry[] {
+    const seenCardIds = new Set<string>();
+    const boosts: BoostSnapshotEntry[] = [];
 
-    return TUTORIAL_RESONANCE_DEMO_SLUGS.map((slug) => bySlug.get(slug))
-      .filter((card): card is Card => Boolean(card))
-      .map((card) => ({
+    for (const entry of deckEntries) {
+      if (seenCardIds.has(entry.cardId)) continue;
+      const card = cardsById.get(entry.cardId);
+      if (!card || !cardUsesResonance(card)) continue;
+      seenCardIds.add(entry.cardId);
+      boosts.push({
         cardId: card.id,
         tier: TUTORIAL_RESONANCE_TIER,
         boostPercent: TUTORIAL_RESONANCE_BOOST_PERCENT,
-      }));
+      });
+    }
+
+    return boosts;
   }
 
   private toGameAction(userId: string, dto: MatchActionDto): GameAction {

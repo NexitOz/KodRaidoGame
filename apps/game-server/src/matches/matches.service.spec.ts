@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { BOT_DECKS } from './bot-decks';
 import type { MatchActionDto } from './dto/match-action.dto';
 import { MatchesService } from './matches.service';
-import { TUTORIAL_DECK, TUTORIAL_RESONANCE_DEMO_SLUGS } from './tutorial-deck';
+import { TUTORIAL_DECK } from './tutorial-deck';
 
 interface FakeCardRow {
   id: string;
@@ -76,18 +76,43 @@ function makeCardRow(id: string, overrides: Partial<FakeCardRow> = {}): FakeCard
 const BOT_CARD_SLUGS = Array.from(
   new Set(Object.values(BOT_DECKS).flatMap((entries) => entries.map((e) => e.slug))),
 );
-const TUTORIAL_CARD_SLUGS = Array.from(
-  new Set([...TUTORIAL_DECK.map((e) => e.slug), ...TUTORIAL_RESONANCE_DEMO_SLUGS]),
-);
+const TUTORIAL_CARD_SLUGS = Array.from(new Set(TUTORIAL_DECK.map((e) => e.slug)));
 
-function buildCardCatalog(): FakeCardRow[] {
+/** A minimal effectJson whose only purpose is to carry a RESONANCE_TIER_AT_LEAST condition, so
+ * `cardUsesResonance()` finds it - the exact same DSL shape any real reactive card uses. */
+const RESONANCE_REACTIVE_EFFECT_JSON = [
+  {
+    trigger: 'ON_PLAY',
+    conditions: [{ type: 'RESONANCE_TIER_AT_LEAST', value: 3 }],
+    effects: [{ type: 'DRAW', amount: 1 }],
+  },
+];
+
+/** Arbitrary tutorial-deck slugs used as the default "these happen to carry Resonance DSL in
+ * this test run" set - arbitrary on purpose, to prove nothing downstream is keyed to these
+ * specific names. */
+const DEFAULT_TUTORIAL_RESONANCE_SLUGS = ['ashen-blade', 'presave-signal'];
+
+/**
+ * `resonanceReactiveSlugs` marks which tutorial-deck cards carry Resonance-gated DSL in this
+ * fake catalog - deliberately a parameter, not a fixed constant, so tests can prove
+ * `buildTutorialBoostSnapshot` discovers reactivity from the DSL itself, not from any particular
+ * slug.
+ */
+function buildCardCatalog(resonanceReactiveSlugs: string[] = []): FakeCardRow[] {
+  const reactive = new Set(resonanceReactiveSlugs);
   const botCards = BOT_CARD_SLUGS.map((slug, i) => {
     const cost = (i % 4) + 1;
     return makeCardRow(slug, { cost, attack: cost, health: cost + 1 });
   });
   const tutorialCards = TUTORIAL_CARD_SLUGS.map((slug, i) => {
     const cost = (i % 4) + 1;
-    return makeCardRow(slug, { cost, attack: cost, health: cost + 1 });
+    return makeCardRow(slug, {
+      cost,
+      attack: cost,
+      health: cost + 1,
+      effectJson: reactive.has(slug) ? RESONANCE_REACTIVE_EFFECT_JSON : [],
+    });
   });
   const humanCards = Array.from({ length: 15 }, (_, i) =>
     makeCardRow(`human-${i}`, { cost: (i % 4) + 1, attack: 1, health: 1 }),
@@ -304,7 +329,7 @@ describe('MatchesService', () => {
   let service: MatchesService;
 
   beforeEach(() => {
-    const cards = buildCardCatalog();
+    const cards = buildCardCatalog(DEFAULT_TUTORIAL_RESONANCE_SLUGS);
     prisma = createFakePrisma(cards);
     repo = new FakeMatchStateRepository();
     prisma._internal.users.set('user-1', {
@@ -546,13 +571,42 @@ describe('MatchesService', () => {
       expect(stored.botDifficulty).toBe('TUTORIAL');
     });
 
-    it('grants a synthetic Resonance Tier 3 boost only to the tutorial demo cards, not real ResonanceSnapshot data', async () => {
+    it('grants a synthetic Resonance Tier 3 boost only to the deck\'s own Resonance-reactive cards, not real ResonanceSnapshot data', async () => {
       const view = await service.createTutorialMatch('user-1');
       const stored = prisma._internal.matches.find((m) => m.id === view.matchId)!;
       const boostSnapshot = stored.boostSnapshotJson as Array<{ cardId: string; tier: number }>;
 
-      expect(boostSnapshot.length).toBe(TUTORIAL_RESONANCE_DEMO_SLUGS.length);
+      // Discovered generically from this test's fake catalog (DEFAULT_TUTORIAL_RESONANCE_SLUGS
+      // carry RESONANCE_TIER_AT_LEAST DSL) - not from a hardcoded slug list in production code.
+      expect(boostSnapshot.length).toBe(DEFAULT_TUTORIAL_RESONANCE_SLUGS.length);
       expect(boostSnapshot.every((entry) => entry.tier === 3)).toBe(true);
+    });
+
+    it('discovers a Resonance-reactive tutorial card by its DSL alone, regardless of its slug/id', async () => {
+      // A fresh catalog where a completely different (arbitrary) tutorial-deck card carries the
+      // Resonance DSL - proves boost discovery isn't tied to any specific slug.
+      const altSlug = 'scouting-of-the-court';
+      const altCards = buildCardCatalog([altSlug]);
+      const altPrisma = createFakePrisma(altCards);
+      altPrisma._internal.users.set('user-1', {
+        id: 'user-1',
+        username: 'user-1',
+        xp: 0,
+        softCurrency: 0,
+        level: 1,
+        mmr: 1000,
+      });
+      const fakeResonance = { buildBoostSnapshot: async () => [] };
+      const fakeAnalyticsEvents = { log: async () => undefined, logOnce: async () => true };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const altService = new MatchesService(altPrisma as any, repo as any, fakeResonance as any, fakeAnalyticsEvents as any);
+
+      const view = await altService.createTutorialMatch('user-1');
+      const stored = altPrisma._internal.matches.find((m) => m.id === view.matchId)!;
+      const boostSnapshot = stored.boostSnapshotJson as Array<{ cardId: string; tier: number }>;
+      const altCardId = altCards.find((c) => c.slug === altSlug)!.id;
+
+      expect(boostSnapshot).toEqual([{ cardId: altCardId, tier: 3, boostPercent: 6 }]);
     });
 
     it('excludes tutorial matches from normal match history', async () => {

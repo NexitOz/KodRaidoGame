@@ -60,6 +60,14 @@ export class TutorialService {
    * Server-authoritative completion: only grants the one-time reward after
    * confirming a real tutorial match row shows this user as the winner - the
    * client's claim that it "finished" is never trusted on its own.
+   *
+   * The reward claim itself is a conditional atomic update
+   * (`UPDATE ... WHERE tutorialRewardClaimedAt IS NULL`), not a read-then-write: under Postgres's
+   * default Read Committed isolation, a concurrent second UPDATE targeting the same row blocks
+   * until the first transaction commits, then re-evaluates its own WHERE clause against the
+   * now-committed row - so at most one concurrent `complete()` call can ever match and increment
+   * xp/softCurrency, with zero reliance on an application-level read-before-transaction that
+   * could go stale between the read and the write.
    */
   async complete(userId: string): Promise<TutorialCompleteResponse> {
     const wonMatch = await this.prisma.match.findFirst({
@@ -70,33 +78,34 @@ export class TutorialService {
       throw new BadRequestException('No finished, won tutorial match found for this user.');
     }
 
-    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: userId } });
     await this.analyticsEvents.log('tutorialCompleted', userId);
 
-    if (user.tutorialRewardClaimedAt) {
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: { tutorialCompletedAt: new Date() },
-      });
-      return { rewardGranted: false, xp: 0, softCurrency: 0 };
-    }
-
-    await this.prisma.$transaction(async (tx) => {
-      const newXp = user.xp + TUTORIAL_REWARD.xp;
-      const newLevel = computeLevelForXp(newXp);
-      await tx.user.update({
-        where: { id: userId },
+    return this.prisma.$transaction(async (tx) => {
+      const claim = await tx.user.updateMany({
+        where: { id: userId, tutorialRewardClaimedAt: null },
         data: {
-          xp: newXp,
-          softCurrency: user.softCurrency + TUTORIAL_REWARD.softCurrency,
-          level: newLevel,
-          tutorialCompletedAt: new Date(),
           tutorialRewardClaimedAt: new Date(),
+          tutorialCompletedAt: new Date(),
+          xp: { increment: TUTORIAL_REWARD.xp },
+          softCurrency: { increment: TUTORIAL_REWARD.softCurrency },
         },
       });
-    });
 
-    return { rewardGranted: true, xp: TUTORIAL_REWARD.xp, softCurrency: TUTORIAL_REWARD.softCurrency };
+      if (claim.count === 0) {
+        // Reward already claimed - by an earlier call or a concurrent one that just committed
+        // first. tutorialCompletedAt still gets recorded for this (replay) completion.
+        await tx.user.update({ where: { id: userId }, data: { tutorialCompletedAt: new Date() } });
+        return { rewardGranted: false, xp: 0, softCurrency: 0 };
+      }
+
+      // Only the winner of the claim reaches here. Reads the just-incremented xp back within the
+      // same transaction (a transaction always sees its own writes) so level is derived from the
+      // real, freshly-persisted total - never from a value computed before the increment landed.
+      const updated = await tx.user.findUniqueOrThrow({ where: { id: userId } });
+      await tx.user.update({ where: { id: userId }, data: { level: computeLevelForXp(updated.xp) } });
+
+      return { rewardGranted: true, xp: TUTORIAL_REWARD.xp, softCurrency: TUTORIAL_REWARD.softCurrency };
+    });
   }
 
   async skip(userId: string): Promise<TutorialProgress> {

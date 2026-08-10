@@ -102,6 +102,54 @@ test('replay from Settings starts a fresh tutorial match', async ({ page }) => {
   await expect(page.locator('[role="status"][aria-live="polite"]')).toBeVisible();
 });
 
+test('skip -> replay from Settings -> navigate away -> resume banner opens the same active match', async ({
+  page,
+}) => {
+  await registerFreshUser(page, 'skip-resume');
+  await page.waitForTimeout(500);
+  await page.getByRole('button', { name: 'Пропустить' }).click();
+  await page.waitForTimeout(300);
+  await page.getByRole('button', { name: 'Понятно' }).click();
+
+  await page.goto('/settings');
+  await page.getByRole('button', { name: 'Пройти обучение снова' }).click();
+  await page.waitForURL('**/tutorial/**', { timeout: 15_000 });
+  const matchUrl = page.url();
+
+  await page.goto('/collection');
+  await page.waitForTimeout(500);
+
+  const resumeLink = page.getByRole('link', { name: /Продолжить обучение/ });
+  await expect(resumeLink).toBeVisible();
+  await resumeLink.click();
+  await page.waitForURL(matchUrl, { timeout: 10_000 });
+});
+
+test('complete tutorial -> replay from Settings -> navigate away -> resume path still works', async ({ page }) => {
+  test.setTimeout(360_000);
+  await registerFreshUser(page, 'complete-resume');
+  await page.waitForTimeout(500);
+  await page.getByRole('button', { name: /Начать обучение/ }).click();
+  await page.waitForURL('**/tutorial/**', { timeout: 15_000 });
+
+  const result = await driveTutorialToVictory(page);
+  expect(result.won).toBe(true);
+  await page.waitForURL('**/tutorial/victory**', { timeout: 20_000 });
+
+  await page.goto('/settings');
+  await page.getByRole('button', { name: 'Пройти обучение снова' }).click();
+  await page.waitForURL('**/tutorial/**', { timeout: 15_000 });
+  const matchUrl = page.url();
+
+  await page.goto('/collection');
+  await page.waitForTimeout(500);
+
+  const resumeLink = page.getByRole('link', { name: /Продолжить обучение/ });
+  await expect(resumeLink).toBeVisible();
+  await resumeLink.click();
+  await page.waitForURL(matchUrl, { timeout: 10_000 });
+});
+
 test('360x800 mobile: tutorial layout has no horizontal overflow and the tooltip stays on screen', async ({
   browser,
 }) => {

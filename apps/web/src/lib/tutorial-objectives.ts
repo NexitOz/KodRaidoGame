@@ -1,4 +1,4 @@
-import type { Card, MatchEventView, MatchStateView } from '@kod-raido/shared';
+import { cardUsesResonance, type Card, type MatchEventView, type MatchStateView } from '@kod-raido/shared';
 
 export type TutorialStepId =
   | 'CONDUCTOR'
@@ -147,11 +147,19 @@ export function evaluateAutoAdvance(
     case 'PLAY_EVENT':
       return events.some((e) => e.type === 'CARD_PLAYED' && cardTypeOf(e.payload.cardId as string) === 'EVENT');
     case 'RESONANCE': {
+      // Requiring the active rune to itself carry Resonance DSL (not just "any rune is out")
+      // rules out a random unrelated BUFF/HEAL from an ordinary, non-Resonance-reactive rune
+      // coinciding with a Character play - the closest this event model gets to "this bonus was
+      // actually caused by Resonance" without tagging individual events with their source card.
+      const activeResonanceRune = view.you.runeCardIds.some((cardId) => {
+        const card = cardsById.get(cardId);
+        return card ? cardUsesResonance(card) : false;
+      });
       const playedCharacter = events.some(
         (e) => e.type === 'CARD_PLAYED' && cardTypeOf(e.payload.cardId as string) === 'CHARACTER',
       );
       const bonusFired = events.some((e) => RESONANCE_BONUS_EVENT_TYPES.has(e.type));
-      return view.you.runeCardIds.length > 0 && playedCharacter && bonusFired;
+      return activeResonanceRune && playedCharacter && bonusFired;
     }
     case 'CONDUCTOR':
     case 'ENERGY':

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import type { Card, CardType, MatchEventView, MatchStateView } from '@kod-raido/shared';
 import { evaluateAutoAdvance, nextStep, stepAtIndex, stepIndexOf, TUTORIAL_STEPS } from './tutorial-objectives';
 
-function fakeCard(id: string, type: CardType): Card {
+function fakeCard(id: string, type: CardType, opts: { resonanceReactive?: boolean } = {}): Card {
   return {
     id,
     slug: id,
@@ -16,6 +16,9 @@ function fakeCard(id: string, type: CardType): Card {
     active: true,
     isPlayable: true,
     resonanceTier: 0,
+    effects: opts.resonanceReactive
+      ? [{ trigger: 'ON_PLAY', conditions: [{ type: 'RESONANCE_TIER_AT_LEAST', value: 3 }], effects: [] }]
+      : [],
     ...(type === 'CHARACTER' ? { attack: 1, health: 1 } : {}),
   } as unknown as Card;
 }
@@ -59,6 +62,7 @@ describe('evaluateAutoAdvance', () => {
   const cardsById = new Map<string, Card>([
     ['char-1', fakeCard('char-1', 'CHARACTER')],
     ['rune-1', fakeCard('rune-1', 'RUNE')],
+    ['rune-resonance-1', fakeCard('rune-resonance-1', 'RUNE', { resonanceReactive: true })],
     ['track-1', fakeCard('track-1', 'TRACK')],
     ['event-1', fakeCard('event-1', 'EVENT')],
   ]);
@@ -98,8 +102,8 @@ describe('evaluateAutoAdvance', () => {
     expect(evaluateAutoAdvance('PLAY_EVENT', events('event-1'), fakeView(), cardsById)).toBe(true);
   });
 
-  it('RESONANCE requires an active rune, a played CHARACTER, and a bonus effect in the same batch', () => {
-    const view = fakeView({ runeCardIds: ['rune-1'] });
+  it('RESONANCE requires an active Resonance-reactive rune, a played CHARACTER, and a bonus effect in the same batch', () => {
+    const view = fakeView({ runeCardIds: ['rune-resonance-1'] });
     const fullBatch: MatchEventView[] = [
       { type: 'CARD_PLAYED', payload: { cardId: 'char-1' } },
       { type: 'UNIT_BUFFED', payload: {} },
@@ -112,6 +116,18 @@ describe('evaluateAutoAdvance', () => {
     // Rune present but no bonus event actually fired.
     const noBonus: MatchEventView[] = [{ type: 'CARD_PLAYED', payload: { cardId: 'char-1' } }];
     expect(evaluateAutoAdvance('RESONANCE', noBonus, view, cardsById)).toBe(false);
+  });
+
+  it('RESONANCE does not advance from a coincidental BUFF/HEAL when the active rune has no Resonance DSL at all', () => {
+    // A plain, non-reactive rune sitting on the field plus an unrelated buff (e.g. from some
+    // other ON_HEAL/ON_DEATH-triggered card) must not be mistaken for a Resonance bonus - the
+    // active rune itself has to be the thing that reacts to Resonance.
+    const view = fakeView({ runeCardIds: ['rune-1'] });
+    const coincidental: MatchEventView[] = [
+      { type: 'CARD_PLAYED', payload: { cardId: 'char-1' } },
+      { type: 'UNIT_BUFFED', payload: {} },
+    ];
+    expect(evaluateAutoAdvance('RESONANCE', coincidental, view, cardsById)).toBe(false);
   });
 
   it('CONDUCTOR, ENERGY, and DONE never auto-advance (tap-driven or terminal)', () => {

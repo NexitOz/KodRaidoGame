@@ -83,8 +83,16 @@ export default function TutorialMatchPage() {
   const completeMutation = useMutation({
     mutationFn: () => api.completeTutorial(accessToken as string),
     onSuccess: (result) => {
+      // Clearing activeMatchId here matters, not just cosmetically: this match's row is already
+      // FINISHED server-side (finishTutorialMatch ran synchronously when the winning action was
+      // applied), so OnboardingGate's resume banner must stop considering it "active" the moment
+      // we know that too - otherwise the cached (now stale) activeMatchId would make the banner
+      // reappear on this very victory screen, since it's a different pathname than the match's
+      // own /tutorial/[matchId] route.
       queryClient.setQueryData<TutorialProgress | undefined>(['tutorial-progress', accessToken], (prev) =>
-        prev ? { ...prev, completedAt: new Date().toISOString(), rewardClaimed: true } : prev,
+        prev
+          ? { ...prev, completedAt: new Date().toISOString(), rewardClaimed: true, activeMatchId: undefined }
+          : prev,
       );
       router.push(`/tutorial/victory?xp=${result.xp}&currency=${result.softCurrency}`);
     },
@@ -127,7 +135,10 @@ export default function TutorialMatchPage() {
 
   const retryMutation = useMutation({
     mutationFn: () => api.startTutorial(accessToken as string),
-    onSuccess: (result) => router.push(`/tutorial/${result.matchId}`),
+    onSuccess: (result) => {
+      queryClient.setQueryData(['tutorial-progress', accessToken], result);
+      router.push(`/tutorial/${result.matchId}`);
+    },
   });
 
   const isMyTurn = Boolean(view && !view.finished && view.activePlayerId === view.you.playerId);

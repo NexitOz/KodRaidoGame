@@ -71,16 +71,27 @@ export function OnboardingGate() {
     );
   }
 
-  // A tutorial was started but never finished or skipped, and the user landed back on the app
-  // without the original /tutorial/[matchId] URL (closed the tab, lost the deep link, etc). A
-  // small non-blocking banner offers the way back in - never a full-screen blocking modal, per
-  // the "soft guidance" rule, and never fabricates progress: it just re-opens the same real match.
-  // Never render it while already on that match's own page - it would float on top of the
-  // Battlefield's hand and End Turn button, which is exactly the kind of persistent on-field
-  // hint the tutorial overlay itself is designed to avoid.
+  // A tutorial attempt is in progress but the user landed back on the app without its
+  // /tutorial/[matchId] URL (closed the tab, lost the deep link, replayed from Settings and then
+  // navigated away, etc). A small non-blocking banner offers the way back in - never a
+  // full-screen blocking modal, per the "soft guidance" rule, and never fabricates progress: it
+  // just re-opens the same real match.
+  //
+  // `activeMatchId` alone is the correct, sufficient signal here: the server only ever returns it
+  // for a Match row that is still `status: 'ACTIVE'` (see TutorialService.getProgress) - a
+  // finished match's row flips to FINISHED synchronously in the same request that reports the
+  // win, so this can never point at a match that's actually already over. Gating it further on
+  // `!completedAt && !skippedAt` was the bug: those two fields record *historical* facts about a
+  // user's very first tutorial encounter and are never cleared by a later replay
+  // (TutorialService.start() intentionally leaves them alone so progression/analytics keep an
+  // accurate first-completion record) - so a user who skipped or completed once, then replayed
+  // from Settings and left mid-match, would have a genuinely active attempt that this banner
+  // could never show for. Never render it while already on that match's own page - it would
+  // float on top of the Battlefield's hand and End Turn button, which is exactly the kind of
+  // persistent on-field hint the tutorial overlay itself is designed to avoid.
   if (!untouched) {
     const onOwnTutorialMatch = pathname === `/tutorial/${progress.activeMatchId}`;
-    if (!progress.completedAt && !progress.skippedAt && progress.activeMatchId && !onOwnTutorialMatch) {
+    if (progress.activeMatchId && !onOwnTutorialMatch) {
       return (
         <div className="fixed inset-x-0 bottom-16 z-40 flex justify-center px-4 md:bottom-4">
           <Link
