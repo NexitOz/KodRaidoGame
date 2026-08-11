@@ -1,9 +1,10 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConflictException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { STARTER_CARD_QUANTITY } from '@kod-raido/shared';
 import type { User } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { createHash, randomUUID } from 'node:crypto';
+import { StarterDeckProvisioningService } from '../decks/starter-deck-provisioning.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 const ACCESS_TOKEN_TTL_SECONDS = 15 * 60;
@@ -23,9 +24,12 @@ function hashRefreshToken(token: string): string {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwt: JwtService,
+    private readonly starterDecks: StarterDeckProvisioningService,
   ) {}
 
   async register(email: string, username: string, password: string): Promise<AuthResult> {
@@ -39,6 +43,10 @@ export class AuthService {
     const passwordHash = await argon2.hash(password);
     const user = await this.prisma.user.create({ data: { email, username, passwordHash } });
     await this.grantStarterCollection(user.id);
+    // Unguarded like grantStarterCollection above - a fresh account that can't be provisioned
+    // (e.g. an unseeded database) is a setup problem worth surfacing immediately, not one to
+    // silently swallow.
+    await this.starterDecks.ensureStarterDecks(user.id);
 
     return this.issueTokens(user);
   }
@@ -49,6 +57,15 @@ export class AuthService {
 
     const valid = await argon2.verify(user.passwordHash, password);
     if (!valid) throw new UnauthorizedException('Invalid credentials.');
+
+    // Backfill for accounts created before Starter Deck Provisioning 1.0 - idempotent (a no-op
+    // once already provisioned), so this stays cheap on every login. Deliberately non-fatal:
+    // a provisioning hiccup must never lock an existing user out of their own account.
+    try {
+      await this.starterDecks.ensureStarterDecks(user.id);
+    } catch (error) {
+      this.logger.error(`ensureStarterDecks failed for user ${user.id} during login`, error as Error);
+    }
 
     return this.issueTokens(user);
   }

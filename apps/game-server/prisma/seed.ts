@@ -1,5 +1,6 @@
 import { PrismaClient, type CardType, type Rarity } from '@prisma/client';
 import * as argon2 from 'argon2';
+import { STARTER_DECK_PRESETS } from '../src/content/starter-decks';
 
 const prisma = new PrismaClient();
 
@@ -1306,129 +1307,13 @@ const LEGACY_DECK_PRESETS: Array<{
   },
 ];
 
-// Every Content Pack 01 starter deck runs all 10 Neutral cards at max legal copies (18),
-// all 5 cards of its own faction at max legal copies (9), plus a 3-copy "splash" from a
-// thematically complementary faction to reach exactly 30 - a playtesting baseline, not a
-// claim of perfect balance.
-const CP1_NEUTRAL_ENTRIES = [
-  { slug: 'rune-of-raido', quantity: 1 },
-  { slug: 'resonance-impulse', quantity: 2 },
-  { slug: 'edits-echo', quantity: 2 },
-  { slug: 'musical-burst', quantity: 2 },
-  { slug: 'supporters-pulse', quantity: 2 },
-  { slug: 'wave-of-comments', quantity: 2 },
-  { slug: 'presave-signal', quantity: 2 },
-  { slug: 'scene-transition', quantity: 2 },
-  { slug: 'voice-of-subscribers', quantity: 2 },
-  { slug: 'code-raido-resonance', quantity: 1 },
-];
-
-const CP1_FACTION_ENTRIES: Record<string, Array<{ slug: string; quantity: number }>> = {
-  SHADOW: [
-    { slug: 'whisper-of-the-forgotten', quantity: 2 },
-    { slug: 'ashen-blade', quantity: 2 },
-    { slug: 'keeper-of-smoldering-embers', quantity: 2 },
-    { slug: 'rune-of-the-echoing-dusk', quantity: 2 },
-    { slug: 'necromancer-of-the-twilight-order', quantity: 1 },
-  ],
-  PURIFICATION: [
-    { slug: 'acolyte-of-the-white-rune', quantity: 2 },
-    { slug: 'seal-of-the-curse', quantity: 2 },
-    { slug: 'warden-of-the-barrier', quantity: 2 },
-    { slug: 'rune-of-curse-breaking', quantity: 2 },
-    { slug: 'high-warden-of-the-white-rune', quantity: 1 },
-  ],
-  BOND: [
-    { slug: 'child-of-the-spring-light', quantity: 2 },
-    { slug: 'keeper-of-the-promise', quantity: 2 },
-    { slug: 'light-of-the-hearth', quantity: 2 },
-    { slug: 'rune-of-reflected-light', quantity: 2 },
-    { slug: 'matriarch-of-the-spring-light', quantity: 1 },
-  ],
-  VEIL: [
-    { slug: 'blade-from-the-shadow', quantity: 2 },
-    { slug: 'scouting-of-the-court', quantity: 2 },
-    { slug: 'master-of-the-ambush', quantity: 2 },
-    { slug: 'rune-of-the-nameless-court', quantity: 2 },
-    { slug: 'lord-of-the-nameless-shadow', quantity: 1 },
-  ],
-  MYSTERY: [
-    { slug: 'archivist-of-the-grey-mist', quantity: 2 },
-    { slug: 'fortune-teller-of-the-mist', quantity: 2 },
-    { slug: 'scroll-of-the-grey-archive', quantity: 2 },
-    { slug: 'rune-of-foresight', quantity: 2 },
-    { slug: 'keeper-of-the-grey-mist', quantity: 1 },
-  ],
-  COSMIC: [
-    { slug: 'spark-of-the-stellar-stream', quantity: 2 },
-    { slug: 'disciple-of-the-stellar-heirs', quantity: 2 },
-    { slug: 'portal-of-the-stellar-stream', quantity: 2 },
-    { slug: 'rune-of-the-stellar-tide', quantity: 2 },
-    { slug: 'lord-of-the-stellar-stream', quantity: 1 },
-  ],
-};
-
-const CP1_DECK_PRESETS: Array<{
-  name: string;
-  faction: string;
-  splash: Array<{ slug: string; quantity: number }>;
-}> = [
-  {
-    name: 'Shadow Aggro',
-    faction: 'SHADOW',
-    splash: [
-      { slug: 'blade-from-the-shadow', quantity: 2 },
-      { slug: 'scouting-of-the-court', quantity: 1 },
-    ],
-  },
-  {
-    name: 'Bond Sustain',
-    faction: 'BOND',
-    splash: [
-      { slug: 'acolyte-of-the-white-rune', quantity: 2 },
-      { slug: 'warden-of-the-barrier', quantity: 1 },
-    ],
-  },
-  {
-    name: 'Mystery Control',
-    faction: 'MYSTERY',
-    splash: [
-      { slug: 'seal-of-the-curse', quantity: 2 },
-      { slug: 'rune-of-curse-breaking', quantity: 1 },
-    ],
-  },
-  {
-    name: 'Cosmic Ramp',
-    faction: 'COSMIC',
-    splash: [
-      { slug: 'child-of-the-spring-light', quantity: 2 },
-      { slug: 'keeper-of-the-promise', quantity: 1 },
-    ],
-  },
-  {
-    name: 'Veil Tempo',
-    faction: 'VEIL',
-    splash: [
-      { slug: 'whisper-of-the-forgotten', quantity: 2 },
-      { slug: 'ashen-blade', quantity: 1 },
-    ],
-  },
-  {
-    name: 'Purification Control',
-    faction: 'PURIFICATION',
-    splash: [
-      { slug: 'archivist-of-the-grey-mist', quantity: 2 },
-      { slug: 'scroll-of-the-grey-archive', quantity: 1 },
-    ],
-  },
-];
-
+// The 6 Content Pack 01 starter deck presets (Shadow Aggro, Bond Sustain, Mystery Control,
+// Cosmic Ramp, Veil Tempo, Purification Control) live in src/content/starter-decks.ts - the same
+// module StarterDeckProvisioningService uses for real user provisioning, so seed data and
+// real-account decks can never drift apart. See that file for the definitions.
 const DECK_PRESETS: Array<{ name: string; entries: Array<{ slug: string; quantity: number }> }> = [
   ...LEGACY_DECK_PRESETS,
-  ...CP1_DECK_PRESETS.map((preset) => ({
-    name: preset.name,
-    entries: [...CP1_NEUTRAL_ENTRIES, ...CP1_FACTION_ENTRIES[preset.faction]!, ...preset.splash],
-  })),
+  ...STARTER_DECK_PRESETS.map((preset) => ({ name: preset.name, entries: preset.entries })),
 ];
 
 for (const preset of DECK_PRESETS) {
