@@ -1,6 +1,13 @@
 import { Prisma } from '@prisma/client';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { ECONOMY_VERSION, LEVEL_REWARDS, REWARD_TABLE, xpRequiredForLevel } from '@kod-raido/shared';
+import {
+  ECONOMY_VERSION,
+  FIRST_WIN_OF_DAY_BONUS,
+  LEVEL_REWARDS,
+  levelForXp,
+  REWARD_TABLE,
+  xpRequiredForLevel,
+} from '@kod-raido/shared';
 import { MatchRewardService } from './match-reward.service';
 
 interface FakeUser {
@@ -32,6 +39,11 @@ function createFakePrisma() {
   const matchRewards: FakeMatchRewardRow[] = [];
   const userUnlocks: Array<{ userId: string; type: string; key: string; source: string }> = [];
   let rewardIdCounter = 0;
+  // Per-user promise-chain "mutex" keyed by userId, simulating Postgres's row-level lock
+  // (`SELECT ... FOR UPDATE`) for these fake-prisma tests: a $queryRaw call for a given userId
+  // only resolves once every earlier holder for that same userId has released (i.e. its
+  // enclosing $transaction callback has settled). Different userIds never block each other.
+  const userLockQueues = new Map<string, Promise<void>>();
 
   function ensureUser(id: string): FakeUser {
     if (!users.has(id)) {
@@ -67,7 +79,7 @@ function createFakePrisma() {
         if (duplicate) {
           throw new Prisma.PrismaClientKnownRequestError(
             'Unique constraint failed on the fields: (`matchId`,`userId`)',
-            { code: 'P2002', clientVersion: 'test' },
+            { code: 'P2002', clientVersion: 'test', meta: { target: ['matchId', 'userId'] } },
           );
         }
         rewardIdCounter += 1;
@@ -100,8 +112,37 @@ function createFakePrisma() {
 
   return {
     ...base,
-    async $transaction<T>(cb: (tx: typeof base) => Promise<T>): Promise<T> {
-      return cb(base);
+    async $transaction<T>(
+      cb: (
+        tx: typeof base & {
+          $queryRaw: (strings: TemplateStringsArray, ...values: unknown[]) => Promise<unknown>;
+        },
+      ) => Promise<T>,
+    ): Promise<T> {
+      const holder: { release: (() => void) | null } = { release: null };
+      const tx = {
+        ...base,
+        async $queryRaw(_strings: TemplateStringsArray, ...values: unknown[]) {
+          const userId = String(values[0]);
+          const previous = userLockQueues.get(userId) ?? Promise.resolve();
+          let releaseThis!: () => void;
+          const gate = new Promise<void>((resolve) => {
+            releaseThis = resolve;
+          });
+          userLockQueues.set(
+            userId,
+            previous.then(() => gate),
+          );
+          await previous;
+          holder.release = releaseThis;
+          return [{ id: userId }];
+        },
+      };
+      try {
+        return await cb(tx);
+      } finally {
+        holder.release?.();
+      }
     },
     getUser: (id: string) => users.get(id),
     setUser: (id: string, patch: Partial<FakeUser>) => Object.assign(ensureUser(id), patch),
@@ -294,5 +335,133 @@ describe('MatchRewardService', () => {
     expect(types).toContain('firstWinOfDayGranted');
     expect(types).toContain('levelUp');
     expect(types).toContain('progressionRewardUnlocked');
+  });
+
+  /**
+   * Concurrency Correctness Closure Pass: the (matchId, userId) unique constraint only stops a
+   * duplicate grant for the SAME match. Two DIFFERENT matches finishing concurrently for the same
+   * account both read User.xp/softCurrency/lastFirstWinBonusDate/highestRewardedLevel, and without
+   * per-account serialization each transaction computes its reward against the SAME stale
+   * pre-reward state and overwrites the other's update - a classic lost-update race. These tests
+   * prove that never happens, regardless of which of the two transactions the fake's deterministic
+   * (but arbitrary, from the service's point of view) lock-acquisition order lets through first -
+   * every assertion here is about the final aggregate state, not which matchId "won".
+   */
+  describe('concurrency: different matches, same user', () => {
+    it('two concurrent wins both apply - no lost update, exactly one first-win bonus', async () => {
+      const [a, b] = await Promise.all([
+        service.grantMatchReward({ userId: 'user-race', matchId: 'match-A', mode: 'PVE', result: 'WIN' }),
+        service.grantMatchReward({ userId: 'user-race', matchId: 'match-B', mode: 'PVE', result: 'WIN' }),
+      ]);
+
+      expect(a.granted).toBe(true);
+      expect(b.granted).toBe(true);
+      expect(prisma.rewardsFor('user-race')).toHaveLength(2);
+
+      const win = REWARD_TABLE.PVE.WIN;
+      const expectedXp = win.xp * 2 + FIRST_WIN_OF_DAY_BONUS.xp;
+      let expectedCurrency = win.softCurrency * 2 + FIRST_WIN_OF_DAY_BONUS.softCurrency;
+      for (let level = 2; level <= levelForXp(expectedXp); level += 1) {
+        const def = LEVEL_REWARDS[level];
+        if (def?.type === 'CURRENCY') expectedCurrency += def.amount;
+      }
+
+      const finalUser = prisma.getUser('user-race')!;
+      expect(finalUser.xp).toBe(expectedXp);
+      expect(finalUser.softCurrency).toBe(expectedCurrency);
+      expect(finalUser.level).toBe(levelForXp(expectedXp));
+      expect(finalUser.highestRewardedLevel).toBe(levelForXp(expectedXp));
+
+      // Exactly one of the two got the daily bonus - never both, never neither.
+      const bonusFlags = [a.firstWinBonus, b.firstWinBonus];
+      expect(bonusFlags.filter(Boolean)).toHaveLength(1);
+      const rewardRows = prisma.rewardsFor('user-race');
+      expect(rewardRows.filter((r) => r.firstWinBonus)).toHaveLength(1);
+      expect(rewardRows.filter((r) => !r.firstWinBonus)).toHaveLength(1);
+    });
+
+    it('a concurrent win and loss both apply - no lost update, only the win could ever carry the bonus', async () => {
+      const [win, loss] = await Promise.all([
+        service.grantMatchReward({ userId: 'user-race2', matchId: 'match-C', mode: 'PVE', result: 'WIN' }),
+        service.grantMatchReward({ userId: 'user-race2', matchId: 'match-D', mode: 'PVE', result: 'LOSS' }),
+      ]);
+
+      expect(win.granted).toBe(true);
+      expect(loss.granted).toBe(true);
+      expect(prisma.rewardsFor('user-race2')).toHaveLength(2);
+
+      const winReward = REWARD_TABLE.PVE.WIN;
+      const lossReward = REWARD_TABLE.PVE.LOSS;
+      const expectedXp = winReward.xp + lossReward.xp + FIRST_WIN_OF_DAY_BONUS.xp;
+      let expectedCurrency = winReward.softCurrency + lossReward.softCurrency + FIRST_WIN_OF_DAY_BONUS.softCurrency;
+      for (let level = 2; level <= levelForXp(expectedXp); level += 1) {
+        const def = LEVEL_REWARDS[level];
+        if (def?.type === 'CURRENCY') expectedCurrency += def.amount;
+      }
+
+      const finalUser = prisma.getUser('user-race2')!;
+      expect(finalUser.xp).toBe(expectedXp);
+      expect(finalUser.softCurrency).toBe(expectedCurrency);
+      expect(finalUser.level).toBe(levelForXp(expectedXp));
+
+      expect(win.firstWinBonus).toBe(true);
+      expect(loss.firstWinBonus).toBe(false);
+    });
+
+    it('two concurrent matches crossing a cosmetic level threshold unlock it exactly once', async () => {
+      prisma.setUser('user-race3', { xp: xpRequiredForLevel(4) - 5, lastFirstWinBonusDate: TODAY });
+      await Promise.all([
+        service.grantMatchReward({ userId: 'user-race3', matchId: 'match-E', mode: 'PVE', result: 'WIN' }),
+        service.grantMatchReward({ userId: 'user-race3', matchId: 'match-F', mode: 'PVE', result: 'WIN' }),
+      ]);
+
+      const win = REWARD_TABLE.PVE.WIN;
+      const expectedXp = xpRequiredForLevel(4) - 5 + win.xp * 2;
+      const finalUser = prisma.getUser('user-race3')!;
+      expect(finalUser.xp).toBe(expectedXp);
+      expect(finalUser.level).toBe(levelForXp(expectedXp));
+      expect(finalUser.highestRewardedLevel).toBe(levelForXp(expectedXp));
+
+      const level4Key = (LEVEL_REWARDS[4] as { key: string }).key;
+      const level4Unlocks = prisma.unlocksFor('user-race3').filter((u) => u.key === level4Key);
+      expect(level4Unlocks).toHaveLength(1);
+    });
+
+    it('sequential serialized reward processing crosses multiple levels without duplicating any reward', async () => {
+      prisma.setUser('user-seq', { lastFirstWinBonusDate: TODAY });
+      const win = REWARD_TABLE.RANKED_PVP.WIN;
+      let expectedXp = 0;
+      for (let i = 0; i < 4; i += 1) {
+        await service.grantMatchReward({
+          userId: 'user-seq',
+          matchId: `seq-${i}`,
+          mode: 'RANKED_PVP',
+          result: 'WIN',
+        });
+        expectedXp += win.xp;
+      }
+
+      const finalUser = prisma.getUser('user-seq')!;
+      expect(finalUser.xp).toBe(expectedXp);
+      expect(finalUser.level).toBe(levelForXp(expectedXp));
+      expect(finalUser.highestRewardedLevel).toBe(levelForXp(expectedXp));
+
+      // Every level-reward key granted along the way appears exactly once, however many
+      // thresholds this sequence happened to cross.
+      const unlocks = prisma.unlocksFor('user-seq');
+      const cosmeticKeys = unlocks.map((u) => u.key);
+      expect(new Set(cosmeticKeys).size).toBe(cosmeticKeys.length);
+    });
+
+    it('same-match idempotency still holds under the same per-user lock (no regression from the fix)', async () => {
+      const [a, b] = await Promise.all([
+        service.grantMatchReward({ userId: 'user-race4', matchId: 'match-same', mode: 'PVE', result: 'WIN' }),
+        service.grantMatchReward({ userId: 'user-race4', matchId: 'match-same', mode: 'PVE', result: 'WIN' }),
+      ]);
+      const grantedCount = [a, b].filter((r) => r.granted).length;
+      expect(grantedCount).toBe(1);
+      expect(prisma.rewardsFor('user-race4')).toHaveLength(1);
+      expect(prisma.getUser('user-race4')!.xp).toBe(REWARD_TABLE.PVE.WIN.xp + FIRST_WIN_OF_DAY_BONUS.xp);
+    });
   });
 });

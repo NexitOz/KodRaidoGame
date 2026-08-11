@@ -80,19 +80,36 @@ progressPercent }`.
 
 ### Idempotency and concurrency
 
-A `MatchReward` row (`matchId` + `userId` unique) is the atomic claim: the service always
-`INSERT`s it **before** touching `User.xp`/`softCurrency`/`level`/`lastFirstWinBonusDate`/
-`highestRewardedLevel`. A duplicate call for the same match (page refresh re-rendering the result,
-a reconnect, a genuine race between two concurrent requests) hits the row's unique constraint,
-is caught, and returns the *original* grant's numbers with `granted: false` - no second mutation.
-Two truly concurrent calls for the same match resolve to exactly one `granted: true` (Postgres
-enforces the constraint at the database level, so this holds under real concurrency, not just in
-a single-threaded fake).
+Two protections, addressing two different races:
 
-Known scope limit: this protects "the same match cannot pay twice," which is the tested and
-required guarantee. It does not add extra locking against two *different* matches for the same
-user finishing at the exact same instant (a very unlikely case given a player has one active
-match at a time in this UI) - flagged here as a documented limitation, not solved speculatively.
+- **Same match, called twice** (page refresh re-rendering the result, a reconnect, a genuine race
+  between two concurrent requests for the same `matchId`): a `MatchReward` row (`matchId` +
+  `userId` unique) is the atomic claim - the service always `INSERT`s it **before** touching
+  `User.xp`/`softCurrency`/`level`/`lastFirstWinBonusDate`/`highestRewardedLevel`. The losing call
+  hits the row's unique constraint, is caught (narrowly - only when the violation's `meta.target`
+  actually names the `MatchReward` (matchId, userId) index, never any arbitrary P2002), and returns
+  the *original* grant's numbers with `granted: false` - no second mutation. Postgres enforces the
+  constraint at the database level, so this holds under real concurrency, not just in a
+  single-threaded fake.
+- **Two different matches finishing concurrently for the same account**: the constraint above does
+  nothing to protect this case on its own - both transactions would otherwise read the same
+  pre-reward `User` row and each compute its reward against that same stale snapshot, silently
+  discarding one of the two updates (a lost-update race). The transaction's first statement is
+  `SELECT id FROM "users" WHERE id = $userId FOR UPDATE`, which serializes reward transactions for
+  the *same* account only - the second transaction's read only happens after the first has fully
+  committed. Rewards for two *different* accounts are never blocked by each other; there is no
+  global economy lock.
+
+Verified against a real local PostgreSQL instance (not just the fake-Prisma unit tests, which
+cannot reproduce real transaction/row-lock isolation) via
+`apps/game-server/scripts/verify-concurrency.ts` - a one-off manual script, not part of CI (this
+repo has no DB-backed integration test infrastructure). It creates a throwaway user and fires two
+concurrent `grantMatchReward` calls for different matches, then asserts the final row state
+directly via SQL. All three scenarios passed: two concurrent wins (no lost XP/currency, exactly
+one `firstWinBonus`, correct level/`highestRewardedLevel`), a concurrent win+loss (only the win
+ever carries the bonus), and same-match concurrent duplicates (still exactly one grant). Run it
+manually with `npx tsx scripts/verify-concurrency.ts` from `apps/game-server` against a local
+Postgres to re-verify after any future change to this locking.
 
 ### No resurrection / no retroactive rewards
 

@@ -43,17 +43,44 @@ function utcDateString(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-function isUniqueConstraintViolation(error: unknown): boolean {
-  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002';
+/**
+ * True only for the specific unique-constraint violation on MatchReward's (matchId, userId) key -
+ * never for an arbitrary P2002. A different unique violation (e.g. a real data-integrity bug
+ * elsewhere) must propagate as a real error instead of being silently swallowed as "already
+ * granted". Postgres/Prisma report the offending constraint either as an array of column names or
+ * as the constraint name string depending on engine version, so both shapes are checked.
+ */
+function isMatchRewardUniqueViolation(error: unknown): boolean {
+  if (!(error instanceof Prisma.PrismaClientKnownRequestError) || error.code !== 'P2002') return false;
+  const target = error.meta?.target;
+  if (Array.isArray(target)) {
+    return target.includes('matchId') && target.includes('userId');
+  }
+  if (typeof target === 'string') {
+    return target.includes('match_rewards') || (target.includes('matchId') && target.includes('userId'));
+  }
+  return false;
 }
 
 /**
  * Grants XP/soft-currency for a real (non-tutorial) match. Server-authoritative, idempotent, and
- * concurrency-safe: the (matchId, userId) unique constraint on MatchReward is the atomic claim -
- * this service always INSERTs that row *before* touching User.xp/softCurrency/level, so a
- * duplicate call (page refresh re-POSTing a result, a reconnect, or a genuine race between two
- * concurrent requests for the same match) hits a unique-constraint violation and is treated as
- * "already granted" without a second mutation. See docs/player-progression-economy-01.md.
+ * concurrency-safe:
+ *
+ * - Same match, called twice (refresh, retry, reconnect, a real race between two concurrent
+ *   requests for the *same* matchId): the (matchId, userId) unique constraint on MatchReward is
+ *   the atomic claim - this service always INSERTs that row before touching the user, so the
+ *   loser of that race hits a unique-constraint violation and is treated as "already granted"
+ *   without a second mutation.
+ * - Two DIFFERENT matches finishing concurrently for the *same* account: the unique constraint
+ *   above does nothing to protect this case - both transactions would otherwise read the same
+ *   pre-reward User.xp/softCurrency/lastFirstWinBonusDate/highestRewardedLevel and each compute
+ *   its reward against that same stale snapshot, silently discarding one of the two updates (a
+ *   classic lost-update race). `SELECT ... FOR UPDATE` on the user row, taken as the very first
+ *   statement of the transaction, closes this: it serializes reward transactions for the same
+ *   account (never across different accounts - there is no global economy lock), so the second
+ *   transaction's read only happens after the first has fully committed.
+ *
+ * See docs/player-progression-economy-01.md.
  */
 @Injectable()
 export class MatchRewardService {
@@ -69,6 +96,10 @@ export class MatchRewardService {
 
     try {
       const granted = await this.prisma.$transaction(async (tx) => {
+        // Row-level lock, held for the rest of this transaction - see the class doc comment for
+        // why this is required and not just the MatchReward unique constraint.
+        await tx.$queryRaw`SELECT id FROM "users" WHERE id = ${userId} FOR UPDATE`;
+
         const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
 
         const today = utcDateString(new Date());
@@ -167,7 +198,7 @@ export class MatchRewardService {
 
       return granted;
     } catch (error) {
-      if (isUniqueConstraintViolation(error)) {
+      if (isMatchRewardUniqueViolation(error)) {
         return this.loadExistingReward(matchId, userId);
       }
       throw error;

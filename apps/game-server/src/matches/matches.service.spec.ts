@@ -300,6 +300,13 @@ function createFakePrisma(cards: FakeCardRow[]) {
         return create;
       },
     },
+    // No real row-locking in this fake - matches.service.spec.ts never exercises concurrent
+    // reward grants (that's covered by match-reward.service.spec.ts's dedicated concurrency
+    // suite), so a no-op is sufficient here; it just needs to exist so MatchRewardService's
+    // `tx.$queryRaw` FOR UPDATE call doesn't throw "not a function".
+    async $queryRaw() {
+      return [{ id: 'lock' }];
+    },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async $transaction<T>(fn: (tx: any) => Promise<T>): Promise<T> {
       return fn(api);
