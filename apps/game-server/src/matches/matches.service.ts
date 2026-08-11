@@ -12,10 +12,12 @@ import {
   type MatchState,
 } from '@kod-raido/game-engine';
 import {
+  cardUsesResonance,
   computeLevelForXp,
   computeMmrDelta,
   PVE_REWARDS,
   PVP_REWARDS,
+  type BoostSnapshotEntry,
   type Card,
   type DeckCardEntry,
   type MatchActionResponse,
@@ -24,17 +26,22 @@ import {
   type MatchResult,
   type MatchStateView,
 } from '@kod-raido/shared';
+import { AnalyticsEventsService } from '../analytics-events/analytics-events.service';
 import { toCardDto } from '../cards/cards.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { ResonanceService } from '../resonance/resonance.service';
 import { BOT_DECKS, pickRandomBotArchetype, type BotArchetype } from './bot-decks';
 import { MatchActionDto } from './dto/match-action.dto';
 import { MatchStateRepository } from './match-state.repository';
+import { TUTORIAL_BOT_ARCHETYPE, TUTORIAL_DECK, TUTORIAL_MATCH_SEED } from './tutorial-deck';
 import { buildMatchView } from './view/match-view';
 
 const BOT_PLAYER_ID = 'bot';
 const MAX_BOT_ACTIONS_PER_TURN = 40;
 const RULES_VERSION = '0.1.0';
+/** Synthetic Resonance tier granted only inside the tutorial match - never written to ResonanceSnapshot. */
+const TUTORIAL_RESONANCE_TIER = 3;
+const TUTORIAL_RESONANCE_BOOST_PERCENT = 6;
 
 export interface PvpActionResult {
   state: MatchState;
@@ -54,6 +61,7 @@ export class MatchesService {
     private readonly prisma: PrismaService,
     private readonly repo: MatchStateRepository,
     private readonly resonance: ResonanceService,
+    private readonly analyticsEvents: AnalyticsEventsService,
   ) {}
 
   async createPveMatch(
@@ -101,6 +109,61 @@ export class MatchesService {
 
     if (state.finished) {
       await this.finishPveMatch(userId, matchId, state);
+    } else {
+      await this.repo.save(matchId, state, [userId]);
+    }
+
+    await this.analyticsEvents.logOnce('firstPvEStarted', userId);
+
+    return buildMatchView(state, matchCtx, userId);
+  }
+
+  /**
+   * First Player Experience 1.0: creates a PvE match against the gentle TUTORIAL
+   * bot, using a fixed 30-card deck (existing Content Pack 01 cards only) and a
+   * fixed deterministic seed so the opening draws are reproducible for every
+   * player. Goes through the exact same createMatch/beginMatch/applyAction
+   * pipeline as a normal PvE match - no separate pseudo-engine.
+   */
+  async createTutorialMatch(userId: string): Promise<MatchStateView> {
+    const matchCtx = await this.buildMatchContext();
+    const playerDeckEntries = this.resolveDeckBySlug(TUTORIAL_DECK, matchCtx.cards);
+    const botDeckEntries = this.resolveBotDeck(TUTORIAL_BOT_ARCHETYPE, matchCtx.cards);
+    const boostSnapshot = this.buildTutorialBoostSnapshot(playerDeckEntries, matchCtx.cards);
+
+    const matchId = randomUUID();
+
+    let state = createMatch({
+      matchId,
+      seed: TUTORIAL_MATCH_SEED,
+      rulesVersion: RULES_VERSION,
+      player1: { playerId: userId, deck: playerDeckEntries },
+      player2: { playerId: BOT_PLAYER_ID, deck: botDeckEntries },
+      boostSnapshot,
+    });
+    state = beginMatch(state, matchCtx).state;
+    const opening = this.driveBotTurns(state, matchCtx, 'TUTORIAL');
+    state = opening.state;
+
+    await this.prisma.match.create({
+      data: {
+        id: matchId,
+        player1Id: userId,
+        player2IsBot: true,
+        botDifficulty: 'TUTORIAL',
+        isTutorial: true,
+        seed: TUTORIAL_MATCH_SEED,
+        status: 'ACTIVE',
+        boostSnapshotJson: boostSnapshot as object,
+      },
+    });
+
+    if (opening.events.length > 0) {
+      await this.repo.appendEvents(matchId, opening.events);
+    }
+
+    if (state.finished) {
+      await this.finishTutorialMatch(matchId, state);
     } else {
       await this.repo.save(matchId, state, [userId]);
     }
@@ -182,7 +245,9 @@ export class MatchesService {
 
     let rewards: MatchActionResponse['rewards'];
     if (state.finished) {
-      rewards = await this.finishPveMatch(userId, matchId, state);
+      rewards = dbMatch?.isTutorial
+        ? await this.finishTutorialMatch(matchId, state)
+        : await this.finishPveMatch(userId, matchId, state);
     } else {
       await this.repo.save(matchId, state, [userId]);
     }
@@ -242,7 +307,7 @@ export class MatchesService {
 
   async listHistory(userId: string): Promise<MatchHistoryEntry[]> {
     const matches = await this.prisma.match.findMany({
-      where: { OR: [{ player1Id: userId }, { player2Id: userId }] },
+      where: { OR: [{ player1Id: userId }, { player2Id: userId }], isTutorial: false },
       orderBy: { startedAt: 'desc' },
       take: 50,
       include: {
@@ -328,15 +393,57 @@ export class MatchesService {
   }
 
   private resolveBotDeck(archetype: BotArchetype, cardsById: Map<string, Card>): DeckCardEntry[] {
+    return this.resolveDeckBySlug(BOT_DECKS[archetype], cardsById);
+  }
+
+  private resolveDeckBySlug(
+    entries: Array<{ slug: string; quantity: number }>,
+    cardsById: Map<string, Card>,
+  ): DeckCardEntry[] {
     const idBySlug = new Map<string, string>();
     for (const card of cardsById.values()) idBySlug.set(card.slug, card.id);
 
-    return BOT_DECKS[archetype]
+    return entries
       .map((entry) => {
         const cardId = idBySlug.get(entry.slug);
         return cardId ? { cardId, quantity: entry.quantity } : null;
       })
       .filter((entry): entry is DeckCardEntry => entry !== null);
+  }
+
+  /**
+   * Synthetic, match-scoped Resonance boost for the tutorial deck's own
+   * Resonance-reactive cards. Deliberately bypasses ResonanceService
+   * entirely - real ResonanceSnapshot rows are never written, so this never
+   * affects any other match.
+   *
+   * Which cards get the boost is discovered generically: every card actually
+   * in the resolved tutorial deck is checked via `cardUsesResonance()` (a
+   * pure DSL scan for a `RESONANCE_TIER_AT_LEAST` condition) - never a
+   * hardcoded slug/id list. Swapping any card in `TUTORIAL_DECK` for another
+   * Resonance-reactive Content Pack 01 card keeps working with no code
+   * change here.
+   */
+  private buildTutorialBoostSnapshot(
+    deckEntries: DeckCardEntry[],
+    cardsById: Map<string, Card>,
+  ): BoostSnapshotEntry[] {
+    const seenCardIds = new Set<string>();
+    const boosts: BoostSnapshotEntry[] = [];
+
+    for (const entry of deckEntries) {
+      if (seenCardIds.has(entry.cardId)) continue;
+      const card = cardsById.get(entry.cardId);
+      if (!card || !cardUsesResonance(card)) continue;
+      seenCardIds.add(entry.cardId);
+      boosts.push({
+        cardId: card.id,
+        tier: TUTORIAL_RESONANCE_TIER,
+        boostPercent: TUTORIAL_RESONANCE_BOOST_PERCENT,
+      });
+    }
+
+    return boosts;
   }
 
   private toGameAction(userId: string, dto: MatchActionDto): GameAction {
@@ -401,8 +508,37 @@ export class MatchesService {
     });
 
     await this.repo.delete(matchId);
+    await this.analyticsEvents.logOnce('firstPvEFinished', userId);
 
     return { xp: reward.xp, softCurrency: reward.softCurrency, leveledUp };
+  }
+
+  /**
+   * Tutorial matches never touch user.xp/softCurrency here - the one-time
+   * completion reward is granted separately and exactly once by
+   * TutorialService.complete(), which verifies this exact row first.
+   */
+  private async finishTutorialMatch(matchId: string, state: MatchState): Promise<undefined> {
+    const events = await this.repo.loadAllEvents(matchId);
+
+    if (events.length > 0) {
+      await this.prisma.matchEvent.createMany({
+        data: events.map((event, index) => ({
+          matchId,
+          sequence: index,
+          type: event.type,
+          payloadJson: event.payload as object,
+        })),
+      });
+    }
+
+    await this.prisma.match.update({
+      where: { id: matchId },
+      data: { status: 'FINISHED', winnerId: state.winnerId ?? null, finishedAt: new Date() },
+    });
+
+    await this.repo.delete(matchId);
+    return undefined;
   }
 
   private async finishPvpMatch(

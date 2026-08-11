@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import type { Card } from '@kod-raido/shared';
 import { RARITY_LABEL, ResonanceBadge } from '@kod-raido/ui';
+import { KeywordText } from '@/components/KeywordText';
 
 const TYPE_LABEL: Record<Card['type'], string> = {
   CHARACTER: 'Персонаж',
@@ -72,7 +73,7 @@ export function HandCardPreview({ card, onClose }: { card: Card | null; onClose:
 
         {card.abilityText ? (
           <p className="mb-4 rounded-xl border border-white/5 bg-black/30 p-3 text-sm leading-relaxed text-raido-white/90">
-            {card.abilityText}
+            <KeywordText text={card.abilityText} />
           </p>
         ) : null}
 

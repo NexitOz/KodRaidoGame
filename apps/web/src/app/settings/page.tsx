@@ -1,6 +1,10 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@kod-raido/ui';
+import { api } from '@/lib/api';
+import { useAuthStore } from '@/lib/auth-store';
 import { useSettingsStore } from '@/lib/settings-store';
 import { playSfx } from '@/lib/sfx';
 
@@ -45,6 +49,20 @@ export default function SettingsPage() {
     setVoiceVolume,
     setLowDataMode,
   } = useSettingsStore();
+
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const replayTutorialMutation = useMutation({
+    mutationFn: () => api.startTutorial(accessToken as string),
+    onSuccess: (result) => {
+      // Keeps OnboardingGate's cached progress in sync immediately - without this, its resume
+      // banner would only pick up this new active match on the next full page load/refetch
+      // trigger, not right after an in-app navigation away from here.
+      queryClient.setQueryData(['tutorial-progress', accessToken], result);
+      router.push(`/tutorial/${result.matchId}`);
+    },
+  });
 
   return (
     <div className="mx-auto flex max-w-md flex-col gap-6">
@@ -91,6 +109,22 @@ export default function SettingsPage() {
             className="h-6 w-11 shrink-0 cursor-pointer appearance-none rounded-full bg-raido-steel outline-none transition-colors checked:bg-raido-red relative before:absolute before:left-0.5 before:top-0.5 before:h-5 before:w-5 before:rounded-full before:bg-raido-white before:transition-transform checked:before:translate-x-5"
           />
         </label>
+      </section>
+
+      <section className="rounded-2xl border border-white/10 bg-raido-graphite p-5">
+        <p className="font-medium text-raido-white">Обучение</p>
+        <p className="mt-1 text-xs text-raido-mist">
+          Учебный бой не влияет на рейтинг и статистику обычных матчей. Награда за первое
+          прохождение начисляется только один раз.
+        </p>
+        <Button
+          variant="secondary"
+          onClick={() => replayTutorialMutation.mutate()}
+          disabled={replayTutorialMutation.isPending || !accessToken}
+          className="mt-3"
+        >
+          {replayTutorialMutation.isPending ? 'Начинаем…' : 'Пройти обучение снова'}
+        </Button>
       </section>
     </div>
   );

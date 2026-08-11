@@ -4,9 +4,10 @@
 
 ## Статус веток (актуально на момент этого коммита)
 
-`main` содержит Phase 0-7 + Battlefield 2.0 (смержены через PR #2 и PR #3). Content Pack 01
-разрабатывается на отдельной ветке `content-pack-01`, созданной от актуального `main` — тот же
-паттерн "своя ветка на фазу + отдельный PR", что и для Battlefield 2.0.
+`main` содержит Phase 0-7 + Battlefield 2.0 + Content Pack 01 (смержены через PR #2, #3, #4).
+First Player Experience 1.0 (обучение + онбординг) разрабатывается на отдельной ветке
+`first-player-experience`, созданной от `main` на коммите `5b771d3` — тот же паттерн "своя ветка
+на фазу + отдельный PR".
 
 ## Phase 0 — Foundation ✅ Done
 
@@ -651,3 +652,36 @@ Shield всем, +2/+2 навсегда — без auto-win на любом Tier
   громит Purification Control без потери HP) — задокументировано как кандидат на правку в
   `docs/content-pack-01-balance.md`, не исправлялось в этой фазе намеренно (playtesting baseline,
   не финальная балансировка).
+
+## First Player Experience 1.0 / Tutorial + Onboarding + First Battle ✅ Done
+
+Полное описание: [`docs/tutorial-fpx.md`](./tutorial-fpx.md). Кратко:
+
+- Онбординг (`OnboardingGate`) на каждой странице для нетронутых/незавершённых пользователей;
+  ненавязчивый баннер "Продолжить обучение" для тех, кто закрыл вкладку посреди обучения.
+- Обучающий матч — **настоящий** матч через `@kod-raido/game-engine` (не псевдо-игра): свежая
+  30-карточная колода из Content Pack 01 (`TUTORIAL_DECK`), детерминированный seed, синтетический
+  `boostSnapshot` только для этого матча (без записи в реальный `ResonanceSnapshot`), отдельная
+  сложность бота `TUTORIAL` (никогда не бьёт летально рано, мягкое окно на 60 ходов).
+  Ноль cardId-специфичной логики где-либо: objective evaluator (`tutorial-objectives.ts`) и bot
+  ключуются только на TYPE карты и generic состояние движка.
+  9 шагов с overlay-слоем (`TutorialOverlay`) поверх немодифицированного Battlefield 2.0 —
+  spotlight/tooltip/пульс, ноль изменений структуры `MatchBoard`, только additive
+  `data-tutorial-target`-атрибуты.
+- Экран победы → стартовые архетипы (`/tutorial/archetypes`, 6 колод с метками
+  ПРОСТО/СРЕДНЕ/СЛОЖНО) → обычный `/play`.
+- Keyword tooltip registry + "?" help sheet + Resonance-объяснение по тирам — всё из одного
+  `KEYWORD_REGISTRY`/`explainCardResonance()`, ни одной per-card ветки.
+- Награда (+100 XP/+300 Echo) — server-authoritative, ровно один раз, skip не лишает награды
+  навсегда, повтор в Settings не трогает MMR/статистику обычных PvE-матчей.
+- Analytics: `AnalyticsEvent`-таблица (`tutorialStarted/StepReached/Completed/Skipped`,
+  `firstPvEStarted/Finished`), admin-сводка + `tutorialStartedUsers/CompletedUsers/SkippedUsers/
+  completionRate/dropOffByStep/firstPvEAfterTutorial`.
+- **252 unit-теста** (весь монорепо, `npm run test --workspaces`) + **6 Playwright
+  end-to-end тестов** (`apps/web/e2e/tutorial-fpx.spec.ts`: золотой путь, refresh-восстановление,
+  skip, replay, 360×800, `prefers-reduced-motion`) — все зелёные. Полный
+  lint/typecheck/test/build зелёный по всем workspace'ам.
+- Живое браузерное тестирование нашло и исправило 3 реальных бага (подробности в
+  `docs/tutorial-fpx.md`): бот мог довести матч до поражения игрока (окно смягчения было слишком
+  коротким), баннер "Продолжить обучение" перекрывал поле боя во время самого обучения, экран
+  подтверждения skip вообще не показывался из-за порядка проверок в `OnboardingGate`.

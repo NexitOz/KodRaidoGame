@@ -4,6 +4,15 @@ import { AnalyticsService } from './analytics.service';
 interface FakeUser {
   id: string;
   createdAt: Date;
+  tutorialStartedAt?: Date | null;
+  tutorialCompletedAt?: Date | null;
+  tutorialSkippedAt?: Date | null;
+}
+
+interface FakeAnalyticsEvent {
+  type: string;
+  userId?: string;
+  payloadJson: unknown;
 }
 
 interface FakeMatch {
@@ -28,12 +37,21 @@ function createFakePrisma() {
   const matches: FakeMatch[] = [];
   const matchEvents: FakeMatchEvent[] = [];
   const cards: FakeCard[] = [];
+  const analyticsEvents: FakeAnalyticsEvent[] = [];
 
   return {
     user: {
       async count({ where }: { where?: { createdAt?: { gte: Date } } } = {}) {
         if (!where?.createdAt) return users.length;
         return users.filter((u) => u.createdAt >= where.createdAt!.gte).length;
+      },
+      async findMany({ select: _select }: { select: unknown }) {
+        return users.map((u) => ({
+          id: u.id,
+          tutorialStartedAt: u.tutorialStartedAt ?? null,
+          tutorialCompletedAt: u.tutorialCompletedAt ?? null,
+          tutorialSkippedAt: u.tutorialSkippedAt ?? null,
+        }));
       },
     },
     match: {
@@ -55,7 +73,14 @@ function createFakePrisma() {
           .map((c) => ({ id: c.id, name: c.name }));
       },
     },
-    _internal: { users, matches, matchEvents, cards },
+    analyticsEvent: {
+      async findMany({ where }: { where: { type: string } }) {
+        return analyticsEvents
+          .filter((e) => e.type === where.type)
+          .map((e) => ({ userId: e.userId, payloadJson: e.payloadJson }));
+      },
+    },
+    _internal: { users, matches, matchEvents, cards, analyticsEvents },
   };
 }
 
@@ -129,5 +154,60 @@ describe('AnalyticsService', () => {
     prisma._internal.matchEvents.push({ type: 'CARD_PLAYED', payloadJson: { cardId: 'ghost-card' } });
     const summary = await service.getSummary(now);
     expect(summary.topCards).toEqual([{ cardId: 'ghost-card', name: 'Unknown card', timesPlayed: 1 }]);
+  });
+
+  it('counts tutorial started/completed/skipped users and derives a completion rate', async () => {
+    prisma._internal.users.push(
+      { id: 'u1', createdAt: now, tutorialStartedAt: now, tutorialCompletedAt: now },
+      { id: 'u2', createdAt: now, tutorialStartedAt: now, tutorialSkippedAt: now },
+      { id: 'u3', createdAt: now, tutorialStartedAt: now },
+      { id: 'u4', createdAt: now },
+    );
+
+    const summary = await service.getSummary(now);
+    expect(summary.tutorialStartedUsers).toBe(3);
+    expect(summary.tutorialCompletedUsers).toBe(1);
+    expect(summary.tutorialSkippedUsers).toBe(1);
+    expect(summary.completionRate).toBeCloseTo(1 / 3);
+  });
+
+  it('returns a completion rate of 0 when nobody has started the tutorial', async () => {
+    prisma._internal.users.push({ id: 'u1', createdAt: now });
+    const summary = await service.getSummary(now);
+    expect(summary.completionRate).toBe(0);
+  });
+
+  it('buckets drop-off by the furthest step reached, only for users who neither completed nor skipped', async () => {
+    prisma._internal.users.push(
+      { id: 'stuck-early', createdAt: now, tutorialStartedAt: now },
+      { id: 'stuck-later', createdAt: now, tutorialStartedAt: now },
+      { id: 'finished', createdAt: now, tutorialStartedAt: now, tutorialCompletedAt: now },
+      { id: 'never-started', createdAt: now },
+    );
+    prisma._internal.analyticsEvents.push(
+      { type: 'tutorialStepReached', userId: 'stuck-later', payloadJson: { step: 1 } },
+      { type: 'tutorialStepReached', userId: 'stuck-later', payloadJson: { step: 4 } },
+      { type: 'tutorialStepReached', userId: 'finished', payloadJson: { step: 8 } },
+    );
+
+    const summary = await service.getSummary(now);
+    expect(summary.dropOffByStep).toEqual({ 0: 1, 4: 1 });
+  });
+
+  it('counts users who completed or skipped the tutorial and then started a PvE match', async () => {
+    prisma._internal.users.push(
+      { id: 'completed-and-played', createdAt: now, tutorialStartedAt: now, tutorialCompletedAt: now },
+      { id: 'skipped-and-played', createdAt: now, tutorialStartedAt: now, tutorialSkippedAt: now },
+      { id: 'completed-but-idle', createdAt: now, tutorialStartedAt: now, tutorialCompletedAt: now },
+      { id: 'still-in-tutorial', createdAt: now, tutorialStartedAt: now },
+    );
+    prisma._internal.analyticsEvents.push(
+      { type: 'firstPvEStarted', userId: 'completed-and-played', payloadJson: {} },
+      { type: 'firstPvEStarted', userId: 'skipped-and-played', payloadJson: {} },
+      { type: 'firstPvEStarted', userId: 'still-in-tutorial', payloadJson: {} },
+    );
+
+    const summary = await service.getSummary(now);
+    expect(summary.firstPvEAfterTutorial).toBe(2);
   });
 });

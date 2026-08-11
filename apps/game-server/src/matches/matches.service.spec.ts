@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { BOT_DECKS } from './bot-decks';
 import type { MatchActionDto } from './dto/match-action.dto';
 import { MatchesService } from './matches.service';
+import { TUTORIAL_DECK } from './tutorial-deck';
 
 interface FakeCardRow {
   id: string;
@@ -75,16 +76,48 @@ function makeCardRow(id: string, overrides: Partial<FakeCardRow> = {}): FakeCard
 const BOT_CARD_SLUGS = Array.from(
   new Set(Object.values(BOT_DECKS).flatMap((entries) => entries.map((e) => e.slug))),
 );
+const TUTORIAL_CARD_SLUGS = Array.from(new Set(TUTORIAL_DECK.map((e) => e.slug)));
 
-function buildCardCatalog(): FakeCardRow[] {
+/** A minimal effectJson whose only purpose is to carry a RESONANCE_TIER_AT_LEAST condition, so
+ * `cardUsesResonance()` finds it - the exact same DSL shape any real reactive card uses. */
+const RESONANCE_REACTIVE_EFFECT_JSON = [
+  {
+    trigger: 'ON_PLAY',
+    conditions: [{ type: 'RESONANCE_TIER_AT_LEAST', value: 3 }],
+    effects: [{ type: 'DRAW', amount: 1 }],
+  },
+];
+
+/** Arbitrary tutorial-deck slugs used as the default "these happen to carry Resonance DSL in
+ * this test run" set - arbitrary on purpose, to prove nothing downstream is keyed to these
+ * specific names. */
+const DEFAULT_TUTORIAL_RESONANCE_SLUGS = ['ashen-blade', 'presave-signal'];
+
+/**
+ * `resonanceReactiveSlugs` marks which tutorial-deck cards carry Resonance-gated DSL in this
+ * fake catalog - deliberately a parameter, not a fixed constant, so tests can prove
+ * `buildTutorialBoostSnapshot` discovers reactivity from the DSL itself, not from any particular
+ * slug.
+ */
+function buildCardCatalog(resonanceReactiveSlugs: string[] = []): FakeCardRow[] {
+  const reactive = new Set(resonanceReactiveSlugs);
   const botCards = BOT_CARD_SLUGS.map((slug, i) => {
     const cost = (i % 4) + 1;
     return makeCardRow(slug, { cost, attack: cost, health: cost + 1 });
   });
+  const tutorialCards = TUTORIAL_CARD_SLUGS.map((slug, i) => {
+    const cost = (i % 4) + 1;
+    return makeCardRow(slug, {
+      cost,
+      attack: cost,
+      health: cost + 1,
+      effectJson: reactive.has(slug) ? RESONANCE_REACTIVE_EFFECT_JSON : [],
+    });
+  });
   const humanCards = Array.from({ length: 15 }, (_, i) =>
     makeCardRow(`human-${i}`, { cost: (i % 4) + 1, attack: 1, health: 1 }),
   );
-  return [...botCards, ...humanCards];
+  return [...botCards, ...tutorialCards, ...humanCards];
 }
 
 interface FakeDeck {
@@ -108,9 +141,11 @@ interface FakeMatch {
   player2Id: string | null;
   player2IsBot: boolean;
   botDifficulty: string | null;
+  isTutorial: boolean;
   seed: string;
   status: string;
   winnerId: string | null;
+  boostSnapshotJson: unknown;
   startedAt: Date;
   finishedAt: Date | null;
   xpAwarded: number | null;
@@ -148,6 +183,8 @@ function createFakePrisma(cards: FakeCardRow[]) {
         const row: FakeMatch = {
           player2Id: null,
           botDifficulty: null,
+          isTutorial: false,
+          boostSnapshotJson: [],
           winnerId: null,
           startedAt: new Date(),
           finishedAt: null,
@@ -174,12 +211,13 @@ function createFakePrisma(cards: FakeCardRow[]) {
         where,
         take,
       }: {
-        where: { OR: Array<{ player1Id?: string; player2Id?: string }> };
+        where: { OR: Array<{ player1Id?: string; player2Id?: string }>; isTutorial?: boolean };
         take?: number;
       }) {
         const userId = where.OR.find((clause) => clause.player1Id)?.player1Id ?? '';
         return matches
           .filter((m) => m.player1Id === userId || m.player2Id === userId)
+          .filter((m) => where.isTutorial === undefined || m.isTutorial === where.isTutorial)
           .sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime())
           .slice(0, take ?? matches.length)
           .map((m) => ({
@@ -291,7 +329,7 @@ describe('MatchesService', () => {
   let service: MatchesService;
 
   beforeEach(() => {
-    const cards = buildCardCatalog();
+    const cards = buildCardCatalog(DEFAULT_TUTORIAL_RESONANCE_SLUGS);
     prisma = createFakePrisma(cards);
     repo = new FakeMatchStateRepository();
     prisma._internal.users.set('user-1', {
@@ -308,8 +346,9 @@ describe('MatchesService', () => {
       cards: Array.from({ length: 15 }, (_, i) => ({ cardId: `human-${i}`, quantity: 2 })),
     });
     const fakeResonance = { buildBoostSnapshot: async () => [] };
+    const fakeAnalyticsEvents = { log: async () => undefined, logOnce: async () => true };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    service = new MatchesService(prisma as any, repo as any, fakeResonance as any);
+    service = new MatchesService(prisma as any, repo as any, fakeResonance as any, fakeAnalyticsEvents as any);
   });
 
   it('creates a PvE match against a random bot deck for a valid 30-card deck', async () => {
@@ -518,6 +557,77 @@ describe('MatchesService', () => {
       expect(history2[0]!.opponentLabel).toBe('user-1');
       expect(history1[0]!.mmrDelta).toBeDefined();
       expect(history2[0]!.mmrDelta).toBeDefined();
+    });
+  });
+
+  describe('createTutorialMatch', () => {
+    it('creates a match flagged isTutorial and playable through the normal action pipeline', async () => {
+      const view = await service.createTutorialMatch('user-1');
+      expect(view.you.playerId).toBe('user-1');
+      expect(view.opponent.isBot).toBe(true);
+
+      const stored = prisma._internal.matches.find((m) => m.id === view.matchId)!;
+      expect(stored.isTutorial).toBe(true);
+      expect(stored.botDifficulty).toBe('TUTORIAL');
+    });
+
+    it('grants a synthetic Resonance Tier 3 boost only to the deck\'s own Resonance-reactive cards, not real ResonanceSnapshot data', async () => {
+      const view = await service.createTutorialMatch('user-1');
+      const stored = prisma._internal.matches.find((m) => m.id === view.matchId)!;
+      const boostSnapshot = stored.boostSnapshotJson as Array<{ cardId: string; tier: number }>;
+
+      // Discovered generically from this test's fake catalog (DEFAULT_TUTORIAL_RESONANCE_SLUGS
+      // carry RESONANCE_TIER_AT_LEAST DSL) - not from a hardcoded slug list in production code.
+      expect(boostSnapshot.length).toBe(DEFAULT_TUTORIAL_RESONANCE_SLUGS.length);
+      expect(boostSnapshot.every((entry) => entry.tier === 3)).toBe(true);
+    });
+
+    it('discovers a Resonance-reactive tutorial card by its DSL alone, regardless of its slug/id', async () => {
+      // A fresh catalog where a completely different (arbitrary) tutorial-deck card carries the
+      // Resonance DSL - proves boost discovery isn't tied to any specific slug.
+      const altSlug = 'scouting-of-the-court';
+      const altCards = buildCardCatalog([altSlug]);
+      const altPrisma = createFakePrisma(altCards);
+      altPrisma._internal.users.set('user-1', {
+        id: 'user-1',
+        username: 'user-1',
+        xp: 0,
+        softCurrency: 0,
+        level: 1,
+        mmr: 1000,
+      });
+      const fakeResonance = { buildBoostSnapshot: async () => [] };
+      const fakeAnalyticsEvents = { log: async () => undefined, logOnce: async () => true };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const altService = new MatchesService(altPrisma as any, repo as any, fakeResonance as any, fakeAnalyticsEvents as any);
+
+      const view = await altService.createTutorialMatch('user-1');
+      const stored = altPrisma._internal.matches.find((m) => m.id === view.matchId)!;
+      const boostSnapshot = stored.boostSnapshotJson as Array<{ cardId: string; tier: number }>;
+      const altCardId = altCards.find((c) => c.slug === altSlug)!.id;
+
+      expect(boostSnapshot).toEqual([{ cardId: altCardId, tier: 3, boostPercent: 6 }]);
+    });
+
+    it('excludes tutorial matches from normal match history', async () => {
+      await service.createTutorialMatch('user-1');
+      const history = await service.listHistory('user-1');
+      expect(history).toHaveLength(0);
+    });
+
+    it('finishing a tutorial match never grants the normal PvE XP/soft-currency reward', async () => {
+      const view = await service.createTutorialMatch('user-1');
+      const before = prisma._internal.users.get('user-1')!;
+      const beforeXp = before.xp;
+      const beforeCurrency = before.softCurrency;
+
+      const result = await playToFinish(service, 'user-1', view.matchId);
+      expect(result.view.finished).toBe(true);
+      expect(result.rewards).toBeUndefined();
+
+      const after = prisma._internal.users.get('user-1')!;
+      expect(after.xp).toBe(beforeXp);
+      expect(after.softCurrency).toBe(beforeCurrency);
     });
   });
 });

@@ -2,10 +2,11 @@
 
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import type { Card } from '@kod-raido/shared';
+import { explainCardResonance, type Card } from '@kod-raido/shared';
 import { RARITY_LABEL, ResonanceBadge } from '@kod-raido/ui';
 import { api } from '@/lib/api';
 import { factionLabel } from '@/lib/factions';
+import { KeywordText } from './KeywordText';
 
 const TYPE_LABEL: Record<Card['type'], string> = {
   CHARACTER: 'Персонаж',
@@ -16,23 +17,30 @@ const TYPE_LABEL: Record<Card['type'], string> = {
 };
 
 /**
- * Derives a human-readable Resonance behavior summary purely from the card's own DSL
- * conditions - no card-specific branching, works for any card in any future pack.
+ * Renders explainCardResonance()'s per-Tier breakdown (T0-T2 base / T3 change / T5 change, or
+ * whichever tiers the card's own DSL actually declares) - generated entirely from the DSL, never
+ * from a per-cardId description.
  */
-function describeResonanceBehavior(card: Card): string {
-  const tiers = new Set<number>();
-  for (const def of card.effects) {
-    for (const condition of def.conditions ?? []) {
-      if (condition.type === 'RESONANCE_TIER_AT_LEAST' && typeof condition.value === 'number') {
-        tiers.add(condition.value);
-      }
-    }
-  }
-  if (tiers.size === 0) {
-    return 'Резонанс этой карты влияет только на визуальный эффект (пульс) на поле боя - способность не меняется.';
-  }
-  const sorted = Array.from(tiers).sort((a, b) => a - b);
-  return `Способность этой карты усиливается при Резонансе ${sorted.map((t) => `${t}+`).join(', ')}.`;
+function ResonanceExplanation({ card }: { card: Card }) {
+  const explanation = explainCardResonance(card);
+
+  return (
+    <div className="mb-4 rounded-xl border border-dashed border-raido-mist/30 p-3 text-xs text-raido-mist">
+      {explanation.isReactive ? (
+        <ul className="flex flex-col gap-1">
+          {explanation.tiers.map((tier) => (
+            <li key={tier.tier}>
+              <span className="font-semibold text-raido-gold">При Резонансе {tier.tier}+:</span>{' '}
+              {tier.descriptions.join(', ')}.
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p>Резонанс этой карты влияет только на визуальный эффект (пульс) на поле боя — способность не меняется.</p>
+      )}
+      <p className="mt-1">Резонанс фиксируется в начале матча (Tier {card.resonanceTier} сейчас).</p>
+    </div>
+  );
 }
 
 export function CardDetailDrawer({ card, onClose }: { card: Card | null; onClose: () => void }) {
@@ -101,14 +109,11 @@ export function CardDetailDrawer({ card, onClose }: { card: Card | null; onClose
 
         {card.abilityText ? (
           <p className="mb-4 rounded-xl border border-white/5 bg-black/30 p-3 text-sm leading-relaxed text-raido-white/90">
-            {card.abilityText}
+            <KeywordText text={card.abilityText} />
           </p>
         ) : null}
 
-        <div className="mb-4 rounded-xl border border-dashed border-raido-mist/30 p-3 text-xs text-raido-mist">
-          {describeResonanceBehavior(card)} Резонанс фиксируется в начале матча (Tier{' '}
-          {card.resonanceTier} сейчас).
-        </div>
+        <ResonanceExplanation card={card} />
 
         {linkedTrack ? (
           <div className="mb-4 rounded-xl border border-white/5 bg-black/30 p-3 text-xs text-raido-mist">

@@ -23,6 +23,15 @@ const ANGLE_STEP_DEG = 5;
 const ARC_STEP_PX = 3;
 const OVERLAP_PX = 22;
 
+/** Keyed by card TYPE, never by cardId - the tutorial overlay spotlights whichever hand card
+ * happens to satisfy the current step's objective, regardless of which specific card it is. */
+const HAND_TUTORIAL_TARGET: Partial<Record<Card['type'], string>> = {
+  CHARACTER: 'hand-character',
+  RUNE: 'hand-rune',
+  TRACK: 'hand-track',
+  EVENT: 'hand-event',
+};
+
 export function HandFan({ cards, energy, selectedInstanceId, disabled, onSelect, onPreview }: HandFanProps) {
   const center = (cards.length - 1) / 2;
 
@@ -93,6 +102,7 @@ function HandCardItem({
       onPointerLeave={longPress.onPointerLeave}
       onPointerCancel={longPress.onPointerCancel}
       onClickCapture={longPress.onClickCapture}
+      data-tutorial-target={HAND_TUTORIAL_TARGET[card.type]}
     >
       <CardView
         card={card}

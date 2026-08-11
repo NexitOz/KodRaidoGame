@@ -127,6 +127,87 @@ describe('chooseBotAction — NORMAL/HARD heuristics', () => {
   });
 });
 
+describe('chooseBotAction — TUTORIAL difficulty', () => {
+  it('never attacks the Conductor for lethal, even when it could', () => {
+    const attacker = makeUnit({ ownerId: 'bot', cardId: 'a', attack: 10 });
+    const state = makeBareMatchState({
+      activePlayerId: 'bot',
+      turn: 2,
+      player1: { playerId: 'bot', board: [attacker] },
+      player2: { playerId: 'human', conductorHp: 5 },
+    });
+    const action = chooseBotAction(state, makeContext([]), 'bot', 'TUTORIAL');
+    expect(action).not.toEqual({
+      type: 'ATTACK',
+      playerId: 'bot',
+      attackerId: attacker.instanceId,
+      targetId: 'human',
+    });
+  });
+
+  it('prefers attacking an enemy creature over the Conductor', () => {
+    const attacker = makeUnit({ ownerId: 'bot', cardId: 'a', attack: 3 });
+    const enemyUnit = makeUnit({ ownerId: 'human', cardId: 'e', attack: 1, health: 5 });
+    const state = makeBareMatchState({
+      activePlayerId: 'bot',
+      turn: 2,
+      player1: { playerId: 'bot', board: [attacker] },
+      player2: { playerId: 'human', board: [enemyUnit], conductorHp: 30 },
+    });
+    const action = chooseBotAction(state, makeContext([]), 'bot', 'TUTORIAL');
+    expect(action).toEqual({
+      type: 'ATTACK',
+      playerId: 'bot',
+      attackerId: attacker.instanceId,
+      targetId: enemyUnit.instanceId,
+    });
+  });
+
+  it('stops growing the board past the cap even with cards and energy left', () => {
+    const filler = makeCharacter({ id: 'filler', cost: 1 });
+    const existing = [1, 2, 3].map(() =>
+      makeUnit({ ownerId: 'bot', cardId: 'filler', attackedThisTurn: true }),
+    );
+    const state = makeBareMatchState({
+      activePlayerId: 'bot',
+      turn: 2,
+      player1: {
+        playerId: 'bot',
+        board: existing,
+        energy: 5,
+        hand: [{ instanceId: 'h1', cardId: filler.id }],
+      },
+      player2: { playerId: 'human', conductorHp: 30 },
+    });
+    const action = chooseBotAction(state, makeContext([filler]), 'bot', 'TUTORIAL');
+    // Board is already at TUTORIAL_BOT_MAX_BOARD (3) and no ready attackers: nothing safe to do.
+    expect(action).toEqual({ type: 'END_TURN', playerId: 'bot' });
+  });
+
+  it('falls back to random EASY-equivalent behaviour after the gentle turn limit', () => {
+    const attacker = makeUnit({ ownerId: 'bot', cardId: 'a', attack: 10 });
+    const state = makeBareMatchState({
+      activePlayerId: 'bot',
+      turn: 61,
+      player1: { playerId: 'bot', board: [attacker] },
+      player2: { playerId: 'human', conductorHp: 5 },
+    });
+    const action = chooseBotAction(state, makeContext([]), 'bot', 'TUTORIAL');
+    expect(['PLAY_CARD', 'ATTACK', 'END_TURN']).toContain(action.type);
+  });
+
+  it('ends the turn when there is nothing safe left to do', () => {
+    const state = makeBareMatchState({
+      activePlayerId: 'bot',
+      turn: 2,
+      player1: { playerId: 'bot', board: [], hand: [], energy: 0 },
+      player2: { playerId: 'human' },
+    });
+    const action = chooseBotAction(state, makeContext([]), 'bot', 'TUTORIAL');
+    expect(action).toEqual({ type: 'END_TURN', playerId: 'bot' });
+  });
+});
+
 describe('chooseBotAction — EASY difficulty', () => {
   it('always returns a structurally legal action shape even when random', () => {
     const attacker = makeUnit({ ownerId: 'bot', cardId: 'a', attack: 2 });

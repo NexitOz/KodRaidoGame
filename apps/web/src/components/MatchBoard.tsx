@@ -25,6 +25,7 @@ import { TrackZone } from './battlefield/TrackZone';
 import { RuneZone } from './battlefield/RuneZone';
 import { TurnOverlay } from './battlefield/TurnOverlay';
 import { EventLogSheet } from './battlefield/EventLogSheet';
+import { HelpSheet } from './battlefield/HelpSheet';
 import { ResultModal } from './battlefield/ResultModal';
 
 export type MatchSelection =
@@ -121,7 +122,10 @@ export function MatchBoard({
             {isMyTurn ? 'Твой ход' : opponentTurnLabel}
           </span>
         </span>
-        <EventLogSheet events={events} />
+        <span className="flex items-center gap-2">
+          <HelpSheet />
+          <EventLogSheet events={events} />
+        </span>
       </header>
 
       {banner}
@@ -151,7 +155,7 @@ export function MatchBoard({
         />
       </section>
 
-      <section className="relative flex items-center justify-center py-1">
+      <section className="relative flex items-center justify-center py-1" data-tutorial-target="resonance">
         <ResonancePulse tier={resonanceHeat} triggerKey={resonanceTriggerKey} />
         <TrackZone trigger={trackTrigger} cardsById={cardsById} />
       </section>
@@ -183,6 +187,7 @@ export function MatchBoard({
           onTap={onTapOwnConductor}
           feedback={feedbackByTarget.get(`conductor:${you.playerId}`) ?? []}
           rank={viewerRank}
+          tutorialTarget="own-conductor"
         />
       </section>
 
@@ -211,6 +216,7 @@ export function MatchBoard({
           <Button
             onClick={onEndTurn}
             disabled={!isMyTurn || pending}
+            data-tutorial-target="end-turn"
             className={clsx('min-h-12 flex-1 text-base', isMyTurn && !pending && 'shadow-glow')}
           >
             {pending ? 'Обработка…' : 'Завершить ход'}

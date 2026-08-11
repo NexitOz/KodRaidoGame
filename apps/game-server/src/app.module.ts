@@ -4,6 +4,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { AdminModule } from './admin/admin.module';
+import { AnalyticsEventsModule } from './analytics-events/analytics-events.module';
 import { AuthModule } from './auth/auth.module';
 import { CardsModule } from './cards/cards.module';
 import { DecksModule } from './decks/decks.module';
@@ -15,6 +16,7 @@ import { PvpModule } from './pvp/pvp.module';
 import { RedisModule } from './redis/redis.module';
 import { ResonanceModule } from './resonance/resonance.module';
 import { TracksModule } from './tracks/tracks.module';
+import { TutorialModule } from './tutorial/tutorial.module';
 
 @Module({
   imports: [
@@ -22,6 +24,7 @@ import { TracksModule } from './tracks/tracks.module';
     ScheduleModule.forRoot(),
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
     PrismaModule,
+    AnalyticsEventsModule,
     RedisModule,
     AuthModule,
     CardsModule,
@@ -33,6 +36,7 @@ import { TracksModule } from './tracks/tracks.module';
     ResonanceModule,
     AdminModule,
     HealthModule,
+    TutorialModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

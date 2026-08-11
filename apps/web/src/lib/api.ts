@@ -7,6 +7,9 @@ import type {
   MatchmakingStatus,
   MatchStateView,
   ResonanceHistoryPoint,
+  TutorialCompleteResponse,
+  TutorialProgress,
+  TutorialStartResponse,
   UpsertDeckInput,
 } from '@kod-raido/shared';
 import type { AuthResponse, CollectionEntryDto, DeckDto } from './types';
@@ -110,4 +113,19 @@ export const api = {
   getResonanceTrending: () => request<CardResonanceView[]>('/resonance/trending'),
   getResonanceHistory: (cardId: string) =>
     request<ResonanceHistoryPoint[]>(`/resonance/${cardId}/history`),
+
+  getTutorialProgress: (accessToken: string) =>
+    request<TutorialProgress>('/me/tutorial', { accessToken }),
+  startTutorial: (accessToken: string) =>
+    request<TutorialStartResponse>('/me/tutorial/start', { method: 'POST', accessToken }),
+  saveTutorialStep: (accessToken: string, step: number) =>
+    request<TutorialProgress>('/me/tutorial/progress', {
+      method: 'POST',
+      body: JSON.stringify({ step }),
+      accessToken,
+    }),
+  completeTutorial: (accessToken: string) =>
+    request<TutorialCompleteResponse>('/me/tutorial/complete', { method: 'POST', accessToken }),
+  skipTutorial: (accessToken: string) =>
+    request<TutorialProgress>('/me/tutorial/skip', { method: 'POST', accessToken }),
 };

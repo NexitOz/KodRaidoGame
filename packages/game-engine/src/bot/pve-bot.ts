@@ -10,7 +10,22 @@ import type {
 } from '../match/types.js';
 import { getOpponentId } from '../match/util.js';
 
-export type BotDifficulty = 'EASY' | 'NORMAL' | 'HARD';
+export type BotDifficulty = 'EASY' | 'NORMAL' | 'HARD' | 'TUTORIAL';
+
+/**
+ * After this many total match turns, the tutorial bot stops being deliberately
+ * gentle and plays EASY-equivalent random moves instead. Deliberately very high
+ * (well past a typical ~30-turn match, before either deck runs out and fatigue
+ * starts) so the bot is *never* the one who ends a normal tutorial playthrough -
+ * the player's own attacks decide the outcome. This is the actual guarantee
+ * behind "the tutorial ends in the player's victory in most normal playthroughs"
+ * without ever faking a result: a slow/inactive player still loses eventually to
+ * mutual fatigue damage, which this limit is not meant to prevent.
+ */
+const TUTORIAL_GENTLE_TURN_LIMIT = 60;
+
+/** Tutorial deck/board size the bot won't grow its own board past, so the player never faces clutter. */
+const TUTORIAL_BOT_MAX_BOARD = 3;
 
 function readyAttackers(unit: UnitInstance): boolean {
   return !unit.attackedThisTurn && (!unit.summonedThisTurn || unit.statuses.includes('IMPULSE'));
@@ -110,6 +125,63 @@ function randomAction(
 }
 
 /**
+ * A deliberately non-threatening opponent for the tutorial: never seeks or risks
+ * lethal, prefers trading into an enemy creature over hitting the Conductor (so
+ * the player always has something concrete to attack), plays at most one simple
+ * card at a time, and caps its own board so the screen never gets cluttered.
+ * Falls back to `randomAction` (EASY-equivalent) after `TUTORIAL_GENTLE_TURN_LIMIT`
+ * so a slow player still reaches a real conclusion.
+ */
+function tutorialBotAction(
+  state: MatchState,
+  matchCtx: MatchContext,
+  botPlayerId: string,
+  rng: () => number,
+): GameAction {
+  if (state.turn > TUTORIAL_GENTLE_TURN_LIMIT) {
+    return randomAction(state, matchCtx, botPlayerId, rng);
+  }
+
+  const bot = state.players[botPlayerId]!;
+  const opponentId = getOpponentId(state, botPlayerId);
+  const opponent = state.players[opponentId]!;
+  const attackers = bot.board.filter(readyAttackers);
+  const safeAttackers = attackers.filter((u) => u.attack < opponent.conductorHp);
+
+  const enemyTargets = opponent.board.filter((u) => !u.statuses.includes('HIDDEN'));
+  if (safeAttackers.length > 0 && enemyTargets.length > 0) {
+    return {
+      type: 'ATTACK',
+      playerId: botPlayerId,
+      attackerId: safeAttackers[0]!.instanceId,
+      targetId: enemyTargets[0]!.instanceId,
+    };
+  }
+
+  if (bot.board.length < TUTORIAL_BOT_MAX_BOARD) {
+    const playable = affordableCards(state, matchCtx, botPlayerId);
+    const characters = playable.filter((e) => e.card.type === 'CHARACTER');
+    const pool = characters.length > 0 ? characters : playable;
+    if (pool.length > 0) {
+      const cheapest = [...pool].sort((a, b) => a.card.cost - b.card.cost)[0]!;
+      const targetId = pickTargetForCard(state, matchCtx, botPlayerId, cheapest.card, rng);
+      return { type: 'PLAY_CARD', playerId: botPlayerId, cardId: cheapest.instance.instanceId, targetId };
+    }
+  }
+
+  if (safeAttackers.length > 0) {
+    return {
+      type: 'ATTACK',
+      playerId: botPlayerId,
+      attackerId: safeAttackers[0]!.instanceId,
+      targetId: opponentId,
+    };
+  }
+
+  return { type: 'END_TURN', playerId: botPlayerId };
+}
+
+/**
  * Decides a single next action for the bot. Callers repeatedly call this and
  * feed the result into `applyAction` until it returns END_TURN, matching the
  * one-action-per-call shape of the authoritative engine.
@@ -125,6 +197,10 @@ export function chooseBotAction(
   const opponentId = getOpponentId(state, botPlayerId);
   const opponent = state.players[opponentId];
   if (!bot || !opponent) return { type: 'END_TURN', playerId: botPlayerId };
+
+  if (difficulty === 'TUTORIAL') {
+    return tutorialBotAction(state, matchCtx, botPlayerId, rng);
+  }
 
   if (difficulty === 'EASY') {
     return randomAction(state, matchCtx, botPlayerId, rng);
