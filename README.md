@@ -65,7 +65,8 @@ cp apps/worker/.env.example apps/worker/.env
 
 npm run prisma:generate
 npm run prisma:migrate     # создаёт схему в локальной БД
-npm run seed                # 24 карты, демо-пользователь, 2 стартовые колоды
+npm run seed                # 40 канонических карт Content Pack 01 (+23 архивные legacy),
+                             # демо-пользователь, 6 стартовых колод
 
 npm run dev:server          # NestJS API на :4000
 npm run dev:web              # Next.js на :3000

@@ -18,4 +18,11 @@ export class AnalyticsController {
     const parsed = limit ? Number(limit) : undefined;
     return this.analyticsService.getRecentMatchRewards(parsed && parsed > 0 ? Math.min(parsed, 100) : undefined);
   }
+
+  /** Canonical Card Roster 1.0 admin visibility - see AnalyticsService.getCards. */
+  @Get('cards')
+  getCards(@Query('status') status?: string) {
+    const normalized = status === 'active' || status === 'archived' ? status : 'all';
+    return this.analyticsService.getCards(normalized);
+  }
 }

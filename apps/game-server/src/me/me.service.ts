@@ -22,9 +22,15 @@ export class MeService {
     };
   }
 
+  /**
+   * Canonical Card Roster 1.0: excludes archived (active: false) legacy cards, same gate as
+   * CardsService.findAllPlayable/AuthService.grantStarterCollection - a pre-existing account that
+   * still holds a CollectionEntry for a now-archived card (none do today, but the invariant should
+   * hold regardless of how that entry got created) must not see it in Collection.
+   */
   async getCollection(userId: string) {
     const entries = await this.prisma.collectionEntry.findMany({
-      where: { userId, quantity: { gt: 0 } },
+      where: { userId, quantity: { gt: 0 }, card: { active: true } },
       include: { card: true },
     });
     return entries.map((entry) => ({

@@ -79,6 +79,11 @@ interface SeedCard {
   archetypeTags?: string[];
   isNeutral?: boolean;
   isCrossoverEligible?: boolean;
+  /** Canonical Card Roster 1.0: defaults to true. Legacy pre-Content-Pack-01 cards are seeded
+   * with this false - archived out of the public catalog/starter collection/deck builder, but
+   * never deleted (rows persist, old match logs and admin visibility are unaffected - see
+   * docs/content-pack-01.md). */
+  active?: boolean;
 }
 
 const TRACKS = [
@@ -396,31 +401,11 @@ const LEGACY_CARDS: SeedCard[] = [
     ],
   },
 
-  // --- Runes (4) ---
-  {
-    slug: 'rune-of-raido',
-    name: 'Руна Райдо',
-    type: 'RUNE',
-    rarity: 'RAIDO',
-    cost: 3,
-    tags: [],
-    abilityText: 'Первый разыгранный Персонаж каждый ход получает +1 к атаке до конца хода.',
-    effectJson: [
-      {
-        trigger: 'ON_PLAY',
-        conditions: [{ type: 'ONCE_PER_TURN' }],
-        effects: [
-          {
-            type: 'BUFF',
-            target: 'TRIGGER_SOURCE',
-            attack: 1,
-            health: 0,
-            duration: 'END_OF_TURN',
-          },
-        ],
-      },
-    ],
-  },
+  // --- Runes (3) ---
+  // Canonical Card Roster 1.1: "Руна Райдо" (slug rune-of-raido) used to live here too, but it is
+  // one of the 10 canonical Content Pack 01 neutral cards (see docs/content-pack-01.md) - moved to
+  // NEUTRAL_CARDS below so the blanket "archive everything in LEGACY_CARDS" below doesn't
+  // accidentally archive a canonical, starter-deck-used card.
   {
     slug: 'rune-of-echo',
     name: 'Руна Эха',
@@ -495,8 +480,32 @@ function withFaction(
   };
 }
 
-// --- Neutral (9 new; "Руна Райдо" already exists above and is reused as-is) ---
+// --- Neutral (10) ---
 const NEUTRAL_CARDS: SeedCard[] = [
+  {
+    slug: 'rune-of-raido',
+    name: 'Руна Райдо',
+    type: 'RUNE',
+    rarity: 'RAIDO',
+    cost: 3,
+    tags: [],
+    abilityText: 'Первый разыгранный Персонаж каждый ход получает +1 к атаке до конца хода.',
+    effectJson: [
+      {
+        trigger: 'ON_PLAY',
+        conditions: [{ type: 'ONCE_PER_TURN' }],
+        effects: [
+          {
+            type: 'BUFF',
+            target: 'TRIGGER_SOURCE',
+            attack: 1,
+            health: 0,
+            duration: 'END_OF_TURN',
+          },
+        ],
+      },
+    ],
+  },
   {
     slug: 'resonance-impulse',
     name: 'Импульс Резонанса',
@@ -1252,69 +1261,28 @@ const CONTENT_PACK_01_CARDS: SeedCard[] = [
   ...COSMIC_CARDS,
 ];
 
+// Canonical Card Roster 1.0: Content Pack 01's 40 cards (+1 token) are the only active launch
+// pool. The 23 pre-Content-Pack-01 legacy cards are archived (active: false) rather than
+// deleted - see docs/content-pack-01.md's "Canonical launch set" section for the full rationale
+// and per-card KEEP/REWORK/ARCHIVE disposition.
 const CARDS: SeedCard[] = [
-  ...LEGACY_CARDS.map((c) => withFaction(c, 'NEUTRAL', [], [])),
+  ...LEGACY_CARDS.map((c) => ({ ...withFaction(c, 'NEUTRAL', [], []), active: false })),
   ...CONTENT_PACK_01_CARDS,
 ];
 
-const LEGACY_DECK_PRESETS: Array<{
-  name: string;
-  entries: Array<{ slug: string; quantity: number }>;
-}> = [
-  {
-    name: 'Shadow Aggro (MVP Demo)',
-    entries: [
-      { slug: 'kael-rider-of-ash', quantity: 2 },
-      { slug: 'vex-the-silent', quantity: 2 },
-      { slug: 'nyra-bloodrune', quantity: 2 },
-      { slug: 'draven-nightblade', quantity: 2 },
-      { slug: 'selene-duskcaller', quantity: 2 },
-      { slug: 'morrigan-voice-of-ash', quantity: 2 },
-      { slug: 'raiden-umbra', quantity: 1 },
-      { slug: 'korrath-hollow-king', quantity: 1 },
-      { slug: 'awakening-of-shadow', quantity: 2 },
-      { slug: 'drakes-voice', quantity: 2 },
-      { slug: 'surge-of-energy', quantity: 2 },
-      { slug: 'shadow-breakthrough', quantity: 2 },
-      { slug: 'seal-of-silence', quantity: 2 },
-      { slug: 'rune-of-raido', quantity: 1 },
-      { slug: 'rune-of-shadow', quantity: 2 },
-      { slug: 'rune-of-echo', quantity: 2 },
-      { slug: 'aria-lightweaver', quantity: 1 },
-    ],
-  },
-  {
-    name: 'Resonance Midrange (MVP Demo)',
-    entries: [
-      { slug: 'bram-stonewarden', quantity: 2 },
-      { slug: 'wren-songkeeper', quantity: 2 },
-      { slug: 'halcyon-the-resonant', quantity: 1 },
-      { slug: 'aria-lightweaver', quantity: 2 },
-      { slug: 'echo-of-resonance', quantity: 2 },
-      { slug: 'code-raido-awakening', quantity: 1 },
-      { slug: 'resonance-recovery', quantity: 2 },
-      { slug: 'seal-of-silence', quantity: 2 },
-      { slug: 'rune-of-the-skybound', quantity: 2 },
-      { slug: 'rune-of-echo', quantity: 2 },
-      { slug: 'rune-of-raido', quantity: 1 },
-      { slug: 'vex-the-silent', quantity: 2 },
-      { slug: 'nyra-bloodrune', quantity: 2 },
-      { slug: 'korrath-hollow-king', quantity: 1 },
-      { slug: 'morrigan-voice-of-ash', quantity: 2 },
-      { slug: 'selene-duskcaller', quantity: 2 },
-      { slug: 'kael-rider-of-ash', quantity: 2 },
-    ],
-  },
-];
+// Canonical Card Roster 1.0: the pre-Content-Pack-01 "Shadow Aggro (MVP Demo)" / "Resonance
+// Midrange (MVP Demo)" decks that used to be seeded here for the demo account were built
+// entirely from legacy (now-archived) cards. Removed rather than kept unused - the demo account
+// now gets exactly the same 6 canonical starter decks a real fresh registration receives, see
+// docs/content-pack-01.md. The legacy cards themselves are untouched in LEGACY_CARDS above
+// (rows preserved, just active: false).
 
 // The 6 Content Pack 01 starter deck presets (Shadow Aggro, Bond Sustain, Mystery Control,
 // Cosmic Ramp, Veil Tempo, Purification Control) live in src/content/starter-decks.ts - the same
 // module StarterDeckProvisioningService uses for real user provisioning, so seed data and
 // real-account decks can never drift apart. See that file for the definitions.
-const DECK_PRESETS: Array<{ name: string; entries: Array<{ slug: string; quantity: number }> }> = [
-  ...LEGACY_DECK_PRESETS,
-  ...STARTER_DECK_PRESETS.map((preset) => ({ name: preset.name, entries: preset.entries })),
-];
+const DECK_PRESETS: Array<{ name: string; entries: Array<{ slug: string; quantity: number }> }> =
+  STARTER_DECK_PRESETS.map((preset) => ({ name: preset.name, entries: preset.entries }));
 
 for (const preset of DECK_PRESETS) {
   const total = preset.entries.reduce((sum, e) => sum + e.quantity, 0);
@@ -1354,7 +1322,7 @@ async function main() {
         linkedTrackIds,
         artworkUrl: generatePlaceholderArt(card.name, card.rarity),
         rightsStatus: 'placeholder',
-        active: true,
+        active: card.active ?? true,
         isPlayable: card.isPlayable ?? true,
         isToken: card.isToken ?? false,
         faction: card.faction ?? 'NEUTRAL',
@@ -1377,7 +1345,7 @@ async function main() {
         linkedTrackIds,
         artworkUrl: generatePlaceholderArt(card.name, card.rarity),
         rightsStatus: 'placeholder',
-        active: true,
+        active: card.active ?? true,
         isPlayable: card.isPlayable ?? true,
         isToken: card.isToken ?? false,
         faction: card.faction ?? 'NEUTRAL',
@@ -1400,7 +1368,7 @@ async function main() {
   });
 
   await prisma.collectionEntry.createMany({
-    data: CARDS.filter((card) => !card.isToken).map((card) => ({
+    data: CARDS.filter((card) => !card.isToken && card.active !== false).map((card) => ({
       userId: demoUser.id,
       cardId: cardIdBySlug.get(card.slug)!,
       quantity: 2,
@@ -1428,7 +1396,9 @@ async function main() {
   }
 
   console.log(
-    `[seed] Done. Seeded ${CARDS.length} cards, ${TRACKS.length} tracks, demo user ${demoEmail} / demo12345.`,
+    `[seed] Done. Seeded ${CARDS.length} cards (${CARDS.filter((c) => c.active !== false).length} active, ` +
+      `${CARDS.filter((c) => c.active === false).length} archived legacy), ${TRACKS.length} tracks, ` +
+      `demo user ${demoEmail} / demo12345.`,
   );
 }
 

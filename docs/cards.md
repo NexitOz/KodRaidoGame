@@ -1,5 +1,10 @@
 # Стартовые карты (Phase 0/1 vertical slice)
 
+> **Canonical Card Roster 1.1**: эти карты архивированы (`active: false`) и больше не входят в
+> канонический игровой пул запуска — см. раздел "Canonical launch set" в
+> `docs/content-pack-01.md`. Строки сохранены в БД (не удалены), но не выдаются новым аккаунтам,
+> не видны в Collection/Deck Builder игрока. Документ ниже сохранён как историческая запись.
+
 24 placeholder-карты вселенной «Код Райдо», используемые для сида БД
 (`apps/game-server/prisma/seed.ts`). Все карты — `rightsStatus: placeholder`, artwork —
 сгенерированные placeholder-изображения (`placehold.co`), права не требуют проверки.

@@ -53,8 +53,8 @@ Railway: game-server (API) + worker + Postgres + Redis
 
 5. Deploy. При первом старте контейнер сам выполняет `prisma migrate deploy` (миграции создают
    таблицы) — ничего вручную запускать не нужно.
-6. Засеять стартовый контент (24 карты, demo-аккаунт, 2 колоды) — один раз через Railway CLI
-   или встроенный в дашборде **Shell**:
+6. Засеять стартовый контент (40 канонических карт Content Pack 01 + 23 архивных legacy-карты,
+   demo-аккаунт, 6 стартовых колод) — один раз через Railway CLI или встроенный в дашборде **Shell**:
    ```bash
    npm run seed -w apps/game-server
    ```
@@ -112,8 +112,10 @@ Railway: game-server (API) + worker + Postgres + Redis
 ## Проверка
 
 Откройте фронтенд-URL → `/login` → войдите демо-аккаунтом `demo@kodraido.io` / `demo12345` →
-должна открыться `/collection` с 24 карточками и `/decks` с двумя готовыми колодами
-(`Shadow Aggro`, `Resonance Midrange`, обе 30/30).
+должна открыться `/collection` с 40 канонических карточек (Content Pack 01 — см.
+`docs/content-pack-01.md`, legacy-карты архивированы и не видны игроку) и `/decks` с 6 готовыми
+стартовыми колодами (`Shadow Aggro`, `Bond Sustain`, `Mystery Control`, `Cosmic Ramp`, `Veil Tempo`,
+`Purification Control`, все 30/30).
 
 ## Частые проблемы
 
