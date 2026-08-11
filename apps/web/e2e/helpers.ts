@@ -49,7 +49,9 @@ export async function buildReadyDeck(page: Page, deckName: string): Promise<void
   await page.getByRole('button', { name: '+ Новая колода' }).click();
   await page.waitForTimeout(200);
 
-  const nameInput = page.locator('input[type=text]').first();
+  // The deck-name field has no explicit `type` attribute (defaults to text implicitly) - target
+  // it by DOM order instead of `input[type=text]`, which only matches an explicit attribute.
+  const nameInput = page.locator('input').first();
   await nameInput.fill(deckName);
 
   const pickerCards = page.locator('div.grid.max-h-\\[70dvh\\] button');
