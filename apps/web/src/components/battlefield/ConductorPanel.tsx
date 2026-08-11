@@ -2,7 +2,11 @@
 
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
-import { STARTING_CONDUCTOR_HP, type PlayerStateView, type RankTierDefinition } from '@kod-raido/shared';
+import {
+  STARTING_CONDUCTOR_HP,
+  type PlayerStateView,
+  type RankTierDefinition,
+} from '@kod-raido/shared';
 import { Icon, type IconName } from '@kod-raido/ui';
 import { EnergyPips } from './EnergyPips';
 import { FloatingFeedback } from './FloatingFeedback';
@@ -55,16 +59,36 @@ export function ConductorPanel({
       data-tutorial-target={tutorialTarget}
       aria-label={`${name}: ${player.conductorHp} здоровья, ${player.energy} из ${player.maxEnergy} энергии${targetable ? ' — доступная цель' : ''}`}
       className={clsx(
-        'group relative flex items-center gap-2.5 rounded-panel border bg-gradient-to-b from-raido-graphite to-raido-graphite/60 px-2.5 py-2 text-left shadow-panel transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-raido-red',
+        // Battlefield Visual Target 3.0: an arena-mounted metal plate (antique-gold hairline
+        // border + inset top highlight reading as embossed metal) rather than a floating web
+        // panel - same functional content/shape as before, restyled material only.
+        'group relative flex items-center gap-2.5 rounded-panel border bg-gradient-to-b from-raido-steel to-raido-black px-2.5 py-2 text-left shadow-[0_10px_18px_-10px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.04)] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-raido-red',
         reversed && 'flex-row-reverse text-right',
-        targetable
-          ? 'border-emerald-400/70 ring-1 ring-emerald-400/50'
-          : 'border-white/10',
-        low && 'border-raido-red/40',
+        targetable ? 'border-emerald-400/70 ring-1 ring-emerald-400/50' : 'border-raido-gold/25',
+        low && 'border-raido-red/50',
       )}
     >
+      {/* Corner rivets - a small material detail reinforcing "bolted to the arena", not just a
+          rounded rectangle. Purely decorative, mirrored for the right-aligned panel. */}
+      <span
+        aria-hidden
+        className={clsx(
+          'pointer-events-none absolute top-1 h-1 w-1 rounded-full bg-raido-gold/25',
+          reversed ? 'right-1' : 'left-1',
+        )}
+      />
+      <span
+        aria-hidden
+        className={clsx(
+          'pointer-events-none absolute bottom-1 h-1 w-1 rounded-full bg-raido-gold/25',
+          reversed ? 'left-1' : 'right-1',
+        )}
+      />
       {damaged && impactKey > 0 ? (
-        <span aria-hidden className="pointer-events-none absolute inset-0 z-0 rounded-panel ring-2 ring-raido-red/70 animate-ring-expand" />
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-0 rounded-panel ring-2 ring-raido-red/70 animate-ring-expand"
+        />
       ) : null}
       <span
         key={impactKey}
@@ -104,7 +128,11 @@ export function ConductorPanel({
             <Icon name="heart" size={11} /> {player.conductorHp}
           </span>
         </span>
-        <EnergyPips energy={player.energy} maxEnergy={player.maxEnergy} className={reversed ? 'flex-row-reverse' : ''} />
+        <EnergyPips
+          energy={player.energy}
+          maxEnergy={player.maxEnergy}
+          className={reversed ? 'flex-row-reverse' : ''}
+        />
       </span>
 
       <FloatingFeedback items={feedback} />

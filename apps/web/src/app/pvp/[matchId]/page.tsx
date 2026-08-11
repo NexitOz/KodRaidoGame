@@ -52,21 +52,24 @@ export default function PvpMatchPage() {
     socket.on('connect_error', () => setConnection('error'));
     socket.on('disconnect', () => setConnection('connecting'));
 
-    socket.on('match:state', (payload: { view: MatchStateView; events: MatchEventView[]; rewards?: MatchRewards }) => {
-      setView(payload.view);
-      setEvents((prev) => [...prev, ...payload.events].slice(-40));
-      setPending(false);
-      setSelection(null);
-      setActionError(null);
-      setOpponentGone(null);
-      if (payload.rewards) setRewards(payload.rewards);
+    socket.on(
+      'match:state',
+      (payload: { view: MatchStateView; events: MatchEventView[]; rewards?: MatchRewards }) => {
+        setView(payload.view);
+        setEvents((prev) => [...prev, ...payload.events].slice(-40));
+        setPending(false);
+        setSelection(null);
+        setActionError(null);
+        setOpponentGone(null);
+        if (payload.rewards) setRewards(payload.rewards);
 
-      if (payload.view.finished) {
-        playSfx(payload.view.winnerId === payload.view.you.playerId ? 'match-win' : 'match-loss');
-      } else {
-        playSfxForEvents(payload.events);
-      }
-    });
+        if (payload.view.finished) {
+          playSfx(payload.view.winnerId === payload.view.you.playerId ? 'match-win' : 'match-loss');
+        } else {
+          playSfxForEvents(payload.events);
+        }
+      },
+    );
 
     socket.on('match:error', (payload: { message: string }) => {
       setPending(false);
@@ -85,6 +88,17 @@ export default function PvpMatchPage() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accessToken, matchId]);
+
+  // Battlefield Visual Target 3.0 (section 15): same one-time scroll-to-top as the PvE match
+  // page - landing mid-scroll from the queue screen's client-side route push hides the arena's
+  // top (opponent Conductor, turn header) on first paint.
+  const scrolledToMatchTop = useRef(false);
+  useEffect(() => {
+    if (view && !scrolledToMatchTop.current) {
+      scrolledToMatchTop.current = true;
+      window.scrollTo(0, 0);
+    }
+  }, [view]);
 
   const isMyTurn = Boolean(view && !view.finished && view.activePlayerId === view.you.playerId);
 
@@ -138,9 +152,17 @@ export default function PvpMatchPage() {
   function tapEnemyConductor() {
     if (!isMyTurn || pending || !view || !selection) return;
     if (selection.kind === 'hand') {
-      sendAction({ type: 'PLAY_CARD', cardId: selection.instanceId, targetId: view.opponent.playerId });
+      sendAction({
+        type: 'PLAY_CARD',
+        cardId: selection.instanceId,
+        targetId: view.opponent.playerId,
+      });
     } else {
-      sendAction({ type: 'ATTACK', attackerId: selection.instanceId, targetId: view.opponent.playerId });
+      sendAction({
+        type: 'ATTACK',
+        attackerId: selection.instanceId,
+        targetId: view.opponent.playerId,
+      });
     }
   }
 
@@ -169,7 +191,9 @@ export default function PvpMatchPage() {
   if (!view) {
     return (
       <p className="pt-16 text-center text-sm text-raido-mist">
-        {connection === 'error' ? 'Не удалось подключиться к серверу боёв.' : 'Подключаемся к матчу…'}
+        {connection === 'error'
+          ? 'Не удалось подключиться к серверу боёв.'
+          : 'Подключаемся к матчу…'}
       </p>
     );
   }

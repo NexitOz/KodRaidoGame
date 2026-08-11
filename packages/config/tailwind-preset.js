@@ -76,6 +76,8 @@ module.exports = {
         'rune-reveal': 'rune-reveal 0.4s ease-out',
         'event-flash': 'event-flash 0.38s ease-out forwards',
         'level-up-ring': 'level-up-ring 0.8s ease-out forwards',
+        'rune-rotate': 'rune-rotate 18s linear infinite',
+        'arena-pulse': 'arena-pulse 1.1s ease-out',
       },
       keyframes: {
         'pulse-rune': {
@@ -190,6 +192,20 @@ module.exports = {
           '0%': { transform: 'scale(0.55)', opacity: '0', boxShadow: '0 0 0 0 rgba(227,18,62,0.65)' },
           '35%': { opacity: '1' },
           '100%': { transform: 'scale(1.7)', opacity: '0', boxShadow: '0 0 45px 14px rgba(227,18,62,0)' },
+        },
+        /* Battlefield Visual Target 3.0: slow continuous rotation for an active Rune socket's
+         * engraved ring - a "living ritual mechanism", not a spinner (18s/rotation is far below
+         * any perceptible-spin threshold). */
+        'rune-rotate': {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
+        },
+        /* Battlefield Visual Target 3.0: one-shot ring expanding from the arena center outward,
+         * used by Resonance/Track activation so the whole arena feels like it reacts, not just a
+         * badge in one corner. */
+        'arena-pulse': {
+          '0%': { transform: 'scale(0.3)', opacity: '0.65', borderWidth: '2px' },
+          '100%': { transform: 'scale(1)', opacity: '0', borderWidth: '1px' },
         },
       },
     },

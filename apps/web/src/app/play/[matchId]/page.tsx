@@ -1,11 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { Button } from '@kod-raido/ui';
-import type { MatchEventView, MatchRewards, MatchStateView, UnitInstanceView } from '@kod-raido/shared';
+import type {
+  MatchEventView,
+  MatchRewards,
+  MatchStateView,
+  UnitInstanceView,
+} from '@kod-raido/shared';
 import { api, ApiError, type MatchActionInput } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
 import { playSfx } from '@/lib/sfx';
@@ -17,7 +22,11 @@ export default function MatchPage() {
   const matchId = params.matchId;
   const accessToken = useAuthStore((s) => s.accessToken);
 
-  const { data, isLoading, error: loadError } = useQuery({
+  const {
+    data,
+    isLoading,
+    error: loadError,
+  } = useQuery({
     queryKey: ['match', matchId, accessToken],
     queryFn: () => api.getMatch(accessToken as string, matchId),
     enabled: Boolean(accessToken && matchId),
@@ -33,6 +42,19 @@ export default function MatchPage() {
   useEffect(() => {
     if (data) setView(data);
   }, [data]);
+
+  // Battlefield Visual Target 3.0 (section 15): landing on the match mid-scroll (a browser
+  // default when a taller "/play" deck-select page's click target unmounts under a client-side
+  // route push) hides the opponent's Conductor panel and turn header above the fold. The arena
+  // is the hero of this screen, so the first frame after the match actually loads should always
+  // start pinned to its top - once only, not on every subsequent state update while playing.
+  const scrolledToMatchTop = useRef(false);
+  useEffect(() => {
+    if (view && !scrolledToMatchTop.current) {
+      scrolledToMatchTop.current = true;
+      window.scrollTo(0, 0);
+    }
+  }, [view]);
 
   const actionMutation = useMutation({
     mutationFn: (action: MatchActionInput) =>
@@ -149,9 +171,7 @@ export default function MatchPage() {
     return (
       <div className="mx-auto flex max-w-md flex-col items-center gap-4 pt-16 text-center">
         <h1 className="font-display text-xl font-bold">Матч не найден</h1>
-        <p className="text-sm text-raido-mist">
-          Возможно, он уже завершился или истёк по времени.
-        </p>
+        <p className="text-sm text-raido-mist">Возможно, он уже завершился или истёк по времени.</p>
         <Link href="/play">
           <Button>Начать новый бой</Button>
         </Link>

@@ -28,11 +28,11 @@ import { TurnOverlay } from './battlefield/TurnOverlay';
 import { EventLogSheet } from './battlefield/EventLogSheet';
 import { HelpSheet } from './battlefield/HelpSheet';
 import { ResultModal } from './battlefield/ResultModal';
+import { BattlefieldArena } from './battlefield/BattlefieldArena';
+import { EndTurnControl } from './battlefield/EndTurnControl';
 
 export type MatchSelection =
-  | { kind: 'hand'; instanceId: string; cost: number }
-  | { kind: 'unit'; instanceId: string }
-  | null;
+  { kind: 'hand'; instanceId: string; cost: number } | { kind: 'unit'; instanceId: string } | null;
 
 export interface MatchBoardProps {
   view: MatchStateView;
@@ -97,7 +97,8 @@ export function MatchBoard({
   const { data: cards } = useQuery({ queryKey: ['cards'], queryFn: api.getCards });
   const cardsById = new Map<string, Card>((cards ?? []).map((c) => [c.id, c]));
 
-  const { items, deathToasts, resonanceTriggerKey, runeTriggerKey, cardPlayTrigger } = useCombatFeedback(events);
+  const { items, deathToasts, resonanceTriggerKey, runeTriggerKey, cardPlayTrigger } =
+    useCombatFeedback(events);
   const feedbackByTarget = new Map<string, typeof items>();
   for (const item of items) {
     const list = feedbackByTarget.get(item.target) ?? [];
@@ -113,24 +114,39 @@ export function MatchBoard({
   const opponentRunePulse = runeTriggerKey?.playerId === opponent.playerId ? runeTriggerKey.key : 0;
   const ownRunePulse = runeTriggerKey?.playerId === you.playerId ? runeTriggerKey.key : 0;
 
+  // Battlefield Visual Target 3.0 (section 11/12): a Rune activation or a played TRACK card
+  // should read as reacting across the whole arena, not just its own small zone. Both triggers
+  // are independent monotonically-increasing counters from useCombatFeedback, so summing them
+  // is enough to change BattlefieldArena's `pulseKey` (and so replay its ring) whenever either
+  // fires - no new event/state needed.
+  const trackCardType = cardPlayTrigger ? cardsById.get(cardPlayTrigger.cardId)?.type : undefined;
+  const trackPulse = trackCardType === 'TRACK' && cardPlayTrigger ? cardPlayTrigger.key : 0;
+  const arenaPulseKey = resonanceTriggerKey + trackPulse;
+
   return (
-    <div className="relative mx-auto flex w-full max-w-md flex-col gap-1.5 pb-20">
-      {/* Battlefield background 2.0: layered vignette + faint fog, no structural change to the
-          board - a light-shift across whichever half is the active player's, warm/red for "my
-          turn", cool/dim for the opponent's (section 12: board state hierarchy). */}
-      <div aria-hidden className="bg-noise-layer pointer-events-none absolute inset-0 -z-10 rounded-3xl bg-raido-vignette" />
+    <div className="relative mx-auto flex w-full max-w-md flex-col gap-1.5 pb-20 md:max-w-2xl lg:max-w-4xl lg:gap-2 xl:max-w-5xl">
+      {/* Battlefield Visual Target 3.0: the layered ritual arena replaces the old flat
+          vignette/noise backdrop. A light-shift across whichever half is the active player's
+          (warm/red for "my turn", cool/dim for the opponent's) still layers on top - same
+          board-state-hierarchy signal as before, now painted over the arena instead of a plain
+          rounded rectangle. */}
+      <BattlefieldArena className="rounded-3xl" pulseKey={arenaPulseKey} />
       <div
         aria-hidden
         className={clsx(
           'pointer-events-none absolute inset-x-0 top-0 -z-10 h-1/2 rounded-t-3xl transition-opacity duration-700',
-          isMyTurn ? 'opacity-0' : 'bg-gradient-to-b from-sky-500/[0.05] to-transparent opacity-100',
+          isMyTurn
+            ? 'opacity-0'
+            : 'bg-gradient-to-b from-sky-500/[0.05] to-transparent opacity-100',
         )}
       />
       <div
         aria-hidden
         className={clsx(
           'pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-1/2 rounded-b-3xl transition-opacity duration-700',
-          isMyTurn ? 'bg-gradient-to-t from-raido-red/[0.07] to-transparent opacity-100' : 'opacity-0',
+          isMyTurn
+            ? 'bg-gradient-to-t from-raido-red/[0.07] to-transparent opacity-100'
+            : 'opacity-0',
         )}
       />
 
@@ -138,7 +154,8 @@ export function MatchBoard({
 
       <header className="flex items-center justify-between text-xs text-raido-mist">
         <span>
-          Ход {view.turn} · <span className={isMyTurn ? 'font-semibold text-raido-red' : ''}>
+          Ход {view.turn} ·{' '}
+          <span className={isMyTurn ? 'font-semibold text-raido-red' : ''}>
             {isMyTurn ? 'Твой ход' : opponentTurnLabel}
           </span>
         </span>
@@ -150,7 +167,10 @@ export function MatchBoard({
 
       {banner}
 
-      <section className="flex flex-col gap-1.5">
+      {/* Battlefield Visual Target 3.0 depth (section 3): the opponent's half sits slightly
+          farther/higher via a pure CSS scale from the top edge - no 3D, no layout reflow, hit
+          areas scale down with it exactly like a scaled photograph would. */}
+      <section className="flex origin-top scale-[0.96] flex-col gap-1.5 lg:scale-[0.94]">
         <ConductorPanel
           player={opponent}
           name={opponentName}
@@ -162,7 +182,11 @@ export function MatchBoard({
         />
         <div className="flex items-center justify-between">
           <OpponentHandBacks count={opponent.handCount} />
-          <RuneZone runeCardIds={opponent.runeCardIds} cardsById={cardsById} pulseKey={opponentRunePulse} />
+          <RuneZone
+            runeCardIds={opponent.runeCardIds}
+            cardsById={cardsById}
+            pulseKey={opponentRunePulse}
+          />
         </div>
         <CreatureRow
           units={opponent.board}
@@ -175,12 +199,18 @@ export function MatchBoard({
         />
       </section>
 
-      <section className="relative flex items-center justify-center py-1" data-tutorial-target="resonance">
+      <section
+        className="relative flex items-center justify-center py-1"
+        data-tutorial-target="resonance"
+      >
         <ResonancePulse tier={resonanceHeat} triggerKey={resonanceTriggerKey} />
         <TrackZone trigger={cardPlayTrigger} cardsById={cardsById} />
         <CardPlayReveal trigger={cardPlayTrigger} cardsById={cardsById} />
       </section>
 
+      {/* Player half stays at full scale (100%) - the relative difference against the opponent's
+          96%/94% above is what reads as "closer to camera", no separate scale-up needed here
+          (which would risk clipping at the container edge). */}
       <section className="flex flex-col gap-1.5">
         <CreatureRow
           units={you.board}
@@ -228,27 +258,32 @@ export function MatchBoard({
           </p>
         ) : null}
 
-        <div className="flex gap-2">
+        <div className="flex items-center justify-end gap-2">
           {selection?.kind === 'hand' ? (
-            <Button variant="secondary" onClick={onConfirmPlayNoTarget} disabled={pending} className="flex-1">
+            <Button
+              variant="secondary"
+              onClick={onConfirmPlayNoTarget}
+              disabled={pending}
+              className="mr-auto flex-1"
+            >
               Сыграть без цели
             </Button>
           ) : null}
-          <Button
-            onClick={onEndTurn}
-            disabled={!isMyTurn || pending}
-            data-tutorial-target="end-turn"
-            className={clsx('min-h-12 flex-1 text-base', isMyTurn && !pending && 'shadow-glow')}
-          >
-            {pending ? 'Обработка…' : 'Завершить ход'}
-          </Button>
+          {/* Battlefield Visual Target 3.0 (section 8): a physical circular control on the right
+              of the action row instead of a full-width web pill - same onEndTurn/disabled
+              contract and data-tutorial-target the tutorial/e2e helpers already select on. */}
+          <EndTurnControl isMyTurn={isMyTurn} pending={pending} onEndTurn={onEndTurn} />
         </div>
       </section>
 
       <HandCardPreview card={previewCard} onClose={() => setPreviewCard(null)} />
 
       {view.finished ? (
-        <ResultModal won={view.winnerId === you.playerId} rewards={rewards} rematchHref={rematchHref} />
+        <ResultModal
+          won={view.winnerId === you.playerId}
+          rewards={rewards}
+          rematchHref={rematchHref}
+        />
       ) : null}
     </div>
   );

@@ -4,7 +4,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@kod-raido/ui';
-import type { Card, MatchEventView, MatchStateView, TutorialProgress, UnitInstanceView } from '@kod-raido/shared';
+import type {
+  Card,
+  MatchEventView,
+  MatchStateView,
+  TutorialProgress,
+  UnitInstanceView,
+} from '@kod-raido/shared';
 import { api, ApiError, type MatchActionInput } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
 import { playSfx } from '@/lib/sfx';
@@ -48,7 +54,10 @@ export default function TutorialMatchPage() {
     enabled: Boolean(accessToken),
   });
   const { data: cards } = useQuery({ queryKey: ['cards'], queryFn: api.getCards });
-  const cardsById = useMemo(() => new Map<string, Card>((cards ?? []).map((c) => [c.id, c])), [cards]);
+  const cardsById = useMemo(
+    () => new Map<string, Card>((cards ?? []).map((c) => [c.id, c])),
+    [cards],
+  );
 
   const [view, setView] = useState<MatchStateView | null>(null);
   const [events, setEvents] = useState<MatchEventView[]>([]);
@@ -62,6 +71,17 @@ export default function TutorialMatchPage() {
   useEffect(() => {
     if (matchData) setView(matchData);
   }, [matchData]);
+
+  // Battlefield Visual Target 3.0 (section 15): same one-time scroll-to-top as the PvE/PvP
+  // match pages - landing mid-scroll hides the arena's top (opponent Conductor, turn header) on
+  // first paint. Doesn't fight the tutorial spotlight, which never scrolls the page itself.
+  const scrolledToMatchTop = useRef(false);
+  useEffect(() => {
+    if (view && !scrolledToMatchTop.current) {
+      scrolledToMatchTop.current = true;
+      window.scrollTo(0, 0);
+    }
+  }, [view]);
 
   useEffect(() => {
     if (!view || !progress || resolvedInitialStep.current) return;
@@ -89,17 +109,25 @@ export default function TutorialMatchPage() {
       // we know that too - otherwise the cached (now stale) activeMatchId would make the banner
       // reappear on this very victory screen, since it's a different pathname than the match's
       // own /tutorial/[matchId] route.
-      queryClient.setQueryData<TutorialProgress | undefined>(['tutorial-progress', accessToken], (prev) =>
-        prev
-          ? { ...prev, completedAt: new Date().toISOString(), rewardClaimed: true, activeMatchId: undefined }
-          : prev,
+      queryClient.setQueryData<TutorialProgress | undefined>(
+        ['tutorial-progress', accessToken],
+        (prev) =>
+          prev
+            ? {
+                ...prev,
+                completedAt: new Date().toISOString(),
+                rewardClaimed: true,
+                activeMatchId: undefined,
+              }
+            : prev,
       );
       router.push(`/tutorial/victory?xp=${result.xp}&currency=${result.softCurrency}`);
     },
   });
 
   const actionMutation = useMutation({
-    mutationFn: (action: MatchActionInput) => api.sendMatchAction(accessToken as string, matchId, action),
+    mutationFn: (action: MatchActionInput) =>
+      api.sendMatchAction(accessToken as string, matchId, action),
     onSuccess: (result) => {
       setView(result.view);
       setEvents((prev) => [...prev, ...result.events].slice(-40));
@@ -108,7 +136,10 @@ export default function TutorialMatchPage() {
 
       if (step && step !== 'DONE') {
         const content = TUTORIAL_STEP_CONTENT[step];
-        if (content.advanceKind === 'auto' && evaluateAutoAdvance(step, result.events, result.view, cardsById)) {
+        if (
+          content.advanceKind === 'auto' &&
+          evaluateAutoAdvance(step, result.events, result.view, cardsById)
+        ) {
           advanceTo(nextStep(step));
         }
       }
@@ -147,14 +178,20 @@ export default function TutorialMatchPage() {
   function selectHandCard(instanceId: string, cost: number) {
     if (!isMyTurn || pending) return;
     setSelection((prev) =>
-      prev?.kind === 'hand' && prev.instanceId === instanceId ? null : { kind: 'hand', instanceId, cost },
+      prev?.kind === 'hand' && prev.instanceId === instanceId
+        ? null
+        : { kind: 'hand', instanceId, cost },
     );
   }
 
   function selectOwnUnit(unit: UnitInstanceView) {
     if (!isMyTurn || pending || !view) return;
     if (selection?.kind === 'hand') {
-      actionMutation.mutate({ type: 'PLAY_CARD', cardId: selection.instanceId, targetId: unit.instanceId });
+      actionMutation.mutate({
+        type: 'PLAY_CARD',
+        cardId: selection.instanceId,
+        targetId: unit.instanceId,
+      });
       return;
     }
     const isReady = view.you.board.some(
@@ -162,30 +199,52 @@ export default function TutorialMatchPage() {
     );
     if (!isReady) return;
     setSelection((prev) =>
-      prev?.kind === 'unit' && prev.instanceId === unit.instanceId ? null : { kind: 'unit', instanceId: unit.instanceId },
+      prev?.kind === 'unit' && prev.instanceId === unit.instanceId
+        ? null
+        : { kind: 'unit', instanceId: unit.instanceId },
     );
   }
 
   function tapOwnConductor() {
     if (!isMyTurn || pending || !view || selection?.kind !== 'hand') return;
-    actionMutation.mutate({ type: 'PLAY_CARD', cardId: selection.instanceId, targetId: view.you.playerId });
+    actionMutation.mutate({
+      type: 'PLAY_CARD',
+      cardId: selection.instanceId,
+      targetId: view.you.playerId,
+    });
   }
 
   function tapEnemyUnit(unit: UnitInstanceView) {
     if (!isMyTurn || pending || !view || !selection) return;
     if (selection.kind === 'hand') {
-      actionMutation.mutate({ type: 'PLAY_CARD', cardId: selection.instanceId, targetId: unit.instanceId });
+      actionMutation.mutate({
+        type: 'PLAY_CARD',
+        cardId: selection.instanceId,
+        targetId: unit.instanceId,
+      });
     } else {
-      actionMutation.mutate({ type: 'ATTACK', attackerId: selection.instanceId, targetId: unit.instanceId });
+      actionMutation.mutate({
+        type: 'ATTACK',
+        attackerId: selection.instanceId,
+        targetId: unit.instanceId,
+      });
     }
   }
 
   function tapEnemyConductor() {
     if (!isMyTurn || pending || !view || !selection) return;
     if (selection.kind === 'hand') {
-      actionMutation.mutate({ type: 'PLAY_CARD', cardId: selection.instanceId, targetId: view.opponent.playerId });
+      actionMutation.mutate({
+        type: 'PLAY_CARD',
+        cardId: selection.instanceId,
+        targetId: view.opponent.playerId,
+      });
     } else {
-      actionMutation.mutate({ type: 'ATTACK', attackerId: selection.instanceId, targetId: view.opponent.playerId });
+      actionMutation.mutate({
+        type: 'ATTACK',
+        attackerId: selection.instanceId,
+        targetId: view.opponent.playerId,
+      });
     }
   }
 
