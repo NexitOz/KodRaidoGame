@@ -6,11 +6,11 @@ import { AuthStatus } from './AuthStatus';
 export function TopBar() {
   return (
     <header className="sticky top-0 z-30 border-b border-white/5 bg-raido-black/80 backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
-        <Link href="/">
+      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-3 sm:px-4">
+        <Link href="/" className="min-w-0">
           <RaidoLogo />
         </Link>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-3">
           <Link
             href="/settings"
             aria-label="Настройки"
