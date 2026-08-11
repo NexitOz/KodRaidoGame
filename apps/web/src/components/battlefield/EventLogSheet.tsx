@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { MatchEventView } from '@kod-raido/shared';
+import { Icon } from '@kod-raido/ui';
 
 const EVENT_LABEL: Record<string, string> = {
   CARD_PLAYED: 'сыграл карту',
@@ -51,7 +52,7 @@ export function EventLogSheet({ events }: { events: MatchEventView[] }) {
         aria-label={`Журнал событий, ${events.length} записей`}
         className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-black/40 text-raido-mist transition-colors hover:text-raido-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-raido-red"
       >
-        <span aria-hidden="true">📜</span>
+        <Icon name="log" size={18} />
       </button>
 
       {open ? (

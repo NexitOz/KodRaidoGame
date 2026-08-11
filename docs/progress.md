@@ -685,3 +685,34 @@ Shield всем, +2/+2 навсегда — без auto-win на любом Tier
   `docs/tutorial-fpx.md`): бот мог довести матч до поражения игрока (окно смягчения было слишком
   коротким), баннер "Продолжить обучение" перекрывал поле боя во время самого обучения, экран
   подтверждения skip вообще не показывался из-за порядка проверок в `OnboardingGate`.
+
+## Visual Polish 1.0 / Premium CCG Feel ✅ Done
+
+Полное описание: [`docs/visual-polish-01.md`](./visual-polish-01.md). Чисто визуальная/UX-фаза от
+`main` @ `93a0f7e` (First Player Experience 1.0 смержен) на ветке `visual-polish-premium-ccg`.
+Игровые правила, баланс карт, состав карт/колод и серверная логика не менялись — только
+дизайн-токены, компоненты `packages/ui` и клиентские компоненты `apps/web`. Кратко:
+
+- Design tokens (`packages/config/tailwind-preset.js`): цвета факций, доп. rarity-цвета
+  (violet/cyan), радиусы/тени/фоновые слои, новые keyframes.
+- Новые переиспользуемые компоненты `packages/ui`: `RuneDivider`, `PremiumPanel`, `ResonanceRing`,
+  `Icon` (минимальный original SVG icon-set, заменяет emoji в навигации и карточной статистике).
+- Rarity Language: анимированный glow отделён от статичной рамки (не гасит opacity карты); RAIDO —
+  отдельный сигнатурный класс (чёрно-металлический+красный+угловой рунический символ), не
+  "Legendary но красный".
+- Faction Visual Identity: акцентный цвет+глиф на фракцию в рамке карты/бейдже/deck-select, без
+  полного редизайна UI.
+- Card Frame 2.0 + hover-depth, Collection 2.0 (staggered появление, улучшенный empty-state),
+  Card Detail cinematic mode, Deck Select (доминирующая фракция + card-превью + energy curve).
+- Battlefield: структура `MatchBoard` не менялась — добавлен фоновый vignette + light-shift по
+  активному игроку; CreatureSlot/ConductorPanel/RuneZone/TrackZone/ResonancePulse/TurnOverlay/
+  ResultModal получили премиальную визуальную обработку без смены игровой логики.
+- Sound hooks: расширен `SfxCue` (`card-select`/`rune-trigger`/`track-play`/`resonance-trigger`/
+  `raido-reveal`), тот же существующий `sfx.ts`/Low Data Mode гейтинг, без внешних аудио-ассетов.
+- Low Data Mode/`prefers-reduced-motion` расширены на все новые декоративные слои и keyframes.
+- Полный lint/typecheck/test/build зелёный по всем workspace'ам; существующий Playwright
+  tutorial-набор прогнан без изменений в самих тестах.
+- Осознанные упрощения (подробности в `docs/visual-polish-01.md`): не все 4 типа карт получили
+  одинаково глубокую покарточную-типа play-анимацию; dying-slot collapse keyframe добавлен в
+  токены, но не подключён; статусные emoji-иконки в `CreatureSlot` и игровые аватары не заменены
+  на SVG.

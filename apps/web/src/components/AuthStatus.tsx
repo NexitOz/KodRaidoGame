@@ -10,15 +10,18 @@ export function AuthStatus() {
 
   if (!user) {
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-1.5 sm:gap-2">
         <Link href="/login">
-          <Button variant="ghost" className="px-3 py-1.5 text-xs">
+          <Button variant="ghost" className="px-2.5 py-1.5 text-xs sm:px-3">
             Войти
           </Button>
         </Link>
         <Link href="/register">
-          <Button variant="primary" className="px-3 py-1.5 text-xs">
-            Регистрация
+          <Button variant="primary" className="px-2.5 py-1.5 text-xs sm:px-3">
+            {/* Shorter CTA below the sm breakpoint so it never crowds the logo/settings icon off
+                a narrow (360px) viewport - see docs/visual-polish-01.md mobile QA notes. */}
+            <span className="sm:hidden">Начать</span>
+            <span className="hidden sm:inline">Регистрация</span>
           </Button>
         </Link>
       </div>

@@ -1,13 +1,14 @@
 'use client';
 
 import clsx from 'clsx';
+import { Icon } from '@kod-raido/ui';
 import type { FeedbackItem } from '@/lib/use-combat-feedback';
 
 /** Floating damage/heal/shield numbers, absolutely positioned over their target. */
 export function FloatingFeedback({ items }: { items: FeedbackItem[] }) {
   if (items.length === 0) return null;
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-center">
+    <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-center">
       {items.map((item) => (
         <span
           key={item.id}
@@ -21,7 +22,7 @@ export function FloatingFeedback({ items }: { items: FeedbackItem[] }) {
         >
           {item.kind === 'damage' ? `−${item.amount}` : null}
           {item.kind === 'heal' ? `+${item.amount}` : null}
-          {item.kind === 'shield' ? '🛡' : null}
+          {item.kind === 'shield' ? <Icon name="shield" size={14} /> : null}
         </span>
       ))}
     </div>

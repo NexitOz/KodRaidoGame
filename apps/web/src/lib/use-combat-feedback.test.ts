@@ -106,11 +106,11 @@ describe('useCombatFeedback', () => {
     expect(result.current.runeTriggerKey).toEqual({ playerId: 'p1', key: 1 });
   });
 
-  it('sets a trackTrigger on CARD_PLAYED (caller resolves whether it is actually a track card)', () => {
+  it('sets a cardPlayTrigger on CARD_PLAYED (caller resolves the card type - TrackZone/CardPlayReveal each filter it)', () => {
     const { result, rerender } = renderHook(({ events }) => useCombatFeedback(events), {
       initialProps: { events: [] as MatchEventView[] },
     });
     rerender({ events: [event('CARD_PLAYED', { playerId: 'p1', cardId: 'card1', instanceId: 'i1', cost: 2 })] });
-    expect(result.current.trackTrigger).toEqual({ playerId: 'p1', cardId: 'card1', key: 1 });
+    expect(result.current.cardPlayTrigger).toEqual({ playerId: 'p1', cardId: 'card1', key: 1 });
   });
 });

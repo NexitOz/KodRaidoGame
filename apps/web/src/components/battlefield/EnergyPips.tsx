@@ -32,10 +32,10 @@ export function EnergyPips({ energy, maxEnergy, className }: EnergyPipsProps) {
             key={i}
             aria-hidden="true"
             className={clsx(
-              'text-[13px] leading-none transition-colors',
+              'text-[13px] leading-none transition-all duration-300',
               !unlocked && 'text-white/10',
               unlocked && !available && 'text-raido-red/30',
-              unlocked && available && 'text-raido-redGlow',
+              unlocked && available && 'text-raido-redGlow drop-shadow-[0_0_4px_rgba(255,45,85,0.75)]',
             )}
           >
             {available && unlocked ? '◆' : '◇'}

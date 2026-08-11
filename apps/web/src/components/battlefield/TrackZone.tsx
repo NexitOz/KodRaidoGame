@@ -40,14 +40,14 @@ export function TrackZone({ trigger, cardsById }: TrackZoneProps) {
 
   return (
     <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center" role="status">
-      <div className="animate-card-in flex flex-col items-center gap-1.5 rounded-xl border border-raido-red/40 bg-black/85 px-4 py-3 shadow-rune">
-        <img src={active.artworkUrl} alt="" className="h-14 w-14 rounded-lg object-cover" />
+      <div className="animate-card-in flex flex-col items-center gap-1.5 rounded-xl border border-raido-cyan/40 bg-black/85 px-4 py-3 shadow-[0_0_24px_rgba(90,212,230,0.3)]">
+        <img src={active.artworkUrl} alt="" className="h-14 w-14 rounded-full object-cover ring-2 ring-raido-cyan/50" />
         <span className="max-w-[10rem] truncate text-xs font-semibold text-raido-white">{active.name}</span>
         <span className="flex items-end gap-[2px]" aria-hidden="true">
           {[0, 1, 2, 3, 4, 3, 2, 1].map((h, i) => (
             <span
               key={i}
-              className="animate-waveform-bar w-[3px] rounded-full bg-raido-red"
+              className="animate-waveform-bar w-[3px] rounded-full bg-raido-cyan"
               style={{ height: `${4 + h * 2}px`, animationDelay: `${i * 70}ms` }}
             />
           ))}

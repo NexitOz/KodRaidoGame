@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Button } from '@kod-raido/ui';
+import { Button, Icon } from '@kod-raido/ui';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
 import { useSettingsStore } from '@/lib/settings-store';
@@ -89,7 +89,10 @@ export default function SettingsPage() {
           disabled={lowDataMode || sfxVolume === 0}
           className="self-start"
         >
-          🔊 Проверить звук
+          <span className="flex items-center gap-1.5">
+            <Icon name="sound" size={15} />
+            Проверить звук
+          </span>
         </Button>
       </section>
 

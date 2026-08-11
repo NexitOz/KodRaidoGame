@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
 import type { Card, CardType, Rarity, ResonanceTier } from '@kod-raido/shared';
-import { Button, CardView, RARITY_LABEL } from '@kod-raido/ui';
+import { Button, CardView, RARITY_LABEL, RuneDivider } from '@kod-raido/ui';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
 import { CardDetailDrawer } from '@/components/CardDetailDrawer';
@@ -41,7 +41,7 @@ const RESONANCE_FILTERS: Array<{ value: ResonanceTier | 'ALL'; label: string }> 
 
 function filterButtonClass(active: boolean): string {
   return clsx(
-    'min-h-9 rounded-full border px-3 text-xs font-medium transition-colors',
+    'min-h-9 rounded-full border px-3 text-xs font-medium transition-all active:scale-95',
     active
       ? 'border-raido-red bg-raido-red/15 text-raido-red'
       : 'border-white/10 text-raido-mist hover:text-raido-white',
@@ -217,14 +217,25 @@ export default function CollectionPage() {
         </div>
       </div>
 
+      <RuneDivider label={isLoading ? undefined : `${filtered.length} карт`} />
+
       {isLoading ? (
         <p className="text-sm text-raido-mist">Загружаем коллекцию…</p>
       ) : filtered.length === 0 ? (
-        <p className="text-sm text-raido-mist">Ничего не найдено.</p>
+        <div className="flex flex-col items-center gap-2 rounded-panel border border-dashed border-white/10 py-14 text-center">
+          <span aria-hidden className="text-2xl text-raido-mist/40">
+            ◈
+          </span>
+          <p className="text-sm text-raido-mist">Ничего не найдено — попробуй другой фильтр.</p>
+        </div>
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {filtered.map(({ card, quantity }) => (
-            <div key={card.id} className="relative">
+          {filtered.map(({ card, quantity }, i) => (
+            <div
+              key={card.id}
+              className="animate-card-in relative"
+              style={{ animationDelay: `${Math.min(i, 24) * 25}ms`, animationFillMode: 'backwards' }}
+            >
               <CardView card={card} size="md" onSelect={setSelected} />
               <span className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-raido-red text-xs font-bold text-white shadow-glow">
                 {quantity}

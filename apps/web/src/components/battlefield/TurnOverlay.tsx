@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import clsx from 'clsx';
 
 const VISIBLE_MS = 800;
 
@@ -24,8 +25,17 @@ export function TurnOverlay({ activePlayerId, isMyTurn }: { activePlayerId: stri
       role="status"
       aria-live="polite"
     >
-      <span className="animate-turn-banner rounded-2xl border border-raido-red/50 bg-black/85 px-6 py-3 text-center font-display text-2xl font-bold tracking-widest text-raido-white shadow-rune">
+      <span
+        className={clsx(
+          'animate-turn-banner flex flex-col items-center gap-1.5 rounded-2xl border bg-black/85 px-6 py-3 text-center font-display text-2xl font-bold tracking-widest text-raido-white',
+          isMyTurn ? 'border-raido-red/50 shadow-rune' : 'border-white/15 shadow-panel',
+        )}
+      >
         {isMyTurn ? 'ТВОЙ ХОД' : 'ХОД СОПЕРНИКА'}
+        <span
+          aria-hidden
+          className={clsx('h-px w-16', isMyTurn ? 'bg-raido-red/60' : 'bg-white/20')}
+        />
       </span>
     </div>
   );

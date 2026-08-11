@@ -27,7 +27,9 @@ let nextFeedbackId = 0;
 /**
  * Turns the raw event log both match screens already receive into short-lived
  * local visual feedback (floating damage/heal numbers, a resonance/rune pulse
- * trigger, a track-play trigger). Diffs the `events` prop against what it has
+ * trigger, a generic card-play trigger consumed by TrackZone/CardPlayReveal - each
+ * filters `cardPlayTrigger` down to the card type it cares about). Diffs the `events` prop
+ * against what it has
  * already processed rather than replaying the whole accumulated history on
  * every render — the page components already accumulate `events` into a
  * capped array for the event log, this hook just watches the same array.
@@ -45,7 +47,7 @@ export function useCombatFeedback(events: MatchEventView[]) {
   const [deathToasts, setDeathToasts] = useState<DeathToast[]>([]);
   const [resonanceTriggerKey, setResonanceTriggerKey] = useState(0);
   const [runeTriggerKey, setRuneTriggerKey] = useState<{ playerId: string; key: number } | null>(null);
-  const [trackTrigger, setTrackTrigger] = useState<{ playerId: string; cardId: string; key: number } | null>(
+  const [cardPlayTrigger, setCardPlayTrigger] = useState<{ playerId: string; cardId: string; key: number } | null>(
     null,
   );
 
@@ -111,7 +113,7 @@ export function useCombatFeedback(events: MatchEventView[]) {
           setResonanceTriggerKey((k) => k + 1);
           break;
         case 'CARD_PLAYED':
-          setTrackTrigger((prev) => ({
+          setCardPlayTrigger((prev) => ({
             playerId: payload.playerId as string,
             cardId: payload.cardId as string,
             key: (prev?.key ?? 0) + 1,
@@ -136,5 +138,5 @@ export function useCombatFeedback(events: MatchEventView[]) {
     }
   }, [events]);
 
-  return { items, deathToasts, resonanceTriggerKey, runeTriggerKey, trackTrigger };
+  return { items, deathToasts, resonanceTriggerKey, runeTriggerKey, cardPlayTrigger };
 }

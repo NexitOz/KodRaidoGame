@@ -20,9 +20,15 @@ export function RuneZone({ runeCardIds, cardsById, pulseKey = 0 }: RuneZoneProps
             role="listitem"
             title={card?.name ?? 'Руна'}
             aria-label={card?.name ?? 'Руна'}
-            className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border border-raido-red/50 bg-black/60 text-[11px] text-raido-red"
+            className="relative flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border border-raido-red/50 bg-black/60 text-[11px] text-raido-red"
           >
-            <span key={pulseKey} className={pulseKey > 0 ? 'animate-resonance-pulse' : ''} aria-hidden="true">
+            <span aria-hidden className="absolute inset-0 rounded-full border border-raido-red/20 animate-rune-idle" />
+            <span
+              key={pulseKey}
+              className={pulseKey > 0 ? 'animate-resonance-pulse' : ''}
+              style={pulseKey > 0 ? { animationDelay: `${i * 90}ms` } : undefined}
+              aria-hidden="true"
+            >
               ⬡
             </span>
           </span>

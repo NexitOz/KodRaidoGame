@@ -11,7 +11,7 @@ import type {
   RankTierDefinition,
   UnitInstanceView,
 } from '@kod-raido/shared';
-import { Button } from '@kod-raido/ui';
+import { Button, type IconName } from '@kod-raido/ui';
 import { api } from '@/lib/api';
 import { useCombatFeedback } from '@/lib/use-combat-feedback';
 import { computeViewerResonanceHeat } from '@/lib/resonance-heat';
@@ -22,6 +22,7 @@ import { HandFan } from './battlefield/HandFan';
 import { HandCardPreview } from './battlefield/HandCardPreview';
 import { ResonancePulse } from './battlefield/ResonancePulse';
 import { TrackZone } from './battlefield/TrackZone';
+import { CardPlayReveal } from './battlefield/CardPlayReveal';
 import { RuneZone } from './battlefield/RuneZone';
 import { TurnOverlay } from './battlefield/TurnOverlay';
 import { EventLogSheet } from './battlefield/EventLogSheet';
@@ -43,7 +44,7 @@ export interface MatchBoardProps {
   actionError: string | null;
   /** "Бот" for PvE, the opponent's username for PvP. */
   opponentName: string;
-  opponentIcon: string;
+  opponentIcon: IconName;
   opponentTurnLabel: string;
   rematchHref: string;
   onSelectHand: (instanceId: string, cost: number) => void;
@@ -96,7 +97,7 @@ export function MatchBoard({
   const { data: cards } = useQuery({ queryKey: ['cards'], queryFn: api.getCards });
   const cardsById = new Map<string, Card>((cards ?? []).map((c) => [c.id, c]));
 
-  const { items, deathToasts, resonanceTriggerKey, runeTriggerKey, trackTrigger } = useCombatFeedback(events);
+  const { items, deathToasts, resonanceTriggerKey, runeTriggerKey, cardPlayTrigger } = useCombatFeedback(events);
   const feedbackByTarget = new Map<string, typeof items>();
   for (const item of items) {
     const list = feedbackByTarget.get(item.target) ?? [];
@@ -113,7 +114,26 @@ export function MatchBoard({
   const ownRunePulse = runeTriggerKey?.playerId === you.playerId ? runeTriggerKey.key : 0;
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col gap-1.5 pb-20">
+    <div className="relative mx-auto flex w-full max-w-md flex-col gap-1.5 pb-20">
+      {/* Battlefield background 2.0: layered vignette + faint fog, no structural change to the
+          board - a light-shift across whichever half is the active player's, warm/red for "my
+          turn", cool/dim for the opponent's (section 12: board state hierarchy). */}
+      <div aria-hidden className="bg-noise-layer pointer-events-none absolute inset-0 -z-10 rounded-3xl bg-raido-vignette" />
+      <div
+        aria-hidden
+        className={clsx(
+          'pointer-events-none absolute inset-x-0 top-0 -z-10 h-1/2 rounded-t-3xl transition-opacity duration-700',
+          isMyTurn ? 'opacity-0' : 'bg-gradient-to-b from-sky-500/[0.05] to-transparent opacity-100',
+        )}
+      />
+      <div
+        aria-hidden
+        className={clsx(
+          'pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-1/2 rounded-b-3xl transition-opacity duration-700',
+          isMyTurn ? 'bg-gradient-to-t from-raido-red/[0.07] to-transparent opacity-100' : 'opacity-0',
+        )}
+      />
+
       <TurnOverlay activePlayerId={view.activePlayerId} isMyTurn={isMyTurn} />
 
       <header className="flex items-center justify-between text-xs text-raido-mist">
@@ -157,7 +177,8 @@ export function MatchBoard({
 
       <section className="relative flex items-center justify-center py-1" data-tutorial-target="resonance">
         <ResonancePulse tier={resonanceHeat} triggerKey={resonanceTriggerKey} />
-        <TrackZone trigger={trackTrigger} cardsById={cardsById} />
+        <TrackZone trigger={cardPlayTrigger} cardsById={cardsById} />
+        <CardPlayReveal trigger={cardPlayTrigger} cardsById={cardsById} />
       </section>
 
       <section className="flex flex-col gap-1.5">
@@ -181,7 +202,7 @@ export function MatchBoard({
         <ConductorPanel
           player={you}
           name="Ты"
-          icon="🧑"
+          icon="player"
           align="right"
           targetable={ownTargetable}
           onTap={onTapOwnConductor}
