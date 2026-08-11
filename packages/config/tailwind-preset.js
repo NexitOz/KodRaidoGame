@@ -73,6 +73,8 @@ module.exports = {
         'raido-sweep': 'raido-sweep 5s linear infinite',
         'panel-in': 'panel-in 0.3s ease-out',
         'rise-select': 'rise-select 0.18s ease-out forwards',
+        'rune-reveal': 'rune-reveal 0.4s ease-out',
+        'event-flash': 'event-flash 0.38s ease-out forwards',
       },
       keyframes: {
         'pulse-rune': {
@@ -163,6 +165,21 @@ module.exports = {
         'rise-select': {
           '0%': { transform: 'translateY(0) scale(1)' },
           '100%': { transform: 'translateY(-6px) scale(1.03)' },
+        },
+        /* RUNE play reveal: hand -> short center glyph pulse -> settle. Quieter/quicker than the
+         * Track waveform reveal so it reads as "placed", not "performed". */
+        'rune-reveal': {
+          '0%': { opacity: '0', transform: 'scale(0.8)' },
+          '55%': { opacity: '1', transform: 'scale(1.08)' },
+          '100%': { opacity: '1', transform: 'scale(1)' },
+        },
+        /* EVENT play reveal: hand -> brief center reveal -> impact flash -> dissolve. Ends at
+         * opacity 0 (forwards) so the element visibly dissolves rather than popping away. */
+        'event-flash': {
+          '0%': { opacity: '0', transform: 'scale(0.92)', filter: 'brightness(1)' },
+          '30%': { opacity: '1', transform: 'scale(1.03)', filter: 'brightness(1.6)' },
+          '70%': { opacity: '1', transform: 'scale(1)', filter: 'brightness(1)' },
+          '100%': { opacity: '0', transform: 'scale(0.96)', filter: 'brightness(1)' },
         },
       },
     },

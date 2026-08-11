@@ -34,7 +34,9 @@ body {
 [data-low-data='true'] .animate-ready-glow,
 [data-low-data='true'] .animate-waveform-bar,
 [data-low-data='true'] .animate-rune-idle,
-[data-low-data='true'] .animate-raido-sweep {
+[data-low-data='true'] .animate-raido-sweep,
+[data-low-data='true'] .animate-rune-reveal,
+[data-low-data='true'] .animate-event-flash {
   animation: none;
 }
 
@@ -68,7 +70,9 @@ body {
   .animate-dying-collapse,
   .animate-raido-sweep,
   .animate-panel-in,
-  .animate-rise-select {
+  .animate-rise-select,
+  .animate-rune-reveal,
+  .animate-event-flash {
     animation: none !important;
   }
 

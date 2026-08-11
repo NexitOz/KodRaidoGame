@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import clsx from 'clsx';
 import { Icon, type IconName } from '@kod-raido/ui';
+import { useAuthStore } from '@/lib/auth-store';
 
 const ITEMS: Array<{ href: string; label: string; icon: IconName }> = [
   { href: '/', label: 'Главная', icon: 'home' },
@@ -15,6 +16,13 @@ const ITEMS: Array<{ href: string; label: string; icon: IconName }> = [
 
 export function BottomNav() {
   const pathname = usePathname();
+  const user = useAuthStore((s) => s.user);
+
+  // Logged-out visitors get the landing-page navigation (TopBar + hero CTA) only - a fixed app
+  // BottomNav pointing at authenticated-only sections (Играть/Коллекция/Колоды/Пульс all bounce
+  // to a login prompt while logged out) would read as a second, competing nav layer on top of
+  // the landing page rather than "the app". It reappears immediately once `user` is set.
+  if (!user) return null;
 
   return (
     <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-white/5 bg-raido-black/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">

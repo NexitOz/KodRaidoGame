@@ -242,7 +242,7 @@ export default function TutorialMatchPage() {
         pending={pending}
         actionError={actionError}
         opponentName="Бот"
-        opponentIcon="🤖"
+        opponentIcon="bot"
         opponentTurnLabel="Ход бота"
         rematchHref="/play"
         onSelectHand={selectHandCard}

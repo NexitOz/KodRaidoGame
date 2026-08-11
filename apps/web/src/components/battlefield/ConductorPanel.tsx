@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { STARTING_CONDUCTOR_HP, type PlayerStateView, type RankTierDefinition } from '@kod-raido/shared';
-import { Icon } from '@kod-raido/ui';
+import { Icon, type IconName } from '@kod-raido/ui';
 import { EnergyPips } from './EnergyPips';
 import { FloatingFeedback } from './FloatingFeedback';
 import type { FeedbackItem } from '@/lib/use-combat-feedback';
@@ -11,7 +11,9 @@ import type { FeedbackItem } from '@/lib/use-combat-feedback';
 export interface ConductorPanelProps {
   player: PlayerStateView;
   name: string;
-  icon: string;
+  /** Original SVG glyph standing in for a portrait/emblem placeholder (section 20) - 'player' for
+   * a human (you or a PvP opponent), 'bot' for the PvE bot. No emoji. */
+  icon: IconName;
   align: 'left' | 'right';
   targetable: boolean;
   onTap: () => void;
@@ -66,13 +68,14 @@ export function ConductorPanel({
       ) : null}
       <span
         key={impactKey}
+        aria-hidden
         className={clsx(
-          'relative z-10 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-raido-black text-base font-bold ring-1',
+          'relative z-10 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-raido-black text-raido-white ring-1',
           low ? 'ring-raido-red/50' : 'ring-white/10',
           impactKey > 0 && (damaged ? 'animate-shake-hit' : healed ? 'animate-flash-hit' : ''),
         )}
       >
-        {icon}
+        <Icon name={icon} size={20} />
         {rank ? (
           <span
             className="absolute -bottom-1 -right-1 rounded-full border border-raido-black bg-raido-steel px-1 text-[9px] font-bold uppercase text-raido-gold"

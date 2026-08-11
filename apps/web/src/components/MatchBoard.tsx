@@ -11,7 +11,7 @@ import type {
   RankTierDefinition,
   UnitInstanceView,
 } from '@kod-raido/shared';
-import { Button } from '@kod-raido/ui';
+import { Button, type IconName } from '@kod-raido/ui';
 import { api } from '@/lib/api';
 import { useCombatFeedback } from '@/lib/use-combat-feedback';
 import { computeViewerResonanceHeat } from '@/lib/resonance-heat';
@@ -22,6 +22,7 @@ import { HandFan } from './battlefield/HandFan';
 import { HandCardPreview } from './battlefield/HandCardPreview';
 import { ResonancePulse } from './battlefield/ResonancePulse';
 import { TrackZone } from './battlefield/TrackZone';
+import { CardPlayReveal } from './battlefield/CardPlayReveal';
 import { RuneZone } from './battlefield/RuneZone';
 import { TurnOverlay } from './battlefield/TurnOverlay';
 import { EventLogSheet } from './battlefield/EventLogSheet';
@@ -43,7 +44,7 @@ export interface MatchBoardProps {
   actionError: string | null;
   /** "Бот" for PvE, the opponent's username for PvP. */
   opponentName: string;
-  opponentIcon: string;
+  opponentIcon: IconName;
   opponentTurnLabel: string;
   rematchHref: string;
   onSelectHand: (instanceId: string, cost: number) => void;
@@ -96,7 +97,7 @@ export function MatchBoard({
   const { data: cards } = useQuery({ queryKey: ['cards'], queryFn: api.getCards });
   const cardsById = new Map<string, Card>((cards ?? []).map((c) => [c.id, c]));
 
-  const { items, deathToasts, resonanceTriggerKey, runeTriggerKey, trackTrigger } = useCombatFeedback(events);
+  const { items, deathToasts, resonanceTriggerKey, runeTriggerKey, cardPlayTrigger } = useCombatFeedback(events);
   const feedbackByTarget = new Map<string, typeof items>();
   for (const item of items) {
     const list = feedbackByTarget.get(item.target) ?? [];
@@ -176,7 +177,8 @@ export function MatchBoard({
 
       <section className="relative flex items-center justify-center py-1" data-tutorial-target="resonance">
         <ResonancePulse tier={resonanceHeat} triggerKey={resonanceTriggerKey} />
-        <TrackZone trigger={trackTrigger} cardsById={cardsById} />
+        <TrackZone trigger={cardPlayTrigger} cardsById={cardsById} />
+        <CardPlayReveal trigger={cardPlayTrigger} cardsById={cardsById} />
       </section>
 
       <section className="flex flex-col gap-1.5">
@@ -200,7 +202,7 @@ export function MatchBoard({
         <ConductorPanel
           player={you}
           name="Ты"
-          icon="🧑"
+          icon="player"
           align="right"
           targetable={ownTargetable}
           onTap={onTapOwnConductor}

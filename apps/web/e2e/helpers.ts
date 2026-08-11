@@ -36,6 +36,37 @@ export async function registerFreshUser(page: Page, tag: string) {
   return { email, username };
 }
 
+/**
+ * Builds and saves a real 30-card deck via the /decks UI, clicking picker cards until the
+ * DECK_SIZE (30) total is reached, then saves. Each picker card is clicked twice (COMMON/RARE/
+ * EPIC cap at 2 copies, LEGENDARY/RAIDO at 1 - the UI silently clamps a card past its own cap, so
+ * clicking is safe even for 1-copy cards) and the loop moves to the next card once the running
+ * total stops increasing. Used by closure-verification screenshots that need a genuinely ready
+ * deck, not the manual builder flow itself.
+ */
+export async function buildReadyDeck(page: Page, deckName: string): Promise<void> {
+  await page.goto('/decks');
+  await page.getByRole('button', { name: '+ Новая колода' }).click();
+  await page.waitForTimeout(200);
+
+  const nameInput = page.locator('input[type=text]').first();
+  await nameInput.fill(deckName);
+
+  const pickerCards = page.locator('div.grid.max-h-\\[70dvh\\] button');
+  const count = await pickerCards.count();
+  for (let i = 0; i < count; i++) {
+    const status = page.getByText(/\d+\/30 карт/);
+    const before = (await status.textContent()) ?? '0/30';
+    if (parseInt(before, 10) >= 30) break;
+    await pickerCards.nth(i).click();
+    await pickerCards.nth(i).click();
+    await page.waitForTimeout(30);
+  }
+
+  await page.getByRole('button', { name: 'Сохранить колоду' }).click();
+  await page.waitForTimeout(500);
+}
+
 export async function currentTutorialStep(page: Page): Promise<string | null> {
   const h2 = page.locator('[role="status"][aria-live="polite"] h2');
   if ((await h2.count()) === 0) return null;

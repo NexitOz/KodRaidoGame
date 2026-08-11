@@ -61,8 +61,8 @@ export function OnboardingGate() {
         aria-labelledby="onboarding-title"
       >
         <div className="animate-card-in flex w-full max-w-sm flex-col items-center gap-5 rounded-2xl border border-white/10 bg-raido-graphite p-6 text-center">
-          <span className="text-3xl" aria-hidden="true">
-            👋
+          <span className="text-3xl text-raido-red" aria-hidden="true">
+            ᚱ
           </span>
           <p className="text-sm text-raido-mist">Ты сможешь пройти обучение позже в настройках.</p>
           <Button onClick={() => setSkipConfirmed(false)}>Понятно</Button>

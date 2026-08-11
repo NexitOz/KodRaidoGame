@@ -152,14 +152,14 @@ export function CardDetailDrawer({ card, onClose }: { card: Card | null; onClose
             disabled
             className="flex-1 rounded-full border border-white/10 px-4 py-2 text-sm text-raido-mist disabled:opacity-50"
           >
-            ▶ Слушать (скоро)
+            Слушать (скоро)
           </button>
           <button
             type="button"
             disabled
             className="flex-1 rounded-full border border-white/10 px-4 py-2 text-sm text-raido-mist disabled:opacity-50"
           >
-            🎬 Смотреть эдиты (скоро)
+            Смотреть эдиты (скоро)
           </button>
         </div>
 

@@ -169,7 +169,7 @@ export default function MatchPage() {
       pending={pending}
       actionError={actionError}
       opponentName="Бот"
-      opponentIcon="🤖"
+      opponentIcon="bot"
       opponentTurnLabel="Ход бота"
       rematchHref="/play"
       onSelectHand={selectHandCard}

@@ -2,17 +2,27 @@
 
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
-import type { UnitInstanceView } from '@kod-raido/shared';
-import { Icon } from '@kod-raido/ui';
+import type { StatusType, UnitInstanceView } from '@kod-raido/shared';
+import { Icon, type IconName } from '@kod-raido/ui';
 import { FloatingFeedback } from './FloatingFeedback';
 import type { FeedbackItem } from '@/lib/use-combat-feedback';
 
-const STATUS_ICON: Record<string, string> = {
-  SHIELD: '🛡',
-  IMPULSE: '⚡',
-  HIDDEN: '👁',
-  CURSE: '☠',
-  SILENCED: '🔇',
+/** Original SVG icon + accessible Russian label per status - no emoji in the premium battlefield
+ * UI (section 29). Labels match the shared KEYWORD_REGISTRY vocabulary used by the help sheet. */
+const STATUS_ICON: Record<StatusType, IconName> = {
+  SHIELD: 'shield',
+  IMPULSE: 'impulse',
+  HIDDEN: 'hidden',
+  CURSE: 'curse',
+  SILENCED: 'silenced',
+};
+
+const STATUS_LABEL: Record<StatusType, string> = {
+  SHIELD: 'Щит',
+  IMPULSE: 'Импульс',
+  HIDDEN: 'Скрытый',
+  CURSE: 'Проклятие',
+  SILENCED: 'Заглушение',
 };
 
 export interface CreatureSlotProps {
@@ -93,10 +103,16 @@ export function CreatureSlot({
           loading="lazy"
         />
         {unit.statuses.length > 0 ? (
-          <div className="absolute left-0.5 top-0.5 flex gap-0.5 text-[10px]" aria-hidden="true">
+          <div className="absolute left-0.5 top-0.5 flex gap-0.5">
             {unit.statuses.map((s) => (
-              <span key={s} title={s}>
-                {STATUS_ICON[s] ?? '•'}
+              <span
+                key={s}
+                title={STATUS_LABEL[s]}
+                role="img"
+                aria-label={STATUS_LABEL[s]}
+                className="flex h-4 w-4 items-center justify-center rounded-full bg-black/60 text-raido-white"
+              >
+                <Icon name={STATUS_ICON[s]} size={10} />
               </span>
             ))}
           </div>

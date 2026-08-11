@@ -193,7 +193,7 @@ export default function PvpMatchPage() {
       pending={pending}
       actionError={actionError}
       opponentName="Соперник"
-      opponentIcon="⚔"
+      opponentIcon="player"
       opponentTurnLabel="Ход соперника"
       rematchHref="/pvp"
       onSelectHand={selectHandCard}

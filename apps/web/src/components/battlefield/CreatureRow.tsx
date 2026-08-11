@@ -1,6 +1,7 @@
 'use client';
 
 import { MAX_BOARD_UNITS, type UnitInstanceView } from '@kod-raido/shared';
+import { Icon } from '@kod-raido/ui';
 import { CreatureSlot } from './CreatureSlot';
 import type { DeathToast, FeedbackItem } from '@/lib/use-combat-feedback';
 
@@ -33,12 +34,12 @@ export function CreatureRow({
     <div className="relative grid grid-cols-5 gap-1.5">
       {deathToasts.length > 0 ? (
         <div
-          className="pointer-events-none absolute -top-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full bg-black/80 px-2 py-0.5 text-xs"
+          className="pointer-events-none absolute -top-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full bg-black/80 px-2 py-1"
           role="status"
         >
           {deathToasts.map((d) => (
-            <span key={d.id} className="animate-float-up">
-              💀
+            <span key={d.id} className="animate-float-up text-raido-mist" role="img" aria-label="Существо погибло">
+              <Icon name="skull" size={13} />
             </span>
           ))}
         </div>

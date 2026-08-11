@@ -3,19 +3,19 @@
 import { Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Button } from '@kod-raido/ui';
+import { Button, Icon, type IconName } from '@kod-raido/ui';
 
 interface ContinueCard {
   href: string;
-  icon: string;
+  icon: IconName;
   title: string;
   tagline: string;
 }
 
 const CONTINUE_CARDS: ContinueCard[] = [
-  { href: '/collection', icon: '🗂', title: 'КОЛЛЕКЦИЯ', tagline: 'Посмотри карты, которые у тебя уже есть.' },
-  { href: '/decks', icon: '🃏', title: 'КОЛОДЫ', tagline: 'Собери свою колоду для настоящего боя.' },
-  { href: '/play', icon: '⚔', title: 'ИГРАТЬ', tagline: 'Начни первый настоящий матч.' },
+  { href: '/collection', icon: 'collection', title: 'КОЛЛЕКЦИЯ', tagline: 'Посмотри карты, которые у тебя уже есть.' },
+  { href: '/decks', icon: 'decks', title: 'КОЛОДЫ', tagline: 'Собери свою колоду для настоящего боя.' },
+  { href: '/play', icon: 'play', title: 'ИГРАТЬ', tagline: 'Начни первый настоящий матч.' },
 ];
 
 export default function TutorialVictoryPage() {
@@ -60,8 +60,8 @@ function TutorialVictoryContent() {
             key={card.href}
             className="flex items-center gap-3 rounded-xl border border-white/10 bg-raido-graphite p-3 text-left"
           >
-            <span className="text-2xl" aria-hidden="true">
-              {card.icon}
+            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-black/40 text-raido-red" aria-hidden="true">
+              <Icon name={card.icon} size={18} />
             </span>
             <div>
               <p className="text-sm font-bold text-raido-white">{card.title}</p>
