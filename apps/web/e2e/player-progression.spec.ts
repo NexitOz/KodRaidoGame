@@ -1,10 +1,19 @@
 import { expect, test, type Page } from '@playwright/test';
+import { FIRST_WIN_OF_DAY_BONUS, REWARD_TABLE, levelForXp } from '@kod-raido/shared';
 import { attackWithReadyUnit, playCardByTarget, registerFreshUser } from './helpers';
 
 /**
  * Player Progression & Economy 1.0 end-to-end coverage. Requires the same running local stack as
  * tutorial-fpx.spec.ts / starter-deck-provisioning.spec.ts. Not part of `npm test` / CI; run
  * manually with `npm run test:e2e -w apps/web`.
+ *
+ * These tests exercise the reward system, not the bot's combat AI - they use the PRACTICE bot
+ * difficulty (a deterministic no-op that never plays a card or attacks, see pve-bot.ts), which
+ * only exists in non-production builds/environments (see PlayPage's DIFFICULTIES gate and
+ * MatchesService.createPveMatch's production rejection). Real players never see or can reach it.
+ * This removes any dependency on beating the genuinely-random EASY bot (pve-bot.ts's
+ * randomAction) within a bounded number of attempts, which was a real source of flakiness
+ * unrelated to anything these tests are meant to verify.
  */
 
 const HAND_TARGETS = ['hand-character', 'hand-rune', 'hand-track', 'hand-event'];
@@ -48,27 +57,26 @@ async function driveNormalPveToFinish(page: Page, maxIterations = 250): Promise<
   throw new Error('driveNormalPveToFinish exceeded max iterations without a result');
 }
 
-async function startEasyPveMatch(page: Page): Promise<void> {
+async function startPracticePveMatch(page: Page): Promise<void> {
   await page.goto('/play');
   await expect(page.getByText('У тебя нет готовой колоды')).toHaveCount(0);
   const deckButtons = page.locator('section', { hasText: 'Колода' }).first().getByRole('button');
   await expect(deckButtons.first()).toBeVisible({ timeout: 10_000 });
   await deckButtons.first().click();
-  await page.getByRole('button', { name: 'Легко' }).click();
+  await page.getByRole('button', { name: 'Тест' }).click();
   await page.getByRole('button', { name: 'Начать бой' }).click();
   await page.waitForURL(/\/play\/[^/]+$/, { timeout: 20_000 });
 }
 
-/** A fresh 6-starter-deck account vs. the EASY bot wins the large majority of the time when
- * played aggressively; retrying with a brand-new match on a loss keeps this non-brittle without
- * asserting anything about a specific match's outcome. */
-async function winAnEasyPveMatch(page: Page, attempts = 8): Promise<void> {
-  for (let attempt = 0; attempt < attempts; attempt++) {
-    await startEasyPveMatch(page);
-    const result = await driveNormalPveToFinish(page);
-    if (result.won) return;
-  }
-  throw new Error(`Could not win an Easy PvE match after ${attempts} attempts`);
+/**
+ * The PRACTICE bot never plays a card or attacks (see pve-bot.ts), so any player who attacks
+ * with ready units each turn wins deterministically - no retry budget needed. A loss here is a
+ * real failure (the reward/combat pipeline broke), not expected variance.
+ */
+async function winPracticeMatch(page: Page): Promise<void> {
+  await startPracticePveMatch(page);
+  const result = await driveNormalPveToFinish(page);
+  if (!result.won) throw new Error('Expected a deterministic win against the PRACTICE bot but lost.');
 }
 
 async function readProfileCurrency(page: Page): Promise<number> {
@@ -81,7 +89,7 @@ async function readProfileCurrency(page: Page): Promise<number> {
   return parsed;
 }
 
-test('fresh user: skip -> win an Easy PvE match -> result shows XP/Echo -> profile currency increased', async ({
+test('fresh user: skip -> win a deterministic PvE match -> result shows XP/Echo -> profile currency increased', async ({
   page,
 }) => {
   test.setTimeout(1_200_000);
@@ -93,7 +101,7 @@ test('fresh user: skip -> win an Easy PvE match -> result shows XP/Echo -> profi
 
   const currencyBefore = await readProfileCurrency(page);
 
-  await winAnEasyPveMatch(page);
+  await winPracticeMatch(page);
 
   await expect(page.getByRole('dialog', { name: 'Победа' })).toBeVisible();
   const xpText = (await page.getByTestId('reward-xp').textContent()) ?? '';
@@ -115,13 +123,13 @@ test('a second win the same day grants reward again but never repeats the first-
   await page.waitForTimeout(300);
   await page.getByRole('button', { name: 'Понятно' }).click();
 
-  await winAnEasyPveMatch(page);
+  await winPracticeMatch(page);
   await expect(page.getByRole('dialog', { name: 'Победа' })).toBeVisible();
   // The very first win of a fresh account always carries the daily bonus.
   await expect(page.getByTestId('reward-first-win-bonus')).toBeVisible();
   const currencyAfterFirst = await readProfileCurrency(page);
 
-  await winAnEasyPveMatch(page);
+  await winPracticeMatch(page);
   await expect(page.getByRole('dialog', { name: 'Победа' })).toBeVisible();
   await expect(page.getByTestId('reward-first-win-bonus')).toHaveCount(0);
   const currencyAfterSecond = await readProfileCurrency(page);
@@ -137,7 +145,7 @@ test('refreshing the finished match result page does not grant a duplicate rewar
   await page.waitForTimeout(300);
   await page.getByRole('button', { name: 'Понятно' }).click();
 
-  await winAnEasyPveMatch(page);
+  await winPracticeMatch(page);
   await expect(page.getByRole('dialog', { name: 'Победа' })).toBeVisible();
   const matchUrl = page.url();
 
@@ -160,30 +168,21 @@ test('the first win that crosses a level threshold shows the level-up presentati
   await page.waitForTimeout(300);
   await page.getByRole('button', { name: 'Понятно' }).click();
 
-  // A fresh account's first WIN always carries the first-win-of-day bonus (>= 110 xp, past the
-  // 100xp level-2 threshold), but EASY is a literally-random bot (see pve-bot.ts randomAction) -
-  // it can still win a close race even though it never plays well, so winAnEasyPveMatch may need
-  // several losing attempts first. Those losses also grant xp (just no bonus), which can push the
-  // account across a level threshold *before* the eventual win - so the win that finally happens
-  // isn't guaranteed to itself be the one crossing a level. Keep winning (bounded) until a level-up
-  // is actually observed on a win - with real reward numbers, this is reached within a handful of
-  // wins at the latest, since every match (win or loss) always grants some xp.
-  let reachedLevel: number | null = null;
-  for (let win = 0; win < 6 && reachedLevel === null; win += 1) {
-    await winAnEasyPveMatch(page);
-    await expect(page.getByRole('dialog', { name: 'Победа' })).toBeVisible();
+  // A fresh account's very first WIN always carries the first-win-of-day bonus, and
+  // PVE.WIN.xp + FIRST_WIN_OF_DAY_BONUS.xp already crosses the level-2 threshold (computed from
+  // the real economy constants, not hardcoded, so this stays correct if the numbers are ever
+  // tuned) - so with the deterministic PRACTICE bot, the very first win is guaranteed to be the
+  // one that levels up the account. No retries, no "keep winning until it happens" loop.
+  const expectedLevel = levelForXp(REWARD_TABLE.PVE.WIN.xp + FIRST_WIN_OF_DAY_BONUS.xp);
+  expect(expectedLevel).toBeGreaterThanOrEqual(2);
 
-    const levelUp = page.getByTestId('reward-level-up');
-    if ((await levelUp.count()) > 0) {
-      const levelUpText = (await levelUp.textContent()) ?? '';
-      const levelMatch = levelUpText.match(/Уровень (\d+)/);
-      if (levelMatch) reachedLevel = Number(levelMatch[1]);
-    }
-  }
+  await winPracticeMatch(page);
+  await expect(page.getByRole('dialog', { name: 'Победа' })).toBeVisible();
 
-  expect(reachedLevel, 'expected a level-up to show on at least one of several wins').not.toBeNull();
-  expect(reachedLevel!).toBeGreaterThanOrEqual(2);
+  const levelUp = page.getByTestId('reward-level-up');
+  await expect(levelUp).toBeVisible();
+  await expect(levelUp).toContainText(`Уровень ${expectedLevel}`);
 
   await page.goto('/profile');
-  await expect(page.getByTestId('profile-level')).toContainText(`Уровень ${reachedLevel}`);
+  await expect(page.getByTestId('profile-level')).toContainText(`Уровень ${expectedLevel}`);
 });

@@ -41,6 +41,10 @@ enum BotDifficulty {
   NORMAL
   HARD
   TUTORIAL
+  /// Deterministic no-op bot (never plays or attacks) used only by automated e2e/integration
+  /// tests to drive a real, reward-granting match to a WIN without depending on EASY's
+  /// randomness. MatchesService rejects this difficulty outside non-production environments.
+  PRACTICE
 }
 
 model User {

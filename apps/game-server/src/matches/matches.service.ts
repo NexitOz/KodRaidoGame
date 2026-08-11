@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import {
   applyAction,
   beginMatch,
@@ -68,6 +68,13 @@ export class MatchesService {
     deckId: string,
     difficulty: BotDifficulty,
   ): Promise<MatchStateView> {
+    // PRACTICE is a deterministic no-op bot for automated e2e/integration tests only (see
+    // pve-bot.ts) - hard-rejected in production regardless of what a client sends, so it can
+    // never change what a real player experiences or be used to farm rewards for free.
+    if (difficulty === 'PRACTICE' && process.env.NODE_ENV === 'production') {
+      throw new ForbiddenException('PRACTICE difficulty is not available in production.');
+    }
+
     const playerDeckEntries = await this.loadValidatedDeck(userId, deckId);
 
     const matchCtx = await this.buildMatchContext();
