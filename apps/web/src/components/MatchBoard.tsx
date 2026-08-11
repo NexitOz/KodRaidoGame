@@ -113,7 +113,26 @@ export function MatchBoard({
   const ownRunePulse = runeTriggerKey?.playerId === you.playerId ? runeTriggerKey.key : 0;
 
   return (
-    <div className="mx-auto flex w-full max-w-md flex-col gap-1.5 pb-20">
+    <div className="relative mx-auto flex w-full max-w-md flex-col gap-1.5 pb-20">
+      {/* Battlefield background 2.0: layered vignette + faint fog, no structural change to the
+          board - a light-shift across whichever half is the active player's, warm/red for "my
+          turn", cool/dim for the opponent's (section 12: board state hierarchy). */}
+      <div aria-hidden className="bg-noise-layer pointer-events-none absolute inset-0 -z-10 rounded-3xl bg-raido-vignette" />
+      <div
+        aria-hidden
+        className={clsx(
+          'pointer-events-none absolute inset-x-0 top-0 -z-10 h-1/2 rounded-t-3xl transition-opacity duration-700',
+          isMyTurn ? 'opacity-0' : 'bg-gradient-to-b from-sky-500/[0.05] to-transparent opacity-100',
+        )}
+      />
+      <div
+        aria-hidden
+        className={clsx(
+          'pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-1/2 rounded-b-3xl transition-opacity duration-700',
+          isMyTurn ? 'bg-gradient-to-t from-raido-red/[0.07] to-transparent opacity-100' : 'opacity-0',
+        )}
+      />
+
       <TurnOverlay activePlayerId={view.activePlayerId} isMyTurn={isMyTurn} />
 
       <header className="flex items-center justify-between text-xs text-raido-mist">

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { STARTING_CONDUCTOR_HP, type PlayerStateView, type RankTierDefinition } from '@kod-raido/shared';
+import { Icon } from '@kod-raido/ui';
 import { EnergyPips } from './EnergyPips';
 import { FloatingFeedback } from './FloatingFeedback';
 import type { FeedbackItem } from '@/lib/use-combat-feedback';
@@ -52,17 +53,22 @@ export function ConductorPanel({
       data-tutorial-target={tutorialTarget}
       aria-label={`${name}: ${player.conductorHp} здоровья, ${player.energy} из ${player.maxEnergy} энергии${targetable ? ' — доступная цель' : ''}`}
       className={clsx(
-        'group relative flex items-center gap-2.5 rounded-xl border bg-raido-graphite/70 px-2.5 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-raido-red',
+        'group relative flex items-center gap-2.5 rounded-panel border bg-gradient-to-b from-raido-graphite to-raido-graphite/60 px-2.5 py-2 text-left shadow-panel transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-raido-red',
         reversed && 'flex-row-reverse text-right',
         targetable
           ? 'border-emerald-400/70 ring-1 ring-emerald-400/50'
           : 'border-white/10',
+        low && 'border-raido-red/40',
       )}
     >
+      {damaged && impactKey > 0 ? (
+        <span aria-hidden className="pointer-events-none absolute inset-0 z-0 rounded-panel ring-2 ring-raido-red/70 animate-ring-expand" />
+      ) : null}
       <span
         key={impactKey}
         className={clsx(
-          'relative flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-raido-black text-base font-bold ring-1 ring-white/10',
+          'relative z-10 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-raido-black text-base font-bold ring-1',
+          low ? 'ring-raido-red/50' : 'ring-white/10',
           impactKey > 0 && (damaged ? 'animate-shake-hit' : healed ? 'animate-flash-hit' : ''),
         )}
       >
@@ -77,7 +83,7 @@ export function ConductorPanel({
         ) : null}
       </span>
 
-      <span className="flex min-w-0 flex-1 flex-col gap-1">
+      <span className="relative z-10 flex min-w-0 flex-1 flex-col gap-1">
         <span className="flex items-baseline gap-1.5">
           <span className="truncate text-sm font-semibold text-raido-white">{name}</span>
         </span>
@@ -91,7 +97,9 @@ export function ConductorPanel({
               style={{ width: `${hpPercent}%` }}
             />
           </span>
-          <span className="text-[11px] font-bold tabular-nums text-raido-white">♥ {player.conductorHp}</span>
+          <span className="flex items-center gap-0.5 text-[11px] font-bold tabular-nums text-raido-white">
+            <Icon name="heart" size={11} /> {player.conductorHp}
+          </span>
         </span>
         <EnergyPips energy={player.energy} maxEnergy={player.maxEnergy} className={reversed ? 'flex-row-reverse' : ''} />
       </span>

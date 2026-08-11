@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect } from 'react';
+import clsx from 'clsx';
 import type { Card } from '@kod-raido/shared';
-import { RARITY_LABEL, ResonanceBadge } from '@kod-raido/ui';
+import { Icon, RARITY_FRAME_CLASS, RARITY_LABEL, ResonanceBadge } from '@kod-raido/ui';
 import { KeywordText } from '@/components/KeywordText';
 
 const TYPE_LABEL: Record<Card['type'], string> = {
@@ -42,7 +43,7 @@ export function HandCardPreview({ card, onClose }: { card: Card | null; onClose:
           <img
             src={card.artworkUrl}
             alt=""
-            className="h-36 w-28 flex-shrink-0 rounded-xl object-cover"
+            className={clsx('h-36 w-28 flex-shrink-0 rounded-xl border object-cover', RARITY_FRAME_CLASS[card.rarity])}
           />
           <div className="flex flex-1 flex-col gap-1.5">
             <h2 className="font-display text-lg font-bold">{card.name}</h2>
@@ -50,8 +51,13 @@ export function HandCardPreview({ card, onClose }: { card: Card | null; onClose:
               {TYPE_LABEL[card.type]} · {RARITY_LABEL[card.rarity]} · Стоимость {card.cost}
             </p>
             {card.type === 'CHARACTER' ? (
-              <p className="text-sm font-semibold">
-                ⚔ {card.attack} ♥ {card.health}
+              <p className="flex items-center gap-2 text-sm font-semibold">
+                <span className="flex items-center gap-0.5">
+                  <Icon name="sword" size={13} /> {card.attack}
+                </span>
+                <span className="flex items-center gap-0.5 text-raido-redGlow">
+                  <Icon name="heart" size={13} /> {card.health}
+                </span>
               </p>
             ) : null}
             <ResonanceBadge tier={card.resonanceTier} />

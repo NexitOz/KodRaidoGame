@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { Button } from '@kod-raido/ui';
+import clsx from 'clsx';
+import { Button, RuneDivider } from '@kod-raido/ui';
 import { rankForMmr, type MatchRewards } from '@kod-raido/shared';
 
 export interface ResultModalProps {
@@ -23,11 +24,23 @@ export function ResultModal({ won, rewards, rematchHref }: ResultModalProps) {
       aria-modal="true"
       aria-label={won ? 'Победа' : 'Поражение'}
     >
-      <div className="animate-card-in flex w-full max-w-sm flex-col items-center gap-4 rounded-2xl border border-white/10 bg-raido-graphite p-6 text-center">
-        <span className="animate-resonance-pulse text-3xl text-raido-red" aria-hidden="true">
-          ◈
+      <div
+        className={clsx(
+          'animate-card-in flex w-full max-w-sm flex-col items-center gap-4 rounded-2xl border bg-gradient-to-b from-raido-graphite to-raido-black p-6 text-center shadow-panel',
+          won ? 'border-raido-gold/40' : 'border-white/10',
+        )}
+      >
+        <span
+          className={clsx(
+            'animate-resonance-pulse flex h-14 w-14 items-center justify-center rounded-full border text-2xl',
+            won ? 'border-raido-gold/60 text-raido-gold shadow-legendary' : 'border-raido-mist/40 text-raido-mist',
+          )}
+          aria-hidden="true"
+        >
+          ᚱ
         </span>
-        <h2 className="font-display text-2xl font-bold">{won ? 'Победа!' : 'Поражение'}</h2>
+        <h2 className="font-display text-2xl font-bold uppercase tracking-wide">{won ? 'Победа' : 'Поражение'}</h2>
+        <RuneDivider className="w-full" />
 
         {rewards ? (
           <dl className="grid w-full grid-cols-2 gap-2 text-sm">
@@ -46,8 +59,12 @@ export function ResultModal({ won, rewards, rematchHref }: ResultModalProps) {
                   {rewards!.mmrDelta! >= 0 ? '+' : ''}
                   {rewards!.mmrDelta}
                   {newRank ? ` · ${newRank.label}` : ''}
-                  {rankChanged ? ' 🎉' : ''}
                 </dd>
+                {rankChanged ? (
+                  <p className="mt-0.5 text-[11px] font-semibold uppercase tracking-wide text-raido-gold">
+                    Новый ранг!
+                  </p>
+                ) : null}
               </div>
             ) : null}
             {rewards.leveledUp ? (

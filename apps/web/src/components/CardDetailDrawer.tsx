@@ -2,10 +2,12 @@
 
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import clsx from 'clsx';
 import { explainCardResonance, type Card } from '@kod-raido/shared';
-import { RARITY_LABEL, ResonanceBadge } from '@kod-raido/ui';
+import { Icon, RARITY_FRAME_CLASS, RARITY_LABEL, ResonanceBadge, ResonanceRing, RuneDivider } from '@kod-raido/ui';
 import { api } from '@/lib/api';
 import { factionLabel } from '@/lib/factions';
+import { playSfx } from '@/lib/sfx';
 import { KeywordText } from './KeywordText';
 
 const TYPE_LABEL: Record<Card['type'], string> = {
@@ -55,6 +57,11 @@ export function CardDetailDrawer({ card, onClose }: { card: Card | null; onClose
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
+  useEffect(() => {
+    if (card?.rarity === 'RAIDO') playSfx('raido-reveal');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [card?.id]);
+
   if (!card) return null;
 
   return (
@@ -68,15 +75,26 @@ export function CardDetailDrawer({ card, onClose }: { card: Card | null; onClose
         role="dialog"
         aria-modal="true"
         aria-label={card.name}
-        className="max-h-[88dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-white/10 bg-raido-graphite p-5 md:rounded-3xl"
+        className={clsx(
+          'max-h-[88dvh] w-full max-w-lg overflow-y-auto rounded-t-3xl border bg-gradient-to-b from-raido-graphite to-raido-black p-5 shadow-panel md:rounded-3xl',
+          card.rarity === 'RAIDO' ? 'border-raido-red/50 shadow-raido' : 'border-white/10',
+        )}
       >
-        <div className="mb-4 flex items-start gap-4">
-          <img
-            src={card.artworkUrl}
-            alt={card.name}
-            className="h-40 w-32 flex-shrink-0 rounded-xl object-cover"
-          />
-          <div className="flex flex-1 flex-col gap-1.5">
+        <div className="relative mb-4 flex items-start gap-4">
+          {/* Cinematic mode: rarity-tinted glow behind the artwork + a Resonance ring anchor,
+              distinct/rarer framing for RAIDO than the standard rarity glow (section 9). */}
+          <div className="pointer-events-none absolute -left-6 -top-6 opacity-60">
+            <ResonanceRing tier={card.resonanceTier} size={120} />
+          </div>
+          <div
+            className={clsx(
+              'relative h-40 w-32 flex-shrink-0 overflow-hidden rounded-xl border transition-transform duration-300 hover:-rotate-1 hover:scale-[1.03]',
+              RARITY_FRAME_CLASS[card.rarity],
+            )}
+          >
+            <img src={card.artworkUrl} alt={card.name} className="h-full w-full object-cover" />
+          </div>
+          <div className="relative flex flex-1 flex-col gap-1.5">
             <h2 className="font-display text-xl font-bold">{card.name}</h2>
             <p className="text-xs uppercase tracking-wide text-raido-mist">
               {TYPE_LABEL[card.type]} · {RARITY_LABEL[card.rarity]} · Стоимость {card.cost}
@@ -86,13 +104,20 @@ export function CardDetailDrawer({ card, onClose }: { card: Card | null; onClose
               {card.subFactions.length ? ` · ${card.subFactions.join(', ')}` : ''}
             </p>
             {card.type === 'CHARACTER' ? (
-              <p className="text-sm font-semibold">
-                ⚔ {card.attack} ♥ {card.health}
+              <p className="flex items-center gap-2 text-sm font-semibold">
+                <span className="flex items-center gap-0.5">
+                  <Icon name="sword" size={13} /> {card.attack}
+                </span>
+                <span className="flex items-center gap-0.5 text-raido-redGlow">
+                  <Icon name="heart" size={13} /> {card.health}
+                </span>
               </p>
             ) : null}
             <ResonanceBadge tier={card.resonanceTier} />
           </div>
         </div>
+
+        <RuneDivider className="mb-4" />
 
         {card.tags.length ? (
           <div className="mb-4 flex flex-wrap gap-1.5">

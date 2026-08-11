@@ -7,7 +7,7 @@ import type { FeedbackItem } from '@/lib/use-combat-feedback';
 export function FloatingFeedback({ items }: { items: FeedbackItem[] }) {
   if (items.length === 0) return null;
   return (
-    <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-center">
+    <div className="pointer-events-none absolute inset-x-0 top-0 z-20 flex justify-center">
       {items.map((item) => (
         <span
           key={item.id}

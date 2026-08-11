@@ -11,12 +11,13 @@ const EVENT_TO_CUE: Partial<Record<string, SfxCue>> = {
   UNIT_DIED: 'unit-death',
   CONDUCTOR_DAMAGED: 'attack',
   ATTACK: 'attack',
+  RUNE_ACTIVATED: 'rune-trigger',
   CARD_PLAYED: 'card-play',
   UNIT_SUMMONED: 'card-play',
   TURN_END: 'turn-end',
 };
 
-const CUE_PRIORITY: SfxCue[] = ['unit-death', 'attack', 'card-play', 'turn-end'];
+const CUE_PRIORITY: SfxCue[] = ['unit-death', 'attack', 'rune-trigger', 'card-play', 'turn-end'];
 
 export function playSfxForEvents(events: MatchEventView[]): void {
   const present = new Set<SfxCue>();

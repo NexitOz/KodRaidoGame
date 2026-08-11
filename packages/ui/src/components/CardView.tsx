@@ -1,7 +1,9 @@
 import type { Card } from '@kod-raido/shared';
 import clsx from 'clsx';
-import { RARITY_FRAME_CLASS, RARITY_LABEL } from '../rarity.js';
+import { RARITY_FRAME_CLASS, RARITY_GLOW_CLASS, RARITY_LABEL } from '../rarity.js';
+import { factionAccent } from '../factions.js';
 import { ResonanceBadge } from './ResonanceBadge.js';
+import { Icon } from './Icon.js';
 
 export interface CardViewProps {
   card: Card;
@@ -21,14 +23,17 @@ const TYPE_LABEL: Record<Card['type'], string> = {
 
 export function CardView({ card, size = 'md', trending, onSelect, className }: CardViewProps) {
   const isCharacter = card.type === 'CHARACTER';
+  const accent = factionAccent(card.faction);
+  const glowClass = RARITY_GLOW_CLASS[card.rarity];
+  const isRaido = card.rarity === 'RAIDO';
 
   return (
     <button
       type="button"
       onClick={() => onSelect?.(card)}
       className={clsx(
-        'group relative flex w-full flex-col overflow-hidden rounded-2xl border bg-raido-graphite text-left transition-transform focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-raido-red',
-        'active:scale-[0.98] hover:-translate-y-0.5',
+        'card-tilt-layer group relative flex w-full flex-col overflow-hidden rounded-card border text-left transition-transform duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-raido-red',
+        'active:scale-[0.98] hover:-translate-y-1 hover:shadow-panel',
         RARITY_FRAME_CLASS[card.rarity],
         size === 'xs' && 'max-w-[92px]',
         size === 'sm' && 'max-w-[140px]',
@@ -37,11 +42,24 @@ export function CardView({ card, size = 'md', trending, onSelect, className }: C
         className,
       )}
     >
-      <div className="relative aspect-[3/4] w-full bg-raido-black">
+      {/* Animated rarity pulse lives on its own layer so it never dims the artwork/text below it. */}
+      {glowClass ? (
+        <span aria-hidden className={clsx('pointer-events-none absolute inset-0 z-10 rounded-card', glowClass)} />
+      ) : null}
+      {isRaido ? (
+        <span
+          aria-hidden
+          className="pointer-events-none absolute right-1.5 top-1.5 z-20 text-sm text-raido-red/80"
+        >
+          ᚱ
+        </span>
+      ) : null}
+
+      <div className="relative aspect-[3/4] w-full overflow-hidden bg-raido-black">
         <img
           src={card.artworkUrl}
           alt={card.name}
-          className="h-full w-full object-cover opacity-90 transition-opacity group-hover:opacity-100"
+          className="h-full w-full object-cover opacity-90 transition-transform duration-300 group-hover:scale-[1.04] group-hover:opacity-100"
           loading="lazy"
         />
         <div className={clsx('absolute inset-x-0 top-0 flex items-center justify-between', size === 'xs' ? 'p-1' : 'p-2')}>
@@ -55,6 +73,18 @@ export function CardView({ card, size = 'md', trending, onSelect, className }: C
           </span>
           {size !== 'xs' ? <ResonanceBadge tier={card.resonanceTier} trending={trending} /> : null}
         </div>
+        {size !== 'xs' ? (
+          <span
+            aria-hidden
+            title={card.faction}
+            className={clsx(
+              'absolute left-2 top-9 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-xs ring-1 ring-white/10',
+              accent.textClass,
+            )}
+          >
+            {accent.glyph}
+          </span>
+        ) : null}
         {isCharacter ? (
           <div
             className={clsx(
@@ -62,11 +92,11 @@ export function CardView({ card, size = 'md', trending, onSelect, className }: C
               size === 'xs' ? 'p-1 text-xs' : 'p-2 text-sm',
             )}
           >
-            <span className="rounded-md bg-black/70 px-1.5 py-0.5 text-raido-white">
-              ⚔ {card.attack}
+            <span className="flex items-center gap-0.5 rounded-md bg-black/70 px-1.5 py-0.5 text-raido-white">
+              <Icon name="sword" size={11} /> {card.attack}
             </span>
-            <span className="rounded-md bg-black/70 px-1.5 py-0.5 text-raido-white">
-              ♥ {card.health}
+            <span className="flex items-center gap-0.5 rounded-md bg-black/70 px-1.5 py-0.5 text-raido-redGlow">
+              <Icon name="heart" size={11} /> {card.health}
             </span>
           </div>
         ) : null}
@@ -74,9 +104,9 @@ export function CardView({ card, size = 'md', trending, onSelect, className }: C
       {size === 'xs' ? (
         <p className="truncate px-1.5 py-1 text-[11px] font-semibold text-raido-white">{card.name}</p>
       ) : (
-        <div className="flex flex-1 flex-col gap-1 p-2.5">
+        <div className="relative z-10 flex flex-1 flex-col gap-1 bg-raido-graphite/95 p-2.5">
           <p className="truncate text-sm font-semibold text-raido-white">{card.name}</p>
-          <p className="text-[11px] uppercase tracking-wide text-raido-mist">
+          <p className={clsx('text-[11px] uppercase tracking-wide', accent.textClass)}>
             {TYPE_LABEL[card.type]} · {RARITY_LABEL[card.rarity]}
           </p>
         </div>

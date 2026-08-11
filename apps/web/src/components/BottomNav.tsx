@@ -3,14 +3,15 @@
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import clsx from 'clsx';
+import { Icon, type IconName } from '@kod-raido/ui';
 
-const ITEMS = [
-  { href: '/', label: 'Главная', icon: '⌂' },
-  { href: '/play', label: 'Играть', icon: '⚔' },
-  { href: '/collection', label: 'Коллекция', icon: '▤' },
-  { href: '/decks', label: 'Колоды', icon: '♠' },
-  { href: '/resonance', label: 'Пульс', icon: '◈' },
-] as const;
+const ITEMS: Array<{ href: string; label: string; icon: IconName }> = [
+  { href: '/', label: 'Главная', icon: 'home' },
+  { href: '/play', label: 'Играть', icon: 'play' },
+  { href: '/collection', label: 'Коллекция', icon: 'collection' },
+  { href: '/decks', label: 'Колоды', icon: 'decks' },
+  { href: '/resonance', label: 'Пульс', icon: 'resonance' },
+];
 
 export function BottomNav() {
   const pathname = usePathname();
@@ -24,14 +25,16 @@ export function BottomNav() {
             <li key={item.href} className="flex-1">
               <Link
                 href={item.href}
+                aria-current={active ? 'page' : undefined}
                 className={clsx(
-                  'flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium',
-                  active ? 'text-raido-red' : 'text-raido-mist',
+                  'relative flex min-h-14 flex-col items-center justify-center gap-0.5 text-[11px] font-medium transition-colors',
+                  active ? 'text-raido-red' : 'text-raido-mist hover:text-raido-white',
                 )}
               >
-                <span aria-hidden className="text-lg">
-                  {item.icon}
-                </span>
+                {active ? (
+                  <span aria-hidden className="absolute top-0 h-0.5 w-6 rounded-full bg-raido-red shadow-glow" />
+                ) : null}
+                <Icon name={item.icon} size={20} />
                 {item.label}
               </Link>
             </li>

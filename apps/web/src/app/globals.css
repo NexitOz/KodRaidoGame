@@ -13,7 +13,12 @@ body {
 
 body {
   min-height: 100dvh;
-  background-image: radial-gradient(circle at top, rgba(227, 18, 62, 0.12), transparent 55%);
+  background-color: #07070a;
+  background-image:
+    radial-gradient(circle at 50% -10%, rgba(227, 18, 62, 0.14), transparent 55%),
+    radial-gradient(circle at 100% 100%, rgba(90, 61, 122, 0.08), transparent 60%),
+    repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.015) 0px, rgba(255, 255, 255, 0.015) 1px, transparent 1px, transparent 4px);
+  background-attachment: fixed;
 }
 
 ::selection {
@@ -27,8 +32,17 @@ body {
 [data-low-data='true'] .animate-pulse-legendary,
 [data-low-data='true'] .animate-shimmer-epic,
 [data-low-data='true'] .animate-ready-glow,
-[data-low-data='true'] .animate-waveform-bar {
+[data-low-data='true'] .animate-waveform-bar,
+[data-low-data='true'] .animate-rune-idle,
+[data-low-data='true'] .animate-raido-sweep {
   animation: none;
+}
+
+/* Purely decorative background layers (noise texture, card hover parallax/tilt) - safe to drop
+   entirely in Low Data Mode since gameplay clarity never depends on them. */
+[data-low-data='true'] .bg-noise-layer,
+[data-low-data='true'] .card-tilt-layer {
+  display: none;
 }
 
 /* prefers-reduced-motion (WCAG 2.3.3): drop movement/scale/looping animations entirely rather
@@ -48,7 +62,18 @@ body {
   .animate-resonance-pulse,
   .animate-turn-banner,
   .animate-spotlight-ring,
-  .animate-spotlight-ring-strong {
+  .animate-spotlight-ring-strong,
+  .animate-rune-idle,
+  .animate-ring-expand,
+  .animate-dying-collapse,
+  .animate-raido-sweep,
+  .animate-panel-in,
+  .animate-rise-select {
     animation: none !important;
+  }
+
+  .card-tilt-layer {
+    transition: none !important;
+    transform: none !important;
   }
 }

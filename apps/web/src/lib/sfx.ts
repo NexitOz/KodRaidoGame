@@ -2,7 +2,18 @@
 
 import { useSettingsStore } from './settings-store';
 
-export type SfxCue = 'card-play' | 'attack' | 'unit-death' | 'turn-end' | 'match-win' | 'match-loss';
+export type SfxCue =
+  | 'card-select'
+  | 'card-play'
+  | 'attack'
+  | 'unit-death'
+  | 'turn-end'
+  | 'rune-trigger'
+  | 'track-play'
+  | 'resonance-trigger'
+  | 'raido-reveal'
+  | 'match-win'
+  | 'match-loss';
 
 interface Tone {
   frequency: number;
@@ -17,10 +28,24 @@ interface Tone {
  * functional feedback without pretending to ship real sound design.
  */
 const CUES: Record<SfxCue, Tone[]> = {
+  'card-select': [{ frequency: 520, durationMs: 40, type: 'sine' }],
   'card-play': [{ frequency: 440, durationMs: 90, type: 'triangle' }],
   attack: [{ frequency: 220, durationMs: 70, type: 'sawtooth' }],
   'unit-death': [{ frequency: 160, durationMs: 160, type: 'square' }],
   'turn-end': [{ frequency: 330, durationMs: 60, type: 'sine' }],
+  'rune-trigger': [
+    { frequency: 349.23, durationMs: 100, type: 'triangle' },
+    { frequency: 523.25, durationMs: 140, type: 'triangle', delayMs: 60 },
+  ],
+  'track-play': [
+    { frequency: 261.63, durationMs: 80, type: 'sine' },
+    { frequency: 392, durationMs: 120, type: 'sine', delayMs: 70 },
+  ],
+  'resonance-trigger': [{ frequency: 587.33, durationMs: 160, type: 'triangle' }],
+  'raido-reveal': [
+    { frequency: 130.81, durationMs: 180, type: 'sawtooth' },
+    { frequency: 261.63, durationMs: 220, type: 'triangle', delayMs: 90 },
+  ],
   'match-win': [
     { frequency: 523.25, durationMs: 120, type: 'triangle' },
     { frequency: 659.25, durationMs: 120, type: 'triangle', delayMs: 110 },

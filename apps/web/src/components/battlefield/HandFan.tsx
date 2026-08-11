@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import type { Card } from '@kod-raido/shared';
 import { CardView } from '@kod-raido/ui';
 import { useLongPress } from '@/lib/use-long-press';
+import { playSfx } from '@/lib/sfx';
 
 export interface HandCardEntry {
   instanceId: string;
@@ -52,7 +53,10 @@ export function HandFan({ cards, energy, selectedInstanceId, disabled, onSelect,
             selected={selectedInstanceId === instanceId}
             affordable={card.cost <= energy}
             disabled={disabled}
-            onSelect={() => onSelect(instanceId, card.cost)}
+            onSelect={() => {
+              playSfx('card-select');
+              onSelect(instanceId, card.cost);
+            }}
             onPreview={() => onPreview(card)}
           />
         ))}
@@ -89,12 +93,15 @@ function HandCardItem({
   return (
     <div
       role="listitem"
-      className="relative shrink-0 transition-transform duration-150 ease-out"
+      className={clsx(
+        'relative shrink-0 transition-transform duration-150 ease-out',
+        selected && '[filter:drop-shadow(0_0_10px_rgba(255,45,85,0.5))]',
+      )}
       style={{
         marginLeft,
         zIndex: selected ? 100 : zIndex,
         transform: selected
-          ? 'translateY(-16px) rotate(0deg)'
+          ? 'translateY(-18px) scale(1.06) rotate(0deg)'
           : `translateY(${Math.abs(offsetFromCenter) * ARC_STEP_PX}px) rotate(${offsetFromCenter * ANGLE_STEP_DEG}deg)`,
       }}
       onPointerDown={longPress.onPointerDown}

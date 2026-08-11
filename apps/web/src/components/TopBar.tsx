@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { Icon } from '@kod-raido/ui';
 import { RaidoLogo } from './RaidoLogo';
 import { AuthStatus } from './AuthStatus';
 
@@ -15,9 +16,7 @@ export function TopBar() {
             aria-label="Настройки"
             className="flex h-9 w-9 items-center justify-center rounded-full text-raido-mist transition-colors hover:text-raido-white"
           >
-            <span aria-hidden className="text-lg">
-              ⚙
-            </span>
+            <Icon name="settings" size={19} />
           </Link>
           <AuthStatus />
         </div>
