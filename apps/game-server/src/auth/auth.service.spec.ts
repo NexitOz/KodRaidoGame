@@ -1,7 +1,20 @@
 import { JwtService } from '@nestjs/jwt';
 import { ConflictException, UnauthorizedException } from '@nestjs/common';
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AuthService } from './auth.service';
+
+/** AuthService only needs to know "was ensureStarterDecks called for this user" - the real
+ * transactional behavior is covered by starter-deck-provisioning.service.spec.ts. */
+function createFakeStarterDecks() {
+  const calledForUserIds: string[] = [];
+  return {
+    calledForUserIds,
+    ensureStarterDecks: vi.fn(async (userId: string) => {
+      calledForUserIds.push(userId);
+      return { provisioned: true, deckCount: 6 };
+    }),
+  };
+}
 
 interface FakeUserRow {
   id: string;
@@ -103,13 +116,34 @@ function createFakePrisma() {
 
 describe('AuthService', () => {
   let prisma: ReturnType<typeof createFakePrisma>;
+  let starterDecks: ReturnType<typeof createFakeStarterDecks>;
   let service: AuthService;
 
   beforeEach(() => {
     prisma = createFakePrisma();
+    starterDecks = createFakeStarterDecks();
     const jwt = new JwtService({ secret: 'test-secret' });
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    service = new AuthService(prisma as any, jwt);
+    service = new AuthService(prisma as any, jwt, starterDecks as any);
+  });
+
+  it('provisions starter decks on registration', async () => {
+    const result = await service.register('decks@kodraido.io', 'deckuser', 'super-secret-1');
+    expect(starterDecks.calledForUserIds).toEqual([result.user.id]);
+  });
+
+  it('re-attempts starter deck provisioning on every login (idempotent no-op if already done)', async () => {
+    const registered = await service.register('decklogin@kodraido.io', 'decklogin', 'super-secret-1');
+    starterDecks.calledForUserIds.length = 0;
+    await service.login('decklogin@kodraido.io', 'super-secret-1');
+    expect(starterDecks.calledForUserIds).toEqual([registered.user.id]);
+  });
+
+  it('login succeeds even if starter deck provisioning throws', async () => {
+    await service.register('deckfail@kodraido.io', 'deckfail', 'super-secret-1');
+    starterDecks.ensureStarterDecks.mockRejectedValueOnce(new Error('boom'));
+    const result = await service.login('deckfail@kodraido.io', 'super-secret-1');
+    expect(result.accessToken).toBeTruthy();
   });
 
   it('registers a new user and issues tokens', async () => {

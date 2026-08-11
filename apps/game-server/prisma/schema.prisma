@@ -67,6 +67,12 @@ model User {
   tutorialCurrentStep     Int?
   tutorialRewardClaimedAt DateTime?
 
+  // Starter Deck Provisioning 1.0: set exactly once, atomically, the first time
+  // ensureStarterDecks() successfully creates all 6 Content Pack 01 starter decks for this
+  // account. A persistent "already bootstrapped" marker, not a repair flag - once set, later
+  // calls are a no-op even if the user has since deleted one of the starter decks themselves.
+  starterDecksProvisionedAt DateTime?
+
   collection       CollectionEntry[]
   decks            Deck[]
   refreshTokens    RefreshToken[]
