@@ -1,5 +1,6 @@
 import type { Card } from './card.js';
 import type { StatusType } from './card.js';
+import type { UnlockedRewardView } from './progression-view.js';
 
 export interface CardInstanceView {
   instanceId: string;
@@ -51,6 +52,16 @@ export interface MatchRewards {
   xp: number;
   softCurrency: number;
   leveledUp: boolean;
+  /** True if this reward included the once-per-UTC-day first-win bonus. */
+  firstWinBonus: boolean;
+  previousLevel: number;
+  newLevel: number;
+  /** Level-up rewards unlocked by this exact match (empty on a no-level-up or idempotent replay). */
+  rewardsUnlocked: UnlockedRewardView[];
+  /** Player's XP-bar position after this match's reward was applied. */
+  currentLevelXp: number;
+  nextLevelXp: number | null;
+  progressPercent: number;
   /** Only set for ranked PvP matches. */
   mmrDelta?: number;
   newMmr?: number;

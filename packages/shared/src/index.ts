@@ -5,6 +5,7 @@ export * from './types/user.js';
 export * from './types/deck.js';
 export * from './types/match.js';
 export * from './types/match-view.js';
+export * from './types/progression-view.js';
 export * from './types/pvp.js';
 export * from './types/tutorial.js';
 export * from './constants.js';

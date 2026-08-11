@@ -1,4 +1,4 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { AnalyticsService } from './analytics.service';
 import { AdminKeyGuard } from './guards/admin-key.guard';
 
@@ -10,5 +10,12 @@ export class AnalyticsController {
   @Get('summary')
   getSummary() {
     return this.analyticsService.getSummary();
+  }
+
+  /** Player Progression & Economy 1.0 admin visibility - see AnalyticsService.getRecentMatchRewards. */
+  @Get('rewards')
+  getRecentMatchRewards(@Query('limit') limit?: string) {
+    const parsed = limit ? Number(limit) : undefined;
+    return this.analyticsService.getRecentMatchRewards(parsed && parsed > 0 ? Math.min(parsed, 100) : undefined);
   }
 }

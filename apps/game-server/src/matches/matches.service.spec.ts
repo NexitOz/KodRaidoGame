@@ -1,6 +1,7 @@
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import type { GameEvent, MatchState } from '@kod-raido/game-engine';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { MatchRewardService } from '../progression/match-reward.service';
 import { BOT_DECKS } from './bot-decks';
 import type { MatchActionDto } from './dto/match-action.dto';
 import { MatchesService } from './matches.service';
@@ -133,6 +134,8 @@ interface FakeUser {
   softCurrency: number;
   level: number;
   mmr: number;
+  lastFirstWinBonusDate?: string | null;
+  highestRewardedLevel?: number | null;
 }
 
 interface FakeMatch {
@@ -156,11 +159,28 @@ interface FakeMatch {
   player2MmrDelta: number | null;
 }
 
+interface FakeMatchReward {
+  id: string;
+  matchId: string;
+  userId: string;
+  mode: string;
+  result: string;
+  xpGranted: number;
+  softCurrencyGranted: number;
+  firstWinBonus: boolean;
+  previousLevel: number;
+  newLevel: number;
+  economyVersion: string;
+  createdAt: Date;
+}
+
 function createFakePrisma(cards: FakeCardRow[]) {
   const decks: FakeDeck[] = [];
   const matches: FakeMatch[] = [];
   const users = new Map<string, FakeUser>();
   const matchEvents: unknown[] = [];
+  const matchRewards: FakeMatchReward[] = [];
+  const userUnlocks: Array<{ userId: string; type: string; key: string; source: string }> = [];
 
   const api = {
     card: {
@@ -243,6 +263,41 @@ function createFakePrisma(cards: FakeCardRow[]) {
         const user = users.get(where.id)!;
         Object.assign(user, data);
         return user;
+      },
+    },
+    matchReward: {
+      async create({ data }: { data: Omit<FakeMatchReward, 'id' | 'createdAt'> }) {
+        const duplicate = matchRewards.find((r) => r.matchId === data.matchId && r.userId === data.userId);
+        if (duplicate) {
+          const error = new Error('Unique constraint failed on the fields: (`matchId`,`userId`)') as Error & {
+            code: string;
+          };
+          error.code = 'P2002';
+          throw error;
+        }
+        const row: FakeMatchReward = { id: `reward-${matchRewards.length + 1}`, createdAt: new Date(), ...data };
+        matchRewards.push(row);
+        return row;
+      },
+      async findUnique({ where }: { where: { matchId_userId: { matchId: string; userId: string } } }) {
+        const { matchId, userId } = where.matchId_userId;
+        return matchRewards.find((r) => r.matchId === matchId && r.userId === userId) ?? null;
+      },
+    },
+    userUnlock: {
+      async upsert({
+        where,
+        create,
+      }: {
+        where: { userId_key: { userId: string; key: string } };
+        create: { userId: string; type: string; key: string; source: string };
+      }) {
+        const existing = userUnlocks.find(
+          (u) => u.userId === where.userId_key.userId && u.key === where.userId_key.key,
+        );
+        if (existing) return existing;
+        userUnlocks.push(create);
+        return create;
       },
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -348,7 +403,16 @@ describe('MatchesService', () => {
     const fakeResonance = { buildBoostSnapshot: async () => [] };
     const fakeAnalyticsEvents = { log: async () => undefined, logOnce: async () => true };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    service = new MatchesService(prisma as any, repo as any, fakeResonance as any, fakeAnalyticsEvents as any);
+    const matchReward = new MatchRewardService(prisma as any, fakeAnalyticsEvents as any);
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    service = new MatchesService(
+      prisma as any,
+      repo as any,
+      fakeResonance as any,
+      fakeAnalyticsEvents as any,
+      matchReward,
+    );
+    /* eslint-enable @typescript-eslint/no-explicit-any */
   });
 
   it('creates a PvE match against a random bot deck for a valid 30-card deck', async () => {
@@ -599,7 +663,16 @@ describe('MatchesService', () => {
       const fakeResonance = { buildBoostSnapshot: async () => [] };
       const fakeAnalyticsEvents = { log: async () => undefined, logOnce: async () => true };
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const altService = new MatchesService(altPrisma as any, repo as any, fakeResonance as any, fakeAnalyticsEvents as any);
+      const altMatchReward = new MatchRewardService(altPrisma as any, fakeAnalyticsEvents as any);
+      /* eslint-disable @typescript-eslint/no-explicit-any */
+      const altService = new MatchesService(
+        altPrisma as any,
+        repo as any,
+        fakeResonance as any,
+        fakeAnalyticsEvents as any,
+        altMatchReward,
+      );
+      /* eslint-enable @typescript-eslint/no-explicit-any */
 
       const view = await altService.createTutorialMatch('user-1');
       const stored = altPrisma._internal.matches.find((m) => m.id === view.matchId)!;

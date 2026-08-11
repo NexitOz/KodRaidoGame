@@ -32,12 +32,29 @@ interface FakeCard {
   name: string;
 }
 
+interface FakeMatchReward {
+  id: string;
+  userId: string;
+  matchId: string;
+  mode: string;
+  result: string;
+  xpGranted: number;
+  softCurrencyGranted: number;
+  firstWinBonus: boolean;
+  previousLevel: number;
+  newLevel: number;
+  economyVersion: string;
+  createdAt: Date;
+}
+
 function createFakePrisma() {
   const users: FakeUser[] = [];
   const matches: FakeMatch[] = [];
   const matchEvents: FakeMatchEvent[] = [];
   const cards: FakeCard[] = [];
   const analyticsEvents: FakeAnalyticsEvent[] = [];
+  const matchRewards: FakeMatchReward[] = [];
+  const usersById = new Map<string, { username: string; level: number; xp: number; softCurrency: number }>();
 
   return {
     user: {
@@ -80,7 +97,21 @@ function createFakePrisma() {
           .map((e) => ({ userId: e.userId, payloadJson: e.payloadJson }));
       },
     },
-    _internal: { users, matches, matchEvents, cards, analyticsEvents },
+    matchReward: {
+      async findMany({
+        take,
+      }: {
+        orderBy: { createdAt: 'desc' };
+        take: number;
+        include: { user: { select: unknown } };
+      }) {
+        return [...matchRewards]
+          .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+          .slice(0, take)
+          .map((r) => ({ ...r, user: usersById.get(r.userId)! }));
+      },
+    },
+    _internal: { users, matches, matchEvents, cards, analyticsEvents, matchRewards, usersById },
   };
 }
 
@@ -209,5 +240,81 @@ describe('AnalyticsService', () => {
 
     const summary = await service.getSummary(now);
     expect(summary.firstPvEAfterTutorial).toBe(2);
+  });
+});
+
+describe('AnalyticsService.getRecentMatchRewards', () => {
+  let prisma: ReturnType<typeof createFakePrisma>;
+  let service: AnalyticsService;
+
+  beforeEach(() => {
+    prisma = createFakePrisma();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    service = new AnalyticsService(prisma as any);
+  });
+
+  it('returns the most recent rewards newest-first, with the granting user context attached', async () => {
+    prisma._internal.usersById.set('u1', { username: 'rider', level: 3, xp: 250, softCurrency: 900 });
+    prisma._internal.matchRewards.push(
+      {
+        id: 'r1',
+        userId: 'u1',
+        matchId: 'm1',
+        mode: 'PVE',
+        result: 'WIN',
+        xpGranted: 60,
+        softCurrencyGranted: 25,
+        firstWinBonus: false,
+        previousLevel: 2,
+        newLevel: 3,
+        economyVersion: '1',
+        createdAt: new Date('2026-01-01T00:00:00Z'),
+      },
+      {
+        id: 'r2',
+        userId: 'u1',
+        matchId: 'm2',
+        mode: 'PVE',
+        result: 'WIN',
+        xpGranted: 110,
+        softCurrencyGranted: 75,
+        firstWinBonus: true,
+        previousLevel: 3,
+        newLevel: 3,
+        economyVersion: '1',
+        createdAt: new Date('2026-01-02T00:00:00Z'),
+      },
+    );
+
+    const rows = await service.getRecentMatchRewards();
+    expect(rows).toHaveLength(2);
+    expect(rows[0]!.id).toBe('r2'); // newest first
+    expect(rows[0]!.username).toBe('rider');
+    expect(rows[0]!.level).toBe(3);
+    expect(rows[0]!.xp).toBe(250);
+    expect(rows[0]!.softCurrency).toBe(900);
+    expect(rows[0]!.firstWinBonus).toBe(true);
+  });
+
+  it('respects the limit parameter', async () => {
+    prisma._internal.usersById.set('u1', { username: 'rider', level: 1, xp: 0, softCurrency: 500 });
+    for (let i = 0; i < 5; i += 1) {
+      prisma._internal.matchRewards.push({
+        id: `r${i}`,
+        userId: 'u1',
+        matchId: `m${i}`,
+        mode: 'PVE',
+        result: 'WIN',
+        xpGranted: 60,
+        softCurrencyGranted: 25,
+        firstWinBonus: false,
+        previousLevel: 1,
+        newLevel: 1,
+        economyVersion: '1',
+        createdAt: new Date(2026, 0, 1 + i),
+      });
+    }
+    const rows = await service.getRecentMatchRewards(2);
+    expect(rows).toHaveLength(2);
   });
 });

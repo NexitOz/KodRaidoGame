@@ -73,11 +73,26 @@ model User {
   // calls are a no-op even if the user has since deleted one of the starter decks themselves.
   starterDecksProvisionedAt DateTime?
 
+  // Player Progression & Economy 1.0:
+  // - lastFirstWinBonusDate: UTC calendar day ("YYYY-MM-DD") the account last claimed the
+  //   first-win-of-day bonus. Compared as a plain string, never a DateTime, so "did they already
+  //   claim today" is an exact string match with no timezone/truncation ambiguity.
+  // - highestRewardedLevel: the highest account level MatchRewardService has already paid a
+  //   level-up reward for. Deliberately nullable rather than defaulted to 1: on an account's
+  //   first-ever reward-bearing match after this system shipped, a null value is lazily
+  //   bootstrapped to that match's *previous* level (i.e. the level already reached before this
+  //   match's XP), so existing users are never retroactively paid for levels they crossed before
+  //   this system existed - only levels they cross from here on.
+  lastFirstWinBonusDate String?
+  highestRewardedLevel  Int?
+
   collection       CollectionEntry[]
   decks            Deck[]
   refreshTokens    RefreshToken[]
   matchesAsPlayer1 Match[]           @relation("Player1Matches")
   matchesAsPlayer2 Match[]           @relation("Player2Matches")
+  matchRewards     MatchReward[]
+  unlocks          UserUnlock[]
 
   @@map("users")
 }
@@ -128,18 +143,18 @@ model MediaAsset {
 }
 
 model MetricSnapshot {
-  id           String   @id @default(uuid())
+  id           String     @id @default(uuid())
   mediaAssetId String
   mediaAsset   MediaAsset @relation(fields: [mediaAssetId], references: [id], onDelete: Cascade)
-  capturedAt   DateTime @default(now())
-  views        Int      @default(0)
-  listens      Int      @default(0)
-  likes        Int      @default(0)
-  comments     Int      @default(0)
-  shares       Int      @default(0)
-  soundUses    Int      @default(0)
-  saves        Int      @default(0)
-  createdAt    DateTime @default(now())
+  capturedAt   DateTime   @default(now())
+  views        Int        @default(0)
+  listens      Int        @default(0)
+  likes        Int        @default(0)
+  comments     Int        @default(0)
+  shares       Int        @default(0)
+  soundUses    Int        @default(0)
+  saves        Int        @default(0)
+  createdAt    DateTime   @default(now())
 
   @@index([mediaAssetId, capturedAt])
   @@map("metric_snapshots")
@@ -184,18 +199,18 @@ model Card {
   resonanceTier    Int          @default(0)
 
   // Content Pack 01: faction/subfaction/archetype schema
-  faction              String   @default("NEUTRAL")
-  subFactions          String[] @default([])
-  archetypeTags        String[] @default([])
-  isNeutral            Boolean  @default(true)
-  isCrossoverEligible  Boolean  @default(true)
+  faction             String   @default("NEUTRAL")
+  subFactions         String[] @default([])
+  archetypeTags       String[] @default([])
+  isNeutral           Boolean  @default(true)
+  isCrossoverEligible Boolean  @default(true)
   /// Dev/reference-only content gated by REFERENCE_CONTENT_ENABLED. Never seeded to
   /// production, granted to users, exposed via the API, or shown in a collection
   /// unless the flag is on.
-  isReferenceContent   Boolean  @default(false)
+  isReferenceContent  Boolean  @default(false)
 
-  createdAt        DateTime     @default(now())
-  updatedAt        DateTime     @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   collectionEntries  CollectionEntry[]
   deckCards          DeckCard[]
@@ -258,34 +273,35 @@ model DeckCard {
 }
 
 model Match {
-  id                  String         @id @default(uuid())
-  player1Id           String
-  player2Id           String?
-  player2IsBot        Boolean        @default(false)
-  botDifficulty       BotDifficulty?
-  status              MatchStatus    @default(ACTIVE)
-  seed                String
-  winnerId            String?
+  id                         String         @id @default(uuid())
+  player1Id                  String
+  player2Id                  String?
+  player2IsBot               Boolean        @default(false)
+  botDifficulty              BotDifficulty?
+  status                     MatchStatus    @default(ACTIVE)
+  seed                       String
+  winnerId                   String?
   /// Tutorial matches use a fixed deterministic seed/deck and never grant the
   /// normal PvE XP/soft-currency reward or count toward match-history win/loss
   /// stats or the firstPvEStarted/Finished analytics funnel - see TutorialService.
-  isTutorial          Boolean        @default(false)
-  boostSnapshotJson   Json           @default("[]")
+  isTutorial                 Boolean        @default(false)
+  boostSnapshotJson          Json           @default("[]")
   /// player1's reward (the only human's reward for PvE matches).
-  xpAwarded           Int            @default(0)
-  softCurrencyAwarded Int            @default(0)
+  xpAwarded                  Int            @default(0)
+  softCurrencyAwarded        Int            @default(0)
   /// player2's reward - only set for ranked PvP matches (player2IsBot = false).
   player2XpAwarded           Int?
   player2SoftCurrencyAwarded Int?
   /// Only set for ranked PvP matches - signed MMR change for player1/player2 respectively.
-  player1MmrDelta     Int?
-  player2MmrDelta     Int?
-  startedAt           DateTime       @default(now())
-  finishedAt          DateTime?
+  player1MmrDelta            Int?
+  player2MmrDelta            Int?
+  startedAt                  DateTime       @default(now())
+  finishedAt                 DateTime?
 
-  player1 User         @relation("Player1Matches", fields: [player1Id], references: [id], onDelete: Cascade)
-  player2 User?        @relation("Player2Matches", fields: [player2Id], references: [id])
+  player1 User          @relation("Player1Matches", fields: [player1Id], references: [id], onDelete: Cascade)
+  player2 User?         @relation("Player2Matches", fields: [player2Id], references: [id])
   events  MatchEvent[]
+  rewards MatchReward[]
 
   @@index([player1Id])
   @@map("matches")
@@ -303,6 +319,57 @@ model MatchEvent {
 
   @@index([matchId, sequence])
   @@map("match_events")
+}
+
+/// Player Progression & Economy 1.0: the persisted, server-authoritative proof of exactly what a
+/// single match paid a single account. The (matchId, userId) unique constraint is the actual
+/// idempotency/concurrency mechanism - MatchRewardService always INSERTs this row *before*
+/// mutating User.xp/softCurrency/level, so a duplicate grant attempt (refresh, retry, reconnect,
+/// or a genuine race between two concurrent requests) hits a unique-constraint violation and is
+/// treated as "already granted" without touching the user a second time. A PvP match produces up
+/// to two rows (one per player); a PvE match produces one. Tutorial matches never write here -
+/// see TutorialService's own one-time reward claim.
+model MatchReward {
+  id                  String   @id @default(uuid())
+  matchId             String
+  userId              String
+  mode                String
+  result              String
+  xpGranted           Int
+  softCurrencyGranted Int
+  firstWinBonus       Boolean  @default(false)
+  previousLevel       Int
+  newLevel            Int
+  /// The ECONOMY_VERSION this reward was computed under - future rebalances never retroactively
+  /// recompute historical rows.
+  economyVersion      String
+  createdAt           DateTime @default(now())
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, userId])
+  @@index([userId, createdAt])
+  @@map("match_rewards")
+}
+
+/// Player Progression & Economy 1.0: a generic, data-driven unlock record - currently only used
+/// for the cosmetic level-up rewards (levels 4/6/8/10). Deliberately not a full skins/cosmetics
+/// subsystem: `key` is an opaque placeholder id the client maps to a label/icon, `source`
+/// records why it was granted (e.g. "LEVEL_UP"), and the (userId, key) unique constraint makes
+/// granting idempotent the same way MatchReward does for XP/currency.
+model UserUnlock {
+  id         String   @id @default(uuid())
+  userId     String
+  type       String
+  key        String
+  source     String
+  unlockedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, key])
+  @@map("user_unlocks")
 }
 
 /// First Player Experience 1.0: a minimal, generic first-party event log for

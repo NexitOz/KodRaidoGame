@@ -144,4 +144,54 @@ export class AnalyticsService {
       firstPvEAfterTutorial,
     };
   }
+
+  /**
+   * Player Progression & Economy 1.0 admin visibility (spec section 17): the most recent
+   * MatchReward grants with the granting user's current level/xp/soft-currency for context. A
+   * read-only diagnostic view, not a self-service currency-adjustment tool - there is no
+   * corresponding write endpoint anywhere in AdminModule.
+   */
+  async getRecentMatchRewards(limit = 25): Promise<RecentMatchRewardEntry[]> {
+    const rewards = await this.prisma.matchReward.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      include: { user: { select: { username: true, level: true, xp: true, softCurrency: true } } },
+    });
+
+    return rewards.map((r) => ({
+      id: r.id,
+      username: r.user.username,
+      level: r.user.level,
+      xp: r.user.xp,
+      softCurrency: r.user.softCurrency,
+      matchId: r.matchId,
+      mode: r.mode,
+      result: r.result,
+      xpGranted: r.xpGranted,
+      softCurrencyGranted: r.softCurrencyGranted,
+      firstWinBonus: r.firstWinBonus,
+      previousLevel: r.previousLevel,
+      newLevel: r.newLevel,
+      economyVersion: r.economyVersion,
+      createdAt: r.createdAt.toISOString(),
+    }));
+  }
+}
+
+export interface RecentMatchRewardEntry {
+  id: string;
+  username: string;
+  level: number;
+  xp: number;
+  softCurrency: number;
+  matchId: string;
+  mode: string;
+  result: string;
+  xpGranted: number;
+  softCurrencyGranted: number;
+  firstWinBonus: boolean;
+  previousLevel: number;
+  newLevel: number;
+  economyVersion: string;
+  createdAt: string;
 }

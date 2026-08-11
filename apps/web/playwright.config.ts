@@ -9,6 +9,11 @@ export default defineConfig({
   testDir: './e2e',
   timeout: 120_000,
   fullyParallel: false,
+  // All e2e specs share one live dev-server + Postgres/Redis instance (see header comment) - two
+  // workers hammering match-engine/bot actions concurrently starves that single backend enough
+  // to flake otherwise-reliable PvE-win-driving tests. Serial execution trades wall-clock time
+  // for determinism, which matters more for a manually-run suite than for a CI-parallel one.
+  workers: 1,
   retries: 0,
   reporter: 'list',
   use: {

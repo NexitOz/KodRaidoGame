@@ -36,7 +36,8 @@ body {
 [data-low-data='true'] .animate-rune-idle,
 [data-low-data='true'] .animate-raido-sweep,
 [data-low-data='true'] .animate-rune-reveal,
-[data-low-data='true'] .animate-event-flash {
+[data-low-data='true'] .animate-event-flash,
+[data-low-data='true'] .animate-level-up-ring {
   animation: none;
 }
 
@@ -72,7 +73,8 @@ body {
   .animate-panel-in,
   .animate-rise-select,
   .animate-rune-reveal,
-  .animate-event-flash {
+  .animate-event-flash,
+  .animate-level-up-ring {
     animation: none !important;
   }
 

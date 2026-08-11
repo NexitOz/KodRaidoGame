@@ -6,6 +6,7 @@ import type {
   MatchHistoryEntry,
   MatchmakingStatus,
   MatchStateView,
+  ProgressionView,
   ResonanceHistoryPoint,
   TutorialCompleteResponse,
   TutorialProgress,
@@ -128,4 +129,7 @@ export const api = {
     request<TutorialCompleteResponse>('/me/tutorial/complete', { method: 'POST', accessToken }),
   skipTutorial: (accessToken: string) =>
     request<TutorialProgress>('/me/tutorial/skip', { method: 'POST', accessToken }),
+
+  getProgression: (accessToken: string) =>
+    request<ProgressionView>('/me/progression', { accessToken }),
 };

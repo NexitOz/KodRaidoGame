@@ -4,10 +4,10 @@
 
 ## Статус веток (актуально на момент этого коммита)
 
-`main` содержит Phase 0-7 + Battlefield 2.0 + Content Pack 01 (смержены через PR #2, #3, #4).
-First Player Experience 1.0 (обучение + онбординг) разрабатывается на отдельной ветке
-`first-player-experience`, созданной от `main` на коммите `5b771d3` — тот же паттерн "своя ветка
-на фазу + отдельный PR".
+`main` содержит Phase 0-7 + Battlefield 2.0 + Content Pack 01 + First Player Experience 1.0 +
+Visual Polish 1.0 + Starter Deck Provisioning 1.0 (смержены через PR #2-#7). Player Progression &
+Economy 1.0 разрабатывается на отдельной ветке `player-progression-economy-01`, созданной от
+`main` на коммите `1310cc5` — тот же паттерн "своя ветка на фазу + отдельный PR".
 
 ## Phase 0 — Foundation ✅ Done
 
@@ -716,3 +716,50 @@ Shield всем, +2/+2 навсегда — без auto-win на любом Tier
   одинаково глубокую покарточную-типа play-анимацию; dying-slot collapse keyframe добавлен в
   токены, но не подключён; статусные emoji-иконки в `CreatureSlot` и игровые аватары не заменены
   на SVG.
+
+## Starter Deck Provisioning 1.0 ✅ Done
+
+Узкий functional-fix: `AuthService.register()` выдавал стартовую коллекцию карт, но ни одной
+готовой 30-карточной колоды, хотя экран после обучения (`/tutorial/archetypes`) уже показывал 6
+архетипов — новый игрок не мог начать обычный PvE без ручного похода в Deck Builder.
+
+- 6 стартовых пресетов Content Pack 01 вынесены в единый источник истины
+  `apps/game-server/src/content/starter-decks.ts` (ключ — card slug, не DB id); `prisma/seed.ts` и
+  runtime используют одни и те же определения.
+- `StarterDeckProvisioningService.ensureStarterDecks(userId)`: атомарный claim через
+  `User.starterDecksProvisionedAt` (conditional `updateMany` внутри транзакции), резолвит
+  slug→id, валидирует каждый пресет существующим `validateDeck()` из `game-engine` (без
+  копирования правил), проверяет владение картами, создаёт все 6 колод.
+- Вызывается из `register()` (новые аккаунты) и `login()` (backfill для существующих, non-fatal).
+  Идемпотентно — повторный вызов не создаёт дублей и не восстанавливает удалённую пользователем
+  колоду (marker — one-time bootstrap, не repair-демон).
+- **276 unit-тестов** (весь монорепо) + **10 Playwright** (8 существующих tutorial + 2 новых:
+  register→skip→PvE, register→tutorial-complete→PvE). PR #7, смержен.
+
+## Player Progression & Economy 1.0 ⏳ In progress
+
+Полное описание: [`docs/player-progression-economy-01.md`](./player-progression-economy-01.md).
+"Причина сыграть ещё матч" — server-authoritative прогрессия поверх существующих
+`User.level`/`xp`/`softCurrency`. Не монетизация: без реальных денег, premium-валюты, магазина,
+loot box, крафта; уровень аккаунта никогда не влияет на боевые характеристики.
+
+- Центральный конфиг экономики (`packages/shared/src/progression.ts`): кривая уровней 1-30
+  (`xpRequiredForLevel`/`levelForXp`/`xpProgressForLevel`), `REWARD_TABLE` (PvE/Casual PvP/Ranked
+  PvP × Win/Loss), `FIRST_WIN_OF_DAY_BONUS`, `LEVEL_REWARDS` (2-10), `ECONOMY_VERSION`.
+- `MatchReward` (matchId+userId unique) — атомарный idempotency-claim: INSERT происходит до любой
+  мутации пользователя, так что дубликат/retry/reconnect/конкурентный вызов ловит
+  unique-constraint и не платит дважды. `UserUnlock` — generic unlock-модель для косметики уровней
+  4/6/8/10.
+- `MatchRewardService.grantMatchReward()` заменил inline-расчёты в `MatchesService`; `User.
+  highestRewardedLevel` (nullable) лениво бутстрапится текущим уровнем при первом касании — старые
+  аккаунты не получают retroactive-награды за уже пройденные уровни.
+- `GET /me/progression` — level/xp-progress/currency/first-win-flag/next-reward/stats
+  (wins/losses/winRate/pveWins/pvpWins), клиент не пересчитывает правила сам.
+- UI: обновлённый `ResultModal` (XP/Эхо, бейдж первой победы дня, level-up блок с коротким
+  `level-up-ring` (≤1s, отключается в Low Data Mode и `prefers-reduced-motion`), XP-бар,
+  unlocked-награды), новая страница `/profile`, компактная карточка "Твой прогресс" на Home,
+  ссылка-профиль в TopBar.
+- Admin: `GET /admin/analytics/rewards` — последние `MatchReward` с контекстом пользователя,
+  read-only, без self-service выдачи валюты.
+- Tutorial-награда осталась отдельной (`TutorialService`), не объединена с
+  `MatchRewardService` — чтобы не рисковать регрессией уже отгруженного пути.
