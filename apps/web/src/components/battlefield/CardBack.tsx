@@ -15,16 +15,21 @@ export function CardBack({ size = 'sm', className }: CardBackProps) {
     <div
       aria-hidden="true"
       className={clsx(
-        'relative flex aspect-[3/4] flex-col items-center justify-center overflow-hidden rounded-lg border border-raido-red/30 bg-raido-graphite shadow-rune',
+        'relative flex aspect-[3/4] flex-col items-center justify-center overflow-hidden rounded-lg border border-raido-red/40 bg-raido-graphite shadow-rune',
         size === 'sm' ? 'w-10' : 'w-16',
         className,
       )}
       style={{
         backgroundImage:
-          'radial-gradient(circle at 50% 40%, rgba(227,18,62,0.22), transparent 65%)',
+          'radial-gradient(circle at 50% 40%, rgba(227,18,62,0.24), transparent 65%)',
       }}
     >
-      <span className="absolute inset-1 rounded-md border border-raido-red/15" />
+      {/* Battlefield 3.1: same ornate double-ring + corner-bracket language as CardView's frame,
+          so the back reads as "the same premium card object", not a plain filler tile. */}
+      <span className="pointer-events-none absolute inset-[2px] rounded-md border border-raido-gold/20" />
+      <span className="pointer-events-none absolute inset-1 rounded-md border border-raido-red/15" />
+      <span className="pointer-events-none absolute left-1 top-1 h-2 w-2 border-l border-t border-raido-gold/40" />
+      <span className="pointer-events-none absolute bottom-1 right-1 h-2 w-2 border-b border-r border-raido-gold/40" />
       <span
         className={clsx(
           'flex items-center justify-center rounded-full border border-raido-red/60 text-raido-red',

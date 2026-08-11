@@ -196,6 +196,7 @@ export function MatchBoard({
           onSelect={onTapEnemyUnit}
           feedbackByTarget={feedbackByTarget}
           deathToasts={opponentDeathToasts}
+          curve="up"
         />
       </section>
 

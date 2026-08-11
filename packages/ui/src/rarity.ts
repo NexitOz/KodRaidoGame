@@ -36,3 +36,24 @@ export const RARITY_GLOW_CLASS: Record<Rarity, string | null> = {
   LEGENDARY: 'shadow-legendary animate-pulse-legendary',
   RAIDO: 'shadow-raido animate-rune-idle',
 };
+
+/**
+ * Rarity "pip row" (1-5 dots, low to high) - a compact, at-a-glance rarity read next to the
+ * text label, echoing the reference concept's dot-based rarity presentation. Count only, no new
+ * rarity tiers or balance meaning attached to it.
+ */
+export const RARITY_PIP_COUNT: Record<Rarity, number> = {
+  COMMON: 1,
+  RARE: 2,
+  EPIC: 3,
+  LEGENDARY: 4,
+  RAIDO: 5,
+};
+
+export const RARITY_PIP_CLASS: Record<Rarity, string> = {
+  COMMON: 'bg-raido-mist',
+  RARE: 'bg-sky-400',
+  EPIC: 'bg-raido-violet',
+  LEGENDARY: 'bg-raido-gold',
+  RAIDO: 'bg-raido-red',
+};

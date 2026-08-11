@@ -15,7 +15,13 @@ export interface CreatureRowProps {
   onSelect?: (unit: UnitInstanceView) => void;
   feedbackByTarget: Map<string, FeedbackItem[]>;
   deathToasts: DeathToast[];
+  /** Battlefield 3.1: which way the row bows along the arena's circular rings - 'down' (default,
+   * player's row) sinks the outer slots toward the arena floor with the center slightly raised;
+   * 'up' (opponent's row) mirrors it so the whole row reads as sitting on the ring's far curve. */
+  curve?: 'up' | 'down';
 }
+
+const ARC_STEP_PX = 5;
 
 export function CreatureRow({
   units,
@@ -27,8 +33,11 @@ export function CreatureRow({
   onSelect,
   feedbackByTarget,
   deathToasts,
+  curve = 'down',
 }: CreatureRowProps) {
   const slots = Array.from({ length: MAX_BOARD_UNITS }, (_, i) => units[i] ?? null);
+  const center = (slots.length - 1) / 2;
+  const direction = curve === 'up' ? -1 : 1;
 
   return (
     <div className="relative grid grid-cols-5 gap-1.5">
@@ -38,25 +47,37 @@ export function CreatureRow({
           role="status"
         >
           {deathToasts.map((d) => (
-            <span key={d.id} className="animate-float-up text-raido-mist" role="img" aria-label="Существо погибло">
+            <span
+              key={d.id}
+              className="animate-float-up text-raido-mist"
+              role="img"
+              aria-label="Существо погибло"
+            >
               <Icon name="skull" size={13} />
             </span>
           ))}
         </div>
       ) : null}
-      {slots.map((unit, i) => (
-        <CreatureSlot
-          key={unit?.instanceId ?? `empty-${i}`}
-          unit={unit}
-          interactive={unit ? interactiveIds?.has(unit.instanceId) : false}
-          selected={unit ? selectedInstanceId === unit.instanceId : false}
-          readyToAttack={unit ? readyAttackerIds?.has(unit.instanceId) : false}
-          targetable={unit ? targetableIds?.has(unit.instanceId) : false}
-          dimmed={hasActiveSelection}
-          onSelect={onSelect}
-          feedback={unit ? (feedbackByTarget.get(`unit:${unit.instanceId}`) ?? []) : []}
-        />
-      ))}
+      {slots.map((unit, i) => {
+        const offset = i - center;
+        return (
+          <div
+            key={unit?.instanceId ?? `empty-${i}`}
+            style={{ transform: `translateY(${direction * Math.abs(offset) * ARC_STEP_PX}px)` }}
+          >
+            <CreatureSlot
+              unit={unit}
+              interactive={unit ? interactiveIds?.has(unit.instanceId) : false}
+              selected={unit ? selectedInstanceId === unit.instanceId : false}
+              readyToAttack={unit ? readyAttackerIds?.has(unit.instanceId) : false}
+              targetable={unit ? targetableIds?.has(unit.instanceId) : false}
+              dimmed={hasActiveSelection}
+              onSelect={onSelect}
+              feedback={unit ? (feedbackByTarget.get(`unit:${unit.instanceId}`) ?? []) : []}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 }
