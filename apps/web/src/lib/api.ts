@@ -6,6 +6,7 @@ import type {
   MatchHistoryEntry,
   MatchmakingStatus,
   MatchStateView,
+  ProgressionView,
   ResonanceHistoryPoint,
   TutorialCompleteResponse,
   TutorialProgress,
@@ -15,7 +16,9 @@ import type {
 import type { AuthResponse, CollectionEntryDto, DeckDto } from './types';
 
 export type { MatchActionInput } from '@kod-raido/shared';
-export type BotDifficulty = 'EASY' | 'NORMAL' | 'HARD';
+// 'PRACTICE' is a deterministic no-op bot for automated e2e tests only - never offered in the
+// UI outside local dev (see the PlayPage DIFFICULTIES gate) and rejected server-side in production.
+export type BotDifficulty = 'EASY' | 'NORMAL' | 'HARD' | 'PRACTICE';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api';
 
@@ -128,4 +131,7 @@ export const api = {
     request<TutorialCompleteResponse>('/me/tutorial/complete', { method: 'POST', accessToken }),
   skipTutorial: (accessToken: string) =>
     request<TutorialProgress>('/me/tutorial/skip', { method: 'POST', accessToken }),
+
+  getProgression: (accessToken: string) =>
+    request<ProgressionView>('/me/progression', { accessToken }),
 };

@@ -12,6 +12,13 @@ export function TopBar() {
         </Link>
         <div className="flex flex-shrink-0 items-center gap-1.5 sm:gap-3">
           <Link
+            href="/profile"
+            aria-label="Профиль"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-raido-mist transition-colors hover:text-raido-white"
+          >
+            <Icon name="player" size={19} />
+          </Link>
+          <Link
             href="/settings"
             aria-label="Настройки"
             className="flex h-9 w-9 items-center justify-center rounded-full text-raido-mist transition-colors hover:text-raido-white"

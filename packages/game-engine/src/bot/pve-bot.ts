@@ -10,7 +10,7 @@ import type {
 } from '../match/types.js';
 import { getOpponentId } from '../match/util.js';
 
-export type BotDifficulty = 'EASY' | 'NORMAL' | 'HARD' | 'TUTORIAL';
+export type BotDifficulty = 'EASY' | 'NORMAL' | 'HARD' | 'TUTORIAL' | 'PRACTICE';
 
 /**
  * After this many total match turns, the tutorial bot stops being deliberately
@@ -200,6 +200,14 @@ export function chooseBotAction(
 
   if (difficulty === 'TUTORIAL') {
     return tutorialBotAction(state, matchCtx, botPlayerId, rng);
+  }
+
+  // Never plays a card or attacks - not a real opponent, a fully deterministic no-op used only
+  // to let automated tests (e2e/integration) drive a real, reward-granting match to a WIN without
+  // depending on EASY's randomness. Gated server-side to non-production environments only - see
+  // MatchesService.createPveMatch - so this never changes what a real player faces.
+  if (difficulty === 'PRACTICE') {
+    return { type: 'END_TURN', playerId: botPlayerId };
   }
 
   if (difficulty === 'EASY') {

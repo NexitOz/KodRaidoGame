@@ -17,6 +17,13 @@ const DIFFICULTIES: Array<{ value: BotDifficulty; label: string; description: st
   { value: 'EASY', label: 'Легко', description: 'Бот играет осторожно, редко меняется' },
   { value: 'NORMAL', label: 'Средне', description: 'Бот разменивается и атакует по приоритету' },
   { value: 'HARD', label: 'Сложно', description: 'Бот считает выгодные размены наперёд' },
+  // Deterministic no-op bot for automated e2e tests only. NODE_ENV is 'production' for every
+  // `next build` (including every Vercel deployment, preview or production) and only
+  // 'development' for `next dev` - so this never ships to a real player, matching the server-side
+  // rejection in MatchesService.createPveMatch.
+  ...(process.env.NODE_ENV !== 'production'
+    ? [{ value: 'PRACTICE' as const, label: 'Тест', description: 'Только для e2e-тестов: бот ничего не делает' }]
+    : []),
 ];
 
 export default function PlayPage() {

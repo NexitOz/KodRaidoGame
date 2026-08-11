@@ -2,9 +2,56 @@
 
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import { Button, CardView, RuneDivider } from '@kod-raido/ui';
+import { Button, CardView, PremiumPanel, RuneDivider } from '@kod-raido/ui';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
+
+function HomeProgressCard() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const { data: progression } = useQuery({
+    queryKey: ['progression', accessToken],
+    queryFn: () => api.getProgression(accessToken as string),
+    enabled: Boolean(accessToken),
+  });
+
+  if (!progression) return null;
+
+  return (
+    <PremiumPanel className="flex flex-col gap-3 p-4">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-raido-mist">Твой прогресс</h2>
+        <Link href="/profile" className="text-xs text-raido-red hover:underline">
+          Профиль →
+        </Link>
+      </div>
+      <div className="flex items-center justify-between">
+        <span className="font-display text-lg font-bold">Уровень {progression.level}</span>
+        <span className="text-xs text-raido-mist">
+          {progression.nextLevelXp === null
+            ? 'Макс. уровень'
+            : `${progression.currentLevelXp} / ${progression.nextLevelXp} XP`}
+        </span>
+      </div>
+      <div className="h-2 w-full overflow-hidden rounded-full bg-black/40">
+        <div
+          className="h-full rounded-full bg-raido-red transition-[width] duration-500"
+          style={{ width: `${progression.progressPercent}%` }}
+        />
+      </div>
+      <div className="flex items-center justify-between text-xs">
+        <span className="text-raido-mist">
+          Эхо: <span className="font-semibold text-raido-white">{progression.softCurrency}</span>
+        </span>
+        <span className={progression.firstWinClaimedToday ? 'text-raido-mist' : 'text-raido-gold'}>
+          {progression.firstWinClaimedToday ? 'Первая победа дня получена' : 'Первая победа дня: не получена'}
+        </span>
+      </div>
+      <Link href="/play">
+        <Button className="w-full">Играть</Button>
+      </Link>
+    </PremiumPanel>
+  );
+}
 
 export default function LandingPage() {
   const user = useAuthStore((s) => s.user);
@@ -36,6 +83,8 @@ export default function LandingPage() {
           </Link>
         </div>
       </section>
+
+      {user ? <HomeProgressCard /> : null}
 
       <section>
         <div className="mb-4 flex items-center justify-between">

@@ -75,6 +75,7 @@ module.exports = {
         'rise-select': 'rise-select 0.18s ease-out forwards',
         'rune-reveal': 'rune-reveal 0.4s ease-out',
         'event-flash': 'event-flash 0.38s ease-out forwards',
+        'level-up-ring': 'level-up-ring 0.8s ease-out forwards',
       },
       keyframes: {
         'pulse-rune': {
@@ -180,6 +181,15 @@ module.exports = {
           '30%': { opacity: '1', transform: 'scale(1.03)', filter: 'brightness(1.6)' },
           '70%': { opacity: '1', transform: 'scale(1)', filter: 'brightness(1)' },
           '100%': { opacity: '0', transform: 'scale(0.96)', filter: 'brightness(1)' },
+        },
+        /* Player Progression & Economy 1.0 level-up: concentric ring + red-white pulse + one
+         * light sweep, single-shot and short (<=1s per spec) - a celebratory flourish, not
+         * critical game info (the "УРОВЕНЬ N" text says that on its own), so it's disabled in
+         * both Low Data Mode and prefers-reduced-motion like rune-reveal/event-flash below. */
+        'level-up-ring': {
+          '0%': { transform: 'scale(0.55)', opacity: '0', boxShadow: '0 0 0 0 rgba(227,18,62,0.65)' },
+          '35%': { opacity: '1' },
+          '100%': { transform: 'scale(1.7)', opacity: '0', boxShadow: '0 0 45px 14px rgba(227,18,62,0)' },
         },
       },
     },

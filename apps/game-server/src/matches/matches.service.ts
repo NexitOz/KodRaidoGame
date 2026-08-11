@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import {
   applyAction,
   beginMatch,
@@ -13,10 +13,7 @@ import {
 } from '@kod-raido/game-engine';
 import {
   cardUsesResonance,
-  computeLevelForXp,
   computeMmrDelta,
-  PVE_REWARDS,
-  PVP_REWARDS,
   type BoostSnapshotEntry,
   type Card,
   type DeckCardEntry,
@@ -29,6 +26,7 @@ import {
 import { AnalyticsEventsService } from '../analytics-events/analytics-events.service';
 import { toCardDto } from '../cards/cards.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { MatchRewardResult, MatchRewardService } from '../progression/match-reward.service';
 import { ResonanceService } from '../resonance/resonance.service';
 import { BOT_DECKS, pickRandomBotArchetype, type BotArchetype } from './bot-decks';
 import { MatchActionDto } from './dto/match-action.dto';
@@ -62,6 +60,7 @@ export class MatchesService {
     private readonly repo: MatchStateRepository,
     private readonly resonance: ResonanceService,
     private readonly analyticsEvents: AnalyticsEventsService,
+    private readonly matchReward: MatchRewardService,
   ) {}
 
   async createPveMatch(
@@ -69,6 +68,13 @@ export class MatchesService {
     deckId: string,
     difficulty: BotDifficulty,
   ): Promise<MatchStateView> {
+    // PRACTICE is a deterministic no-op bot for automated e2e/integration tests only (see
+    // pve-bot.ts) - hard-rejected in production regardless of what a client sends, so it can
+    // never change what a real player experiences or be used to farm rewards for free.
+    if (difficulty === 'PRACTICE' && process.env.NODE_ENV === 'production') {
+      throw new ForbiddenException('PRACTICE difficulty is not available in production.');
+    }
+
     const playerDeckEntries = await this.loadValidatedDeck(userId, deckId);
 
     const matchCtx = await this.buildMatchContext();
@@ -469,48 +475,61 @@ export class MatchesService {
     state: MatchState,
   ): Promise<MatchRewards> {
     const won = state.winnerId === userId;
-    const reward = won ? PVE_REWARDS.win : PVE_REWARDS.loss;
     const events = await this.repo.loadAllEvents(matchId);
 
-    const leveledUp = await this.prisma.$transaction(async (tx) => {
-      if (events.length > 0) {
-        await tx.matchEvent.createMany({
-          data: events.map((event, index) => ({
-            matchId,
-            sequence: index,
-            type: event.type,
-            payloadJson: event.payload as object,
-          })),
-        });
-      }
-
-      await tx.match.update({
-        where: { id: matchId },
-        data: {
-          status: 'FINISHED',
-          winnerId: state.winnerId ?? null,
-          finishedAt: new Date(),
-          xpAwarded: reward.xp,
-          softCurrencyAwarded: reward.softCurrency,
-        },
+    if (events.length > 0) {
+      await this.prisma.matchEvent.createMany({
+        data: events.map((event, index) => ({
+          matchId,
+          sequence: index,
+          type: event.type,
+          payloadJson: event.payload as object,
+        })),
       });
+    }
 
-      const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
-      const newXp = user.xp + reward.xp;
-      const oldLevel = computeLevelForXp(user.xp);
-      const newLevel = computeLevelForXp(newXp);
-      await tx.user.update({
-        where: { id: userId },
-        data: { xp: newXp, softCurrency: user.softCurrency + reward.softCurrency, level: newLevel },
-      });
+    // Player Progression & Economy 1.0: XP/soft-currency are granted by MatchRewardService, which
+    // is itself atomic and idempotent (keyed on matchId+userId) - the match row is only marked
+    // FINISHED afterwards, so a retry of this whole method after a mid-way crash re-derives the
+    // same already-granted reward instead of paying twice.
+    const reward = await this.matchReward.grantMatchReward({
+      userId,
+      matchId,
+      mode: 'PVE',
+      result: won ? 'WIN' : 'LOSS',
+    });
 
-      return newLevel > oldLevel;
+    await this.prisma.match.update({
+      where: { id: matchId },
+      data: {
+        status: 'FINISHED',
+        winnerId: state.winnerId ?? null,
+        finishedAt: new Date(),
+        xpAwarded: reward.xpGranted,
+        softCurrencyAwarded: reward.softCurrencyGranted,
+      },
     });
 
     await this.repo.delete(matchId);
     await this.analyticsEvents.logOnce('firstPvEFinished', userId);
 
-    return { xp: reward.xp, softCurrency: reward.softCurrency, leveledUp };
+    return this.toMatchRewards(reward);
+  }
+
+  private toMatchRewards(reward: MatchRewardResult, mmrDelta?: number, newMmr?: number): MatchRewards {
+    return {
+      xp: reward.xpGranted,
+      softCurrency: reward.softCurrencyGranted,
+      leveledUp: reward.levelsGained > 0,
+      firstWinBonus: reward.firstWinBonus,
+      previousLevel: reward.previousLevel,
+      newLevel: reward.newLevel,
+      rewardsUnlocked: reward.rewardsUnlocked,
+      currentLevelXp: reward.currentLevelXp,
+      nextLevelXp: reward.nextLevelXp,
+      progressPercent: reward.progressPercent,
+      ...(mmrDelta !== undefined ? { mmrDelta, newMmr } : {}),
+    };
   }
 
   /**
@@ -548,101 +567,70 @@ export class MatchesService {
     player2Id: string,
   ): Promise<Record<string, MatchRewards>> {
     const events = await this.repo.loadAllEvents(matchId);
+    if (events.length > 0) {
+      await this.prisma.matchEvent.createMany({
+        data: events.map((event, index) => ({
+          matchId,
+          sequence: index,
+          type: event.type,
+          payloadJson: event.payload as object,
+        })),
+      });
+    }
+
     const isDraw = !state.winnerId;
     const player1Won = state.winnerId === player1Id;
     const result1: MatchResult = isDraw ? 'DRAW' : player1Won ? 'WIN' : 'LOSS';
     const result2: MatchResult = isDraw ? 'DRAW' : player1Won ? 'LOSS' : 'WIN';
-    const rewardFor = (result: MatchResult) =>
-      result === 'WIN' ? PVP_REWARDS.win : result === 'LOSS' ? PVP_REWARDS.loss : PVP_REWARDS.draw;
-    const reward1 = rewardFor(result1);
-    const reward2 = rewardFor(result2);
 
-    const rewardsByPlayer = await this.prisma.$transaction(async (tx) => {
-      if (events.length > 0) {
-        await tx.matchEvent.createMany({
-          data: events.map((event, index) => ({
-            matchId,
-            sequence: index,
-            type: event.type,
-            payloadJson: event.payload as object,
-          })),
-        });
-      }
+    // Player Progression & Economy 1.0: the current PvP queue is MMR-rated - there is no separate
+    // casual queue yet - so it is scored as RANKED_PVP. Each call is its own atomic,
+    // idempotent grant keyed on (matchId, userId); running them concurrently is safe since they
+    // touch different user rows and never contend for the same MatchReward unique key.
+    const [reward1, reward2] = await Promise.all([
+      this.matchReward.grantMatchReward({ userId: player1Id, matchId, mode: 'RANKED_PVP', result: result1 }),
+      this.matchReward.grantMatchReward({ userId: player2Id, matchId, mode: 'RANKED_PVP', result: result2 }),
+    ]);
 
+    // MMR is a separate, PvP-only rating concern from XP/currency - computed fresh here from the
+    // pre-match mmr values, independent of MatchRewardService (which never touches mmr).
+    const [delta1, delta2, newMmr1, newMmr2] = await this.prisma.$transaction(async (tx) => {
       const [user1, user2] = await Promise.all([
         tx.user.findUniqueOrThrow({ where: { id: player1Id } }),
         tx.user.findUniqueOrThrow({ where: { id: player2Id } }),
       ]);
 
-      const delta1 = computeMmrDelta(user1.mmr, user2.mmr, result1);
-      const delta2 = computeMmrDelta(user2.mmr, user1.mmr, result2);
-
-      await tx.match.update({
-        where: { id: matchId },
-        data: {
-          status: 'FINISHED',
-          winnerId: state.winnerId ?? null,
-          finishedAt: new Date(),
-          xpAwarded: reward1.xp,
-          softCurrencyAwarded: reward1.softCurrency,
-          player2XpAwarded: reward2.xp,
-          player2SoftCurrencyAwarded: reward2.softCurrency,
-          player1MmrDelta: delta1,
-          player2MmrDelta: delta2,
-        },
-      });
-
-      const newXp1 = user1.xp + reward1.xp;
-      const oldLevel1 = computeLevelForXp(user1.xp);
-      const newLevel1 = computeLevelForXp(newXp1);
-      const newMmr1 = user1.mmr + delta1;
-
-      const newXp2 = user2.xp + reward2.xp;
-      const oldLevel2 = computeLevelForXp(user2.xp);
-      const newLevel2 = computeLevelForXp(newXp2);
-      const newMmr2 = user2.mmr + delta2;
+      const d1 = computeMmrDelta(user1.mmr, user2.mmr, result1);
+      const d2 = computeMmrDelta(user2.mmr, user1.mmr, result2);
 
       await Promise.all([
-        tx.user.update({
-          where: { id: player1Id },
-          data: {
-            xp: newXp1,
-            softCurrency: user1.softCurrency + reward1.softCurrency,
-            level: newLevel1,
-            mmr: newMmr1,
-          },
-        }),
-        tx.user.update({
-          where: { id: player2Id },
-          data: {
-            xp: newXp2,
-            softCurrency: user2.softCurrency + reward2.softCurrency,
-            level: newLevel2,
-            mmr: newMmr2,
-          },
-        }),
+        tx.user.update({ where: { id: player1Id }, data: { mmr: user1.mmr + d1 } }),
+        tx.user.update({ where: { id: player2Id }, data: { mmr: user2.mmr + d2 } }),
       ]);
 
-      return {
-        [player1Id]: {
-          xp: reward1.xp,
-          softCurrency: reward1.softCurrency,
-          leveledUp: newLevel1 > oldLevel1,
-          mmrDelta: delta1,
-          newMmr: newMmr1,
-        },
-        [player2Id]: {
-          xp: reward2.xp,
-          softCurrency: reward2.softCurrency,
-          leveledUp: newLevel2 > oldLevel2,
-          mmrDelta: delta2,
-          newMmr: newMmr2,
-        },
-      };
+      return [d1, d2, user1.mmr + d1, user2.mmr + d2];
+    });
+
+    await this.prisma.match.update({
+      where: { id: matchId },
+      data: {
+        status: 'FINISHED',
+        winnerId: state.winnerId ?? null,
+        finishedAt: new Date(),
+        xpAwarded: reward1.xpGranted,
+        softCurrencyAwarded: reward1.softCurrencyGranted,
+        player2XpAwarded: reward2.xpGranted,
+        player2SoftCurrencyAwarded: reward2.softCurrencyGranted,
+        player1MmrDelta: delta1,
+        player2MmrDelta: delta2,
+      },
     });
 
     await this.repo.delete(matchId);
 
-    return rewardsByPlayer;
+    return {
+      [player1Id]: this.toMatchRewards(reward1, delta1, newMmr1),
+      [player2Id]: this.toMatchRewards(reward2, delta2, newMmr2),
+    };
   }
 }

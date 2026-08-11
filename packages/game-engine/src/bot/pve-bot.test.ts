@@ -208,6 +208,25 @@ describe('chooseBotAction — TUTORIAL difficulty', () => {
   });
 });
 
+describe('chooseBotAction — PRACTICE difficulty', () => {
+  it('always ends the turn immediately, even with a lethal attack and playable cards available', () => {
+    const attacker = makeUnit({ ownerId: 'bot', cardId: 'a', attack: 10 });
+    const card = makeCharacter({ id: 'x', cost: 1 });
+    const state = makeBareMatchState({
+      activePlayerId: 'bot',
+      player1: {
+        playerId: 'bot',
+        board: [attacker],
+        energy: 3,
+        hand: [{ instanceId: 'h1', cardId: card.id }],
+      },
+      player2: { playerId: 'human', conductorHp: 5 },
+    });
+    const action = chooseBotAction(state, makeContext([card]), 'bot', 'PRACTICE');
+    expect(action).toEqual({ type: 'END_TURN', playerId: 'bot' });
+  });
+});
+
 describe('chooseBotAction — EASY difficulty', () => {
   it('always returns a structurally legal action shape even when random', () => {
     const attacker = makeUnit({ ownerId: 'bot', cardId: 'a', attack: 2 });
