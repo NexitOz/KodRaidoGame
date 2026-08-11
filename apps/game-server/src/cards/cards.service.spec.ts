@@ -96,6 +96,21 @@ describe('CardsService — REFERENCE_CONTENT_ENABLED gating', () => {
     expect(cards.map((c) => c.id).sort()).toEqual(['normal', 'reference']);
   });
 
+  /** Canonical Card Roster 1.0: archived legacy cards (active: false) must never appear in the
+   * public /api/cards catalog the web Collection page and Deck Builder both read from. */
+  it('excludes archived (active: false) legacy cards from the public API', async () => {
+    const prisma = createFakePrisma([
+      { ...BASE_ROW, id: 'canonical', active: true },
+      { ...BASE_ROW, id: 'legacy', active: false },
+    ]);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const service = new CardsService(prisma as any);
+
+    const cards = await service.findAllPlayable();
+    expect(cards.map((c) => c.id)).toEqual(['canonical']);
+    expect(await service.findOnePlayable('legacy')).toBeNull();
+  });
+
   it('maps faction/subFactions/archetypeTags through to the DTO', async () => {
     const prisma = createFakePrisma([
       {

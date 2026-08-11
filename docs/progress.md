@@ -763,3 +763,42 @@ loot box, крафта; уровень аккаунта никогда не вл
   read-only, без self-service выдачи валюты.
 - Tutorial-награда осталась отдельной (`TutorialService`), не объединена с
   `MatchRewardService` — чтобы не рисковать регрессией уже отгруженного пути.
+
+## Canonical Card Roster 1.0 / 1.1 ✅ Done
+
+**CONTENT PACK 01 / 40 collectible cards / 6 factions + Neutral / 1 non-collectible token / 23
+legacy cards archived.** Полное обоснование и per-card диспозиция — новый раздел "Canonical launch
+set" в [`docs/content-pack-01.md`](./content-pack-01.md).
+
+- **1.0 (анализ, без изменений БД/сида)**: полная инвентаризация всех collectible-карт в
+  засеянной БД показала 63 карты — 40 из Content Pack 01 и 23 допродакшн-legacy-карты
+  (`faction: NEUTRAL`, не используются ни одной из 6 стартовых колод/tutorial-колодой — проверено
+  прямым grep). Владелец проекта утвердил **Option A (Lean Launch Set)**: канонический
+  игровой пул запуска — ровно 40 карт Content Pack 01.
+- **1.1 (реализация)**: 23 legacy-карты архивированы (`active: false`) в `prisma/seed.ts` —
+  строки не удалены физически, только исключены из активного пула на точке композиции. Задействован
+  уже существовавший `Card.active` — единый механизм, уже применявшийся `CardsService`
+  (публичный `/api/cards`), `AuthService.grantStarterCollection` (стартовая коллекция) и
+  `validateDeck` (`CARD_RIGHTS_BLOCKED` для `!card.active`, включая уже сохранённые колоды с
+  legacy-картой).
+- `apps/game-server/src/matches/bot-decks.ts` (единственная другая точка кода, ссылавшаяся на
+  legacy-slugs) переписан — PvE-боты берут архетипы `SHADOW_AGGRO`/`RESONANCE_MIDRANGE` из тех же
+  канонических `STARTER_DECK_PRESETS`, что и обычные стартовые колоды, вместо отдельного
+  захардкоженного legacy-списка.
+- Демо-аккаунт больше не сидит две legacy-based "MVP Demo" колоды — получает те же 6 канонических
+  стартовых колод, что и обычная регистрация.
+- Admin-видимость: `GET /admin/analytics/cards?status=active|archived|all`
+  (`AnalyticsService.getCards`) — архивные карты остаются видны администратору для будущего
+  REWORK/расширения, никогда не удаляются физически.
+- Движковые/исторические выборки карт (`MatchesService.buildMatchContext`,
+  `DecksService.validate()`'s `prisma.card.findMany()`) сознательно не фильтруют по `active` —
+  архивация никогда не ломает рендер идущего или прошедшего матча.
+- Новый файл `apps/game-server/src/content/canonical-roster.spec.ts` + расширенные
+  `auth.service.spec.ts`/`cards.service.spec.ts`/`decks.service.spec.ts`/`analytics.service.spec.ts`
+  покрывают: свежий аккаунт получает ровно 40 канонических карт (не 63, не legacy, не токен);
+  `/api/cards` исключает архивные карты; `DecksService` реально отклоняет архивную карту через
+  `validateDeck` даже если игрок ей владеет; все 6 стартовых колод, tutorial-колода и оба
+  bot-архетипа целиком построены из канонических 40 slugs; admin по-прежнему видит архивные карты.
+  Полный прогон по `apps/game-server`: **145/145 unit-тестов зелёных**, lint/typecheck/build чистые.
+- Балансные значения карт не менялись, новые карты не добавлялись, ни одна карта не удалена
+  физически из БД.

@@ -176,6 +176,42 @@ export class AnalyticsService {
       createdAt: r.createdAt.toISOString(),
     }));
   }
+
+  /**
+   * Canonical Card Roster 1.0: unlike CardsService.findAllPlayable (which only ever returns
+   * `active: true` cards to players), this deliberately queries every card row regardless of
+   * `active` - archived legacy content is never deleted, only excluded from the public
+   * catalog/starter collection/deck builder, and admin needs to keep seeing it for future
+   * REWORK/expansion planning. Read-only, same as getRecentMatchRewards above.
+   */
+  async getCards(status: 'active' | 'archived' | 'all' = 'all'): Promise<AdminCardEntry[]> {
+    const where = status === 'all' ? {} : { active: status === 'active' };
+    const cards = await this.prisma.card.findMany({
+      where,
+      orderBy: [{ active: 'desc' }, { faction: 'asc' }, { type: 'asc' }, { name: 'asc' }],
+    });
+    return cards.map((c) => ({
+      id: c.id,
+      slug: c.slug,
+      name: c.name,
+      type: c.type,
+      rarity: c.rarity,
+      faction: c.faction,
+      active: c.active,
+      isToken: c.isToken,
+    }));
+  }
+}
+
+export interface AdminCardEntry {
+  id: string;
+  slug: string;
+  name: string;
+  type: string;
+  rarity: string;
+  faction: string;
+  active: boolean;
+  isToken: boolean;
 }
 
 export interface RecentMatchRewardEntry {

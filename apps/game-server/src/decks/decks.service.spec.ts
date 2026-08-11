@@ -185,4 +185,28 @@ describe('DecksService', () => {
       service.update('user-2', created.id, { name: 'Hijack', cards: legalEntries }),
     ).rejects.toBeInstanceOf(ForbiddenException);
   });
+
+  /** Canonical Card Roster 1.0: a legacy card the player still owns a CollectionEntry for (from
+   * before it was archived) must be rejected by real DecksService.create/update, not just by the
+   * pure game-engine validateDeck unit tests - DecksService.validate() deliberately queries
+   * prisma.card.findMany() with no `active` filter, delegating the active-check to validateDeck
+   * itself, so this proves that wiring holds end-to-end. */
+  it('flags an archived (legacy) card as CARD_RIGHTS_BLOCKED even when the player owns it', async () => {
+    const archivedCard = makeCard('legacy-card', { active: false });
+    const cardsWithLegacy = [...cards, archivedCard];
+    const owned = new Map([...cards.map((c) => [c.id, 2] as const), ['legacy-card', 2] as const]);
+    ownedByUser.set('user-1', owned);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    service = new DecksService(createFakePrisma(cardsWithLegacy, ownedByUser) as any);
+
+    const result = await service.create('user-1', {
+      name: 'Has Legacy Card',
+      cards: [...legalEntries, { cardId: 'legacy-card', quantity: 2 }],
+    });
+
+    expect(result.validation.valid).toBe(false);
+    expect(result.validation.issues).toContainEqual(
+      expect.objectContaining({ code: 'CARD_RIGHTS_BLOCKED', cardId: 'legacy-card' }),
+    );
+  });
 });

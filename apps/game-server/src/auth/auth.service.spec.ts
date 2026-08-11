@@ -78,14 +78,45 @@ function createFakePrisma() {
     },
     card: {
       lastFindManyWhere: undefined as Record<string, unknown> | undefined,
+      // Mirrors real Canonical Card Roster 1.0 shape: 40 active canonical cards, 23 archived
+      // legacy cards (active: false), and 1 active token - so grantStarterCollection's real
+      // Prisma `where` filter (active/isToken/isReferenceContent/rightsStatus) is exercised
+      // against a realistic mix, not just recorded and ignored.
+      rows: [
+        ...Array.from({ length: 40 }, (_, i) => ({
+          id: `canonical-${i}`,
+          active: true,
+          isToken: false,
+          isReferenceContent: false,
+          rightsStatus: 'placeholder',
+        })),
+        ...Array.from({ length: 23 }, (_, i) => ({
+          id: `legacy-${i}`,
+          active: false,
+          isToken: false,
+          isReferenceContent: false,
+          rightsStatus: 'placeholder',
+        })),
+        { id: 'token-0', active: true, isToken: true, isReferenceContent: false, rightsStatus: 'placeholder' },
+      ],
       async findMany({ where }: { where: Record<string, unknown> }) {
         this.lastFindManyWhere = where;
-        return [];
+        return this.rows.filter((row: Record<string, unknown>) =>
+          Object.entries(where).every(([key, value]) => {
+            if (key === 'rightsStatus') {
+              const cond = value as { not?: string };
+              return cond.not === undefined || row[key] !== cond.not;
+            }
+            return row[key] === value;
+          }),
+        );
       },
     },
     collectionEntry: {
-      async createMany() {
-        return { count: 0 };
+      lastCreateManyData: undefined as unknown[] | undefined,
+      async createMany({ data }: { data: unknown[] }) {
+        this.lastCreateManyData = data;
+        return { count: data.length };
       },
     },
     refreshToken: {
@@ -186,6 +217,20 @@ describe('AuthService', () => {
       isToken: false,
       isReferenceContent: false,
     });
+  });
+
+  /** Canonical Card Roster 1.0: a fresh account must receive exactly the 40 active Content Pack
+   * 01 cards - never the 23 archived legacy cards, never the token. */
+  it('grants a fresh account exactly 40 collectible cards, none of them archived legacy cards', async () => {
+    await service.register('canonical@kodraido.io', 'canonicaluser', 'password123');
+    expect(prisma.card.lastFindManyWhere).toMatchObject({ active: true });
+    expect(prisma.collectionEntry.lastCreateManyData).toHaveLength(40);
+    const grantedCardIds = (prisma.collectionEntry.lastCreateManyData as Array<{ cardId: string }>).map(
+      (e) => e.cardId,
+    );
+    expect(grantedCardIds.every((id) => id.startsWith('canonical-'))).toBe(true);
+    expect(grantedCardIds.some((id) => id.startsWith('legacy-'))).toBe(false);
+    expect(grantedCardIds.some((id) => id.startsWith('token-'))).toBe(false);
   });
 
   it('logout revokes the refresh token', async () => {

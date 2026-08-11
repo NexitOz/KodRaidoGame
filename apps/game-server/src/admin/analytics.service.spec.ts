@@ -29,7 +29,13 @@ interface FakeMatchEvent {
 
 interface FakeCard {
   id: string;
+  slug?: string;
   name: string;
+  type?: string;
+  rarity?: string;
+  faction?: string;
+  active?: boolean;
+  isToken?: boolean;
 }
 
 interface FakeMatchReward {
@@ -84,10 +90,22 @@ function createFakePrisma() {
       },
     },
     card: {
-      async findMany({ where }: { where: { id: { in: string[] } } }) {
-        return cards
-          .filter((c) => where.id.in.includes(c.id))
-          .map((c) => ({ id: c.id, name: c.name }));
+      async findMany({
+        where,
+      }: { where?: { id?: { in: string[] }; active?: boolean } } = {}) {
+        let result = cards;
+        if (where?.id) result = result.filter((c) => where.id!.in.includes(c.id));
+        if (where?.active !== undefined) result = result.filter((c) => c.active === where.active);
+        return result.map((c) => ({
+          id: c.id,
+          slug: c.slug ?? c.id,
+          name: c.name,
+          type: c.type ?? 'CHARACTER',
+          rarity: c.rarity ?? 'COMMON',
+          faction: c.faction ?? 'NEUTRAL',
+          active: c.active ?? true,
+          isToken: c.isToken ?? false,
+        }));
       },
     },
     analyticsEvent: {
@@ -316,5 +334,40 @@ describe('AnalyticsService.getRecentMatchRewards', () => {
     }
     const rows = await service.getRecentMatchRewards(2);
     expect(rows).toHaveLength(2);
+  });
+});
+
+/** Canonical Card Roster 1.0: archived legacy cards are never deleted, only excluded from the
+ * player-facing catalog - admin must still be able to inspect them (e.g. via an ACTIVE/ARCHIVED
+ * filter) for future REWORK/expansion planning. */
+describe('AnalyticsService.getCards', () => {
+  let prisma: ReturnType<typeof createFakePrisma>;
+  let service: AnalyticsService;
+
+  beforeEach(() => {
+    prisma = createFakePrisma();
+    prisma._internal.cards.push(
+      { id: 'canonical-1', name: 'Canonical Card', active: true, isToken: false },
+      { id: 'legacy-1', name: 'Legacy Card', active: false, isToken: false },
+      { id: 'token-1', name: 'Summon Token', active: true, isToken: true },
+    );
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    service = new AnalyticsService(prisma as any);
+  });
+
+  it('defaults to returning every card regardless of active status', async () => {
+    const cards = await service.getCards();
+    expect(cards.map((c) => c.id).sort()).toEqual(['canonical-1', 'legacy-1', 'token-1']);
+  });
+
+  it('returns only active cards when status=active', async () => {
+    const cards = await service.getCards('active');
+    expect(cards.map((c) => c.id).sort()).toEqual(['canonical-1', 'token-1']);
+  });
+
+  it('returns only archived legacy cards when status=archived', async () => {
+    const cards = await service.getCards('archived');
+    expect(cards.map((c) => c.id)).toEqual(['legacy-1']);
+    expect(cards[0]!.active).toBe(false);
   });
 });
