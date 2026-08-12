@@ -1262,6 +1262,9 @@ const COSMIC_CARDS: SeedCard[] = [
     tags: ['Cosmic'],
     attack: 7,
     health: 8,
+    // Art Pack 01 Production Candidate 06 - FINAL APPROVED (docs/art-bible-01.md).
+    artworkUrl: '/art/cards/lord-of-the-stellar-stream.webp',
+    rightsStatus: 'owned',
     abilityText: 'При выходе: доберите карту. При Резонансе 5+: получает +2/+2 навсегда.',
     effectJson: [
       { trigger: 'ON_PLAY', conditions: [], effects: [{ type: 'DRAW', amount: 1 }] },

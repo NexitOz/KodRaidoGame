@@ -1,21 +1,33 @@
 # Art Bible 01 — Kod Raido: Resonance
 
 Living brief for **Art Pack 01**: real commissioned/licensed key art for the six Content Pack 01
-faction-flagship Legendaries, to eventually replace their `generatePlaceholderArt()` SVG. This doc
-is guidance and review tracking only.
+faction-flagship Legendaries, replacing their `generatePlaceholderArt()` SVG. This doc is guidance
+and review tracking only.
+
+## Art Pack 01 — PRODUCTION-ART MILESTONE FINAL APPROVED (2026-08-12)
+
+All six faction-flagship Legendaries — SHADOW, PURIFICATION, BOND, VEIL, MYSTERY, and COSMIC — have
+now been promoted to real production art after explicit owner approval of Production Candidates 01b,
+02b, 03, 04, 05, and 06 respectively. Every card's `artworkUrl`/`rightsStatus: 'owned'` is live in
+`apps/game-server/prisma/seed.ts`; every other card in Content Pack 01 (the 40-card roster minus these
+six) is untouched and still calls `generatePlaceholderArt()` unconditionally. This closes the
+production-art milestone this doc was created to track — see each faction's section below for its
+individual review record, and the Approval status table immediately below for the at-a-glance summary.
+No gameplay, balance, economy, abilities, card stats, faction, or Battlefield logic changed for any
+card as part of this milestone.
 
 **Scope guardrail:** most of this doc's history is documentation only — reference images are never
-committed, and a card's `artworkUrl`/`rightsStatus` never changes on their account. **Five exceptions
-now exist:** SHADOW (`necromancer-of-the-twilight-order`), PURIFICATION
+committed, and a card's `artworkUrl`/`rightsStatus` never changes on their account. **Six exceptions
+exist:** SHADOW (`necromancer-of-the-twilight-order`), PURIFICATION
 (`high-warden-of-the-white-rune`), BOND (`matriarch-of-the-spring-light`), VEIL
-(`lord-of-the-nameless-shadow`), and MYSTERY (`keeper-of-the-grey-mist`) were promoted to real
-production art after explicit owner approval of Production Candidates 01b, 02b, 03, 04, and 05
-respectively — see their sections below and the Approval status table. Each promotion touched only
-that one card's `artworkUrl`/`rightsStatus` in `apps/game-server/prisma/seed.ts` plus its own new
-asset file; COSMIC's placeholder, gameplay, balance, Battlefield logic, and economy remain untouched.
-**A reference or candidate image never replaces a placeholder on its own** — that only happens when
-the project owner explicitly approves a specific file as final production artwork, a separate step
-from adding/locking a reference in this doc.
+(`lord-of-the-nameless-shadow`), MYSTERY (`keeper-of-the-grey-mist`), and COSMIC
+(`lord-of-the-stellar-stream`) were promoted to real production art after explicit owner approval of
+Production Candidates 01b, 02b, 03, 04, 05, and 06 respectively — see their sections below and the
+Approval status table. Each promotion touched only that one card's `artworkUrl`/`rightsStatus` in
+`apps/game-server/prisma/seed.ts` plus its own new asset file; gameplay, balance, Battlefield logic,
+and economy remain untouched throughout. **A reference or candidate image never replaces a placeholder
+on its own** — that only happens when the project owner explicitly approves a specific file as final
+production artwork, a separate step from adding/locking a reference in this doc.
 
 ## Reference vs. production-format note
 
@@ -27,7 +39,7 @@ fixed:** vertical 2:3, no text, no logo, no stats, no UI, no baked-in card frame
 illustration that the app's own `CardView` frame/badges/rarity glow render on top of at display
 time, not art with a frame pre-composited into the file.
 
-## Approval status — DO NOT mark Art Pack 01 FINAL APPROVED until all six faction references AND all six final production illustrations are reviewed
+## Approval status — Art Pack 01 production-art milestone FINAL APPROVED, 6 of 6
 
 | # | Faction | Flagship card | Slug | Status |
 | - | --- | --- | --- | --- |
@@ -36,9 +48,11 @@ time, not art with a frame pre-composited into the file.
 | 3 | BOND | Матриарх Дома Весеннего Света (Matriarch of the Spring Light) | `matriarch-of-the-spring-light` | **FINAL APPROVED** — Production Candidate 03, owner-approved; `artworkUrl`/`rightsStatus: owned` live — see below |
 | 4 | VEIL | Владыка Безымянной Тени (Lord of the Nameless Shadow) | `lord-of-the-nameless-shadow` | **FINAL APPROVED** — Production Candidate 04, owner-approved; `artworkUrl`/`rightsStatus: owned` live — see below |
 | 5 | MYSTERY | Хранитель Серого Тумана (Keeper of the Grey Mist) | `keeper-of-the-grey-mist` | **FINAL APPROVED** — Production Candidate 05, owner-approved; `artworkUrl`/`rightsStatus: owned` live — see below |
-| 6 | COSMIC | Владыка Звёздного Потока (Lord of the Stellar Stream) | `lord-of-the-stellar-stream` | **Reference 06 LOCKED** — see below |
+| 6 | COSMIC | Владыка Звёздного Потока (Lord of the Stellar Stream) | `lord-of-the-stellar-stream` | **FINAL APPROVED** — Production Candidate 06, owner-approved; `artworkUrl`/`rightsStatus: owned` live — see below |
 
-Slugs for #2–6 confirmed directly against `apps/game-server/prisma/seed.ts`.
+Slugs for #2–6 confirmed directly against `apps/game-server/prisma/seed.ts`. All six rows now show
+**FINAL APPROVED** — this closes the Art Pack 01 production-art milestone (see the section at the top
+of this doc).
 
 **Gate:** Art Pack 01 ships / merges as artwork only when every row above has both its reference
 locked *and* its final production illustration reviewed. A locked reference (SHADOW) does not
@@ -123,10 +137,10 @@ SHADOW identity at thumbnail size, VEIL differentiation, crop safety across all 
 ratios). The approved file is live at `apps/web/public/art/cards/necromancer-of-the-twilight-order.webp`
 (converted from the approved 1024×1536 PNG), and `necromancer-of-the-twilight-order`'s `artworkUrl`/
 `rightsStatus: 'owned'` are set directly in its `apps/game-server/prisma/seed.ts` entry — the only
-card in Content Pack 01 with real art; every other card still calls `generatePlaceholderArt()`
-unconditionally. **Art Pack 01 as a whole is still not FINAL APPROVED** — COSMIC remains
-reference-only, pending its own production candidate. (PURIFICATION, BOND, VEIL, and MYSTERY have
-since also been promoted — see their sections below.)
+card in Content Pack 01 with real art at the time; every other card still calls
+`generatePlaceholderArt()` unconditionally. (PURIFICATION, BOND, VEIL, MYSTERY, and COSMIC have since
+also been promoted — see their sections below. **All six factions are now FINAL APPROVED**, closing
+the Art Pack 01 production-art milestone — see the top of this doc.)
 
 **Reference 01** (received 2026-08-12, clean character illustration, mood/style reference — not
 committed to the repo, not itself the final production file) is now **locked** as the primary
@@ -189,10 +203,9 @@ still reads unambiguously as a spear/polearm, so this was accepted rather than s
 Candidate 02c. The approved file is live at
 `apps/web/public/art/cards/high-warden-of-the-white-rune.webp`, and
 `high-warden-of-the-white-rune`'s `artworkUrl`/`rightsStatus: 'owned'` are set directly in its
-`apps/game-server/prisma/seed.ts` entry via the same override mechanism used for SHADOW. **Art Pack
-01 as a whole is still not FINAL APPROVED** — COSMIC remains reference-only, pending its own
-production candidate. (BOND, VEIL, and MYSTERY have since also been promoted — see their sections
-below.)
+`apps/game-server/prisma/seed.ts` entry via the same override mechanism used for SHADOW. (BOND, VEIL,
+MYSTERY, and COSMIC have since also been promoted — see their sections below. **All six factions are
+now FINAL APPROVED**, closing the Art Pack 01 production-art milestone — see the top of this doc.)
 
 **Reference 02** (received 2026-08-12, clean character illustration, mood/style reference — not
 committed to the repo, not itself the final production file) is **locked** for PURIFICATION. Target
@@ -274,9 +287,9 @@ consistent with SHADOW and PURIFICATION. No revision cycle was needed. The appro
 `apps/web/public/art/cards/matriarch-of-the-spring-light.webp` (converted from the approved
 1024×1536 PNG), and `matriarch-of-the-spring-light`'s `artworkUrl`/`rightsStatus: 'owned'` are set
 directly in its `apps/game-server/prisma/seed.ts` entry via the same override mechanism used for
-SHADOW and PURIFICATION. **Art Pack 01 as a whole is still not FINAL APPROVED** — COSMIC remains
-reference-only, pending its own production candidate. (VEIL and MYSTERY have since also been
-promoted — see their sections below.)
+SHADOW and PURIFICATION. (VEIL, MYSTERY, and COSMIC have since also been promoted — see their
+sections below. **All six factions are now FINAL APPROVED**, closing the Art Pack 01 production-art
+milestone — see the top of this doc.)
 
 **Reference 03** (received 2026-08-12, clean character illustration, mood/style reference — not
 committed to the repo, not itself the final production file) is **locked** for BOND. Target
@@ -366,9 +379,9 @@ by SHADOW, PURIFICATION, and BOND. The approved file is live at
 `apps/web/public/art/cards/lord-of-the-nameless-shadow.webp`, and
 `lord-of-the-nameless-shadow`'s `artworkUrl`/`rightsStatus: 'owned'` are set directly in its
 `apps/game-server/prisma/seed.ts` entry via the same override mechanism used for SHADOW,
-PURIFICATION, and BOND. **Art Pack 01 as a whole is still not FINAL APPROVED** — COSMIC remains
-reference-only, pending its own production candidate. (MYSTERY has since also been promoted — see
-its section below.)
+PURIFICATION, and BOND. (MYSTERY and COSMIC have since also been promoted — see their sections below.
+**All six factions are now FINAL APPROVED**, closing the Art Pack 01 production-art milestone — see
+the top of this doc.)
 
 **Reference 04** (received 2026-08-12, clean character illustration, mood/style reference — not
 committed to the repo, not itself the final production file) is **locked** for VEIL. Target
@@ -456,8 +469,9 @@ unambiguously regardless. The approved file is live at
 `apps/web/public/art/cards/keeper-of-the-grey-mist.webp` (converted from the approved 1024×1536 PNG),
 and `keeper-of-the-grey-mist`'s `artworkUrl`/`rightsStatus: 'owned'` are set directly in its
 `apps/game-server/prisma/seed.ts` entry via the same override mechanism used for SHADOW,
-PURIFICATION, BOND, and VEIL. **Art Pack 01 as a whole is still not FINAL APPROVED** — COSMIC remains
-reference-only, pending its own production candidate.
+PURIFICATION, BOND, and VEIL. (COSMIC has since also been promoted — see its section below. **All six
+factions are now FINAL APPROVED**, closing the Art Pack 01 production-art milestone — see the top of
+this doc.)
 
 **Reference 05** (received 2026-08-12, clean character illustration, mood/style reference — not
 committed to the repo, not itself the final production file) is **locked** for MYSTERY. Target
@@ -529,10 +543,53 @@ a hem the way earlier factions lost detail. That's an acceptable loss for scene-
 production art should keep at least one signature instrument (the astrolabe globe, say) positioned
 higher/more central if it needs to reliably survive the crop rather than relying on the bottom row.
 
-## COSMIC — Наследники Звёздного Потока (Reference 06, LOCKED)
+## COSMIC — Наследники Звёздного Потока (FINAL APPROVED — Production Candidate 06 live)
+
+**Production status:** Candidate 06's first submission arrived at 1086×1448 — 3:4, not the
+established vertical 2:3 master spec used by SHADOW, PURIFICATION, BOND, VEIL, and MYSTERY — and was
+flagged before any pipeline work, per the same discipline applied to MYSTERY's orientation issue. But
+unlike MYSTERY, this was correct portrait orientation with a less-tall canvas, not a wrong-orientation
+file, and the exact crop math showed it actually crops *less* aggressively than the 2:3 standard in
+all three shipped ratios (0% / 6.25% / 3.57% total trim vs. the usual ~5.6% / ~8.3% / ~7.1%) since
+`CardView`'s 3:4 target matches the source ratio exactly. Presented with this trade-off — keep the
+non-standard 3:4 master as-is (safer crops, no lossy edit) vs. force a 2:3 resupply purely for master-
+file consistency — the owner explicitly chose to keep the native 3:4 file. It was owner-approved on
+2026-08-12 after a real automated screenshot pass through `CardView`, `CardDetailDrawer`,
+`HandCardPreview`, the `CreatureSlot` Battlefield component, and `/admin/art-review` — PASS on COSMIC
+faction identity, regal/crowned silhouette, face/crown/staff readability, the actively-forming spiral
+galaxy, open-space environment, gold + cyan/blue-violet dual palette, no humanoid crowd, no
+architectural drift, differentiation from VEIL/PURIFICATION/all other factions, and crop safety across
+all three shipped ratios.
+
+**Owner-approved production format exception:** the COSMIC master is kept at its native 1086×1448
+(3:4) — it is **not** stretched to 1024×1536, **not** cropped on the sides to force 2:3, **not**
+letterboxed, and the artwork was **not** regenerated or outpainted. This is the one deliberate
+technical deviation from the shared 2:3 master spec across all six flagships, made because `CardView`
+is natively 3:4 and therefore uses the complete artwork with zero crop, `CardDetailDrawer` and
+`HandCardPreview` both passed real crop review, face/crown/staff/forming-galaxy all stay fully
+readable, and forcing 2:3 would have required either cropping the two key lateral elements (the staff
+on one side, the forming galaxy on the other) or introducing artificial padding.
+
+**Owner-approved visual variation from the locked reference:** Reference 06 described "richly detailed
+white-and-gold flowing robes... long flowing white/silver hair." The approved production candidate
+instead uses deep navy/black robes, dark hair, strong gold armor/crown accents, and cyan/blue-violet
+cosmic energy. This is explicitly owner-accepted — the artwork was not regenerated to correct it. The
+differentiation from VEIL (COSMIC's closest-reading neighbor on a dark-robed, long-haired, crowned
+sovereign silhouette) still holds because COSMIC reads as expansive and luminous rather than
+empty/cold: strong gold warmth throughout, cyan stellar energy, multiple planets/nebulae, a regal
+staff, and an actively growing spiral galaxy — a creation/growth visual language, the opposite of
+VEIL's absence/shadow language, even with a darker robe than the original reference described.
+
+The approved file is live at `apps/web/public/art/cards/lord-of-the-stellar-stream.webp` (converted
+from the approved 1086×1448 PNG at its native aspect ratio — no resize), and
+`lord-of-the-stellar-stream`'s `artworkUrl`/`rightsStatus: 'owned'` are set directly in its
+`apps/game-server/prisma/seed.ts` entry via the same override mechanism used for SHADOW,
+PURIFICATION, BOND, VEIL, and MYSTERY. **This is the sixth and final flagship promoted to production
+art — all six factions are now FINAL APPROVED, closing the Art Pack 01 production-art milestone** —
+see the top of this doc.
 
 **Reference 06** (received 2026-08-12, clean character illustration, mood/style reference — not
-committed to the repo, not itself the final production file) is now **locked** for COSMIC — the
+committed to the repo, not itself the final production file) is **locked** for COSMIC — the
 sixth and final faction reference. Target card: **Lord of the Stellar Stream**
 (`lord-of-the-stellar-stream`, LEGENDARY, cost 8, 7/8 — its ability, "on play: draw a card," Resonance
 T5+ "permanent +2/+2," fits a sovereign literally growing a galaxy in his outstretched palm: the
@@ -602,11 +659,12 @@ acceptable loss, consistent with the pattern across all six factions.
 ## Reference set complete — all six factions locked
 
 All six Content Pack 01 faction flagships now have a **locked reference**: SHADOW (01),
-PURIFICATION (02), BOND (03), VEIL (04), MYSTERY (05), COSMIC (06). This is a real milestone, but
-it is **not** the same as Art Pack 01 being FINAL APPROVED — per the standing rule (and per your
-original instruction), that requires all six *final production illustrations* to also be reviewed,
-which hasn't happened yet; nothing in this doc authorizes commissioning production art or touching
-the placeholder pipeline on its own. The final, confirmed differentiation table:
+PURIFICATION (02), BOND (03), VEIL (04), MYSTERY (05), COSMIC (06). This was a real milestone in its
+own right, but at the time it was recorded it was **not** yet the same as Art Pack 01 being FINAL
+APPROVED — per the standing rule, that required all six *final production illustrations* to also be
+reviewed. **That has since happened** — see the production-art milestone section at the top of this
+doc; all six factions are now FINAL APPROVED. The final, confirmed differentiation table (reference-
+stage, still accurate for silhouette/mood/material contrast at a glance):
 
 | Faction | Accent / glyph | Mood & architecture | Materials / silhouette | Light source | Signature weapon/prop | Background crowd device |
 | --- | --- | --- | --- | --- | --- | --- |
