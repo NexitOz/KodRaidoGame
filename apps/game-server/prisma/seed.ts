@@ -1073,6 +1073,9 @@ const VEIL_CARDS: SeedCard[] = [
     tags: ['Veil'],
     attack: 5,
     health: 4,
+    // Art Pack 01 Production Candidate 04 - FINAL APPROVED (docs/art-bible-01.md).
+    artworkUrl: '/art/cards/lord-of-the-nameless-shadow.webp',
+    rightsStatus: 'owned',
     abilityText:
       'Выберите: укройте союзника в Тени (Скрытый) ИЛИ заглушите врага - в зависимости от выбранной цели.',
     effectJson: [

@@ -5,16 +5,17 @@ faction-flagship Legendaries, to eventually replace their `generatePlaceholderAr
 is guidance and review tracking only.
 
 **Scope guardrail:** most of this doc's history is documentation only — reference images are never
-committed, and a card's `artworkUrl`/`rightsStatus` never changes on their account. **Three exceptions
+committed, and a card's `artworkUrl`/`rightsStatus` never changes on their account. **Four exceptions
 now exist:** SHADOW (`necromancer-of-the-twilight-order`), PURIFICATION
-(`high-warden-of-the-white-rune`), and BOND (`matriarch-of-the-spring-light`) were promoted to real
-production art after explicit owner approval of Production Candidates 01b, 02b, and 03 respectively —
-see their sections below and the Approval status table. Each promotion touched only that one card's
-`artworkUrl`/`rightsStatus` in `apps/game-server/prisma/seed.ts` plus its own new asset file; the
-other three factions' placeholders, gameplay, balance, Battlefield logic, and economy remain
-untouched. **A reference or candidate image never replaces a placeholder on its own** — that only
-happens when the project owner explicitly approves a specific file as final production artwork, a
-separate step from adding/locking a reference in this doc.
+(`high-warden-of-the-white-rune`), BOND (`matriarch-of-the-spring-light`), and VEIL
+(`lord-of-the-nameless-shadow`) were promoted to real production art after explicit owner approval of
+Production Candidates 01b, 02b, 03, and 04 respectively — see their sections below and the Approval
+status table. Each promotion touched only that one card's `artworkUrl`/`rightsStatus` in
+`apps/game-server/prisma/seed.ts` plus its own new asset file; the other two factions' placeholders,
+gameplay, balance, Battlefield logic, and economy remain untouched. **A reference or candidate image
+never replaces a placeholder on its own** — that only happens when the project owner explicitly
+approves a specific file as final production artwork, a separate step from adding/locking a reference
+in this doc.
 
 ## Reference vs. production-format note
 
@@ -33,7 +34,7 @@ time, not art with a frame pre-composited into the file.
 | 1 | SHADOW | Некромант Сумеречного Ордена (Necromancer of the Twilight Order) | `necromancer-of-the-twilight-order` | **FINAL APPROVED** — Production Candidate 01b, owner-approved; `artworkUrl`/`rightsStatus: owned` live — see below |
 | 2 | PURIFICATION | Верховная Хранительница Руны (High Warden of the White Rune) | `high-warden-of-the-white-rune` | **FINAL APPROVED** — Production Candidate 02b, owner-approved; `artworkUrl`/`rightsStatus: owned` live — see below |
 | 3 | BOND | Матриарх Дома Весеннего Света (Matriarch of the Spring Light) | `matriarch-of-the-spring-light` | **FINAL APPROVED** — Production Candidate 03, owner-approved; `artworkUrl`/`rightsStatus: owned` live — see below |
-| 4 | VEIL | Владыка Безымянной Тени (Lord of the Nameless Shadow) | `lord-of-the-nameless-shadow` | **Reference 04 LOCKED** — see below |
+| 4 | VEIL | Владыка Безымянной Тени (Lord of the Nameless Shadow) | `lord-of-the-nameless-shadow` | **FINAL APPROVED** — Production Candidate 04, owner-approved; `artworkUrl`/`rightsStatus: owned` live — see below |
 | 5 | MYSTERY | Хранитель Серого Тумана (Keeper of the Grey Mist) | `keeper-of-the-grey-mist` | **Reference 05 LOCKED** — see below |
 | 6 | COSMIC | Владыка Звёздного Потока (Lord of the Stellar Stream) | `lord-of-the-stellar-stream` | **Reference 06 LOCKED** — see below |
 
@@ -123,8 +124,8 @@ ratios). The approved file is live at `apps/web/public/art/cards/necromancer-of-
 (converted from the approved 1024×1536 PNG), and `necromancer-of-the-twilight-order`'s `artworkUrl`/
 `rightsStatus: 'owned'` are set directly in its `apps/game-server/prisma/seed.ts` entry — the only
 card in Content Pack 01 with real art; every other card still calls `generatePlaceholderArt()`
-unconditionally. **Art Pack 01 as a whole is still not FINAL APPROVED** — VEIL, MYSTERY, and COSMIC
-remain reference-only, pending their own production candidates. (PURIFICATION and BOND have since
+unconditionally. **Art Pack 01 as a whole is still not FINAL APPROVED** — MYSTERY and COSMIC remain
+reference-only, pending their own production candidates. (PURIFICATION, BOND, and VEIL have since
 also been promoted — see their sections below.)
 
 **Reference 01** (received 2026-08-12, clean character illustration, mood/style reference — not
@@ -189,8 +190,8 @@ Candidate 02c. The approved file is live at
 `apps/web/public/art/cards/high-warden-of-the-white-rune.webp`, and
 `high-warden-of-the-white-rune`'s `artworkUrl`/`rightsStatus: 'owned'` are set directly in its
 `apps/game-server/prisma/seed.ts` entry via the same override mechanism used for SHADOW. **Art Pack
-01 as a whole is still not FINAL APPROVED** — VEIL, MYSTERY, and COSMIC remain reference-only,
-pending their own production candidates. (BOND has since also been promoted — see its section below.)
+01 as a whole is still not FINAL APPROVED** — MYSTERY and COSMIC remain reference-only, pending their
+own production candidates. (BOND and VEIL have since also been promoted — see their sections below.)
 
 **Reference 02** (received 2026-08-12, clean character illustration, mood/style reference — not
 committed to the repo, not itself the final production file) is **locked** for PURIFICATION. Target
@@ -272,8 +273,9 @@ consistent with SHADOW and PURIFICATION. No revision cycle was needed. The appro
 `apps/web/public/art/cards/matriarch-of-the-spring-light.webp` (converted from the approved
 1024×1536 PNG), and `matriarch-of-the-spring-light`'s `artworkUrl`/`rightsStatus: 'owned'` are set
 directly in its `apps/game-server/prisma/seed.ts` entry via the same override mechanism used for
-SHADOW and PURIFICATION. **Art Pack 01 as a whole is still not FINAL APPROVED** — VEIL, MYSTERY, and
-COSMIC remain reference-only, pending their own production candidates.
+SHADOW and PURIFICATION. **Art Pack 01 as a whole is still not FINAL APPROVED** — MYSTERY and COSMIC
+remain reference-only, pending their own production candidates. (VEIL has since also been promoted —
+see its section below.)
 
 **Reference 03** (received 2026-08-12, clean character illustration, mood/style reference — not
 committed to the repo, not itself the final production file) is **locked** for BOND. Target
@@ -343,10 +345,31 @@ comfortably mid-frame and are safe in both crops. The gown's hem pooling at the 
 outermost canopy branches are lower-priority background/frame elements and an acceptable loss,
 consistent with the pattern seen in SHADOW and PURIFICATION.
 
-## VEIL — Двор Безымянной Тени (Reference 04, LOCKED)
+## VEIL — Двор Безымянной Тени (FINAL APPROVED — Production Candidate 04 live)
+
+**Production status:** Candidate 04 was submitted directly against the locked Reference 04 brief
+below (no rejected prior submission) and was owner-approved on 2026-08-12 after a real automated
+screenshot pass through `CardView`, `CardDetailDrawer`, `HandCardPreview`, the `CreatureSlot`
+Battlefield component, and `/admin/art-review` — PASS on VEIL faction identity, SHADOW
+differentiation, face readability, thorned crown readability, crystal void-orb readability, the
+solitary/no-crowd composition, cold violet/silver/black palette, no-warm-color-drift, and crop safety
+across all three shipped ratios. One accepted environmental loss: the tightest crop
+(`CardDetailDrawer` 4:5, ~8.4% top trim) trims the upper arc of the free-floating rune-circle halo
+and the tops of the most distant background rock spires — the face, thorned crown, and orb all clear
+every crop with margin, so this was accepted rather than sent back for a revision, consistent with
+the pattern in SHADOW, PURIFICATION, and BOND. **Technical normalization:** the approved source file
+arrived at 1023×1537 (a 1px-per-axis deviation from the established 1024×1536 master spec); it was
+resampled with a high-quality (Lanczos) filter to exactly 1024×1536 before conversion — the artwork
+itself was not regenerated or redesigned, only resized to match the established technical spec shared
+by SHADOW, PURIFICATION, and BOND. The approved file is live at
+`apps/web/public/art/cards/lord-of-the-nameless-shadow.webp`, and
+`lord-of-the-nameless-shadow`'s `artworkUrl`/`rightsStatus: 'owned'` are set directly in its
+`apps/game-server/prisma/seed.ts` entry via the same override mechanism used for SHADOW,
+PURIFICATION, and BOND. **Art Pack 01 as a whole is still not FINAL APPROVED** — MYSTERY and COSMIC
+remain reference-only, pending their own production candidates.
 
 **Reference 04** (received 2026-08-12, clean character illustration, mood/style reference — not
-committed to the repo, not itself the final production file) is now **locked** for VEIL. Target
+committed to the repo, not itself the final production file) is **locked** for VEIL. Target
 card: **Lord of the Nameless Shadow** (`lord-of-the-nameless-shadow`, LEGENDARY, cost 5, 5/4 — its
 choose-one ability, "Hidden to an ally OR Silence an enemy," fits a solitary sovereign summoning an
 occult orb of power rather than a knife-fighter; VEIL's kit is about concealment/negation, not
