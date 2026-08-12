@@ -3,12 +3,13 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
-import type { Card } from '@kod-raido/shared';
+import type { Card, UnitInstanceView } from '@kod-raido/shared';
 import { CardView, RARITY_FRAME_CLASS } from '@kod-raido/ui';
 import { api } from '@/lib/api';
 import { factionLabel } from '@/lib/factions';
 import { CardDetailDrawer } from '@/components/CardDetailDrawer';
 import { HandCardPreview } from '@/components/battlefield/HandCardPreview';
+import { CreatureSlot } from '@/components/battlefield/CreatureSlot';
 
 /**
  * Production Art Pass 01 review tool (docs/art-bible-01.md). Not linked from any nav - reachable
@@ -68,6 +69,18 @@ function FlagshipRow({
 
   const displayCard: Card = candidateUrl ? { ...card, artworkUrl: candidateUrl } : card;
   const usingCandidate = Boolean(candidateUrl);
+  // Stub unit for the Battlefield board-slot check only - never a real match, never persisted.
+  // All six flagships are CHARACTER cards, so 'attack'/'health' are always present.
+  const stubUnit: UnitInstanceView = {
+    instanceId: `art-review-stub-${slug}`,
+    card: displayCard,
+    attack: 'attack' in displayCard ? displayCard.attack : 0,
+    health: 'health' in displayCard ? displayCard.health : 0,
+    maxHealth: 'health' in displayCard ? displayCard.health : 0,
+    statuses: [],
+    summonedThisTurn: false,
+    attackedThisTurn: false,
+  };
 
   return (
     <section className="rounded-panel border border-white/10 bg-raido-graphite/60 p-4">
@@ -108,7 +121,7 @@ function FlagshipRow({
         </p>
       ) : null}
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
         <div className="flex flex-col items-center gap-1">
           <p className="text-[11px] uppercase tracking-wide text-raido-mist">Raw master art</p>
           <img
@@ -172,6 +185,15 @@ function FlagshipRow({
           >
             Open real Hand Preview modal
           </button>
+        </div>
+
+        <div className="flex flex-col items-center gap-1">
+          <p className="text-[11px] uppercase tracking-wide text-raido-mist">
+            Battlefield board slot (CreatureSlot, 3:4)
+          </p>
+          <div className="w-full max-w-[160px]">
+            <CreatureSlot unit={stubUnit} />
+          </div>
         </div>
       </div>
     </section>
