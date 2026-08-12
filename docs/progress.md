@@ -802,3 +802,41 @@ set" в [`docs/content-pack-01.md`](./content-pack-01.md).
   Полный прогон по `apps/game-server`: **145/145 unit-тестов зелёных**, lint/typecheck/build чистые.
 - Балансные значения карт не менялись, новые карты не добавлялись, ни одна карта не удалена
   физически из БД.
+
+## Art Pack 01 / 6 flagship production illustrations ✅ Done
+
+**Все шесть флагманских Legendary-карт Content Pack 01 (по одной на фракцию) промотированы на
+реальный коммишн-арт**, заменив placeholder-SVG. Полная история ревью, брифы по фракциям, техспека
+мастер-файлов и запись каждого Production Candidate — [`docs/art-bible-01.md`](./art-bible-01.md),
+единственный источник правды по Art Pack 01.
+
+- 6/6 карт: `necromancer-of-the-twilight-order` (SHADOW), `high-warden-of-the-white-rune`
+  (PURIFICATION), `matriarch-of-the-spring-light` (BOND), `lord-of-the-nameless-shadow` (VEIL),
+  `keeper-of-the-grey-mist` (MYSTERY), `lord-of-the-stellar-stream` (COSMIC) — все
+  `rightsStatus: 'owned'`, `artworkUrl` указывает на `apps/web/public/art/cards/<slug>.webp` (см.
+  README в этой директории за naming convention).
+- Override-механизм в `apps/game-server/prisma/seed.ts` (`SeedCard.artworkUrl`/`rightsStatus`)
+  переживает любой повторный `npm run seed` — остальные ~58 карт продолжают получать
+  `generatePlaceholderArt()` как раньше.
+- Внутренний QA-инструмент `/admin/art-review` (не в навигации) использовался для каждого кандидата
+  — реальные компоненты `CardView`/`CardDetailDrawer`/`HandCardPreview`/`CreatureSlot`, без
+  изменения гейплея/баланса.
+- Ни одна характеристика карт (cost/attack/health/ability/Resonance/faction) не менялась — это был
+  чисто визуальный проход.
+- Cleanup-проход после апрува: убраны 6 случайно загруженных через GitHub UI scratch-файлов из
+  `apps/web/art-review-candidates/` на `main` (не путать с реальным, gitignored review-путём
+  `apps/web/public/art-review-candidates/`), добавлено правило `.gitignore` против повторения.
+
+**Отложенные идеи из более ранней, не смерженной ветки `art-pack-01`** (сама ветка признана
+полностью superseded — её `docs/art-bible-01.md` и `/admin/art-review` заменены гораздо более
+полными версиями на этой ветке; не мержить и не cherry-pick):
+
+- **Faction ambient glow** (`glowClass` на `FACTION_ACCENT` в `packages/ui/src/factions.ts`,
+  коммит `e225d08` на `art-pack-01`) — статичный низкоопасити фон-tint по фракции. Не импортировать
+  как есть — записано как сырая идея для будущей Battlefield visual/VFX системы, которую нужно
+  спроектировать заново под текущую архитектуру.
+- **Card Presentation 3.0 / крупная кинематографичная подача арта** — идея из того же коммита
+  (`Card Detail 2.1`): увеличить арт-превью в `CardDetailDrawer` с текущего маленького бокового
+  128×160 до крупного (~240px) hero-изображения с фракционным ambient glow позади. Концепция
+  ценная (текущая подача недоиспользует утверждённый Art Pack 01 арт), но реализация не
+  импортируется — редизайн будет сделан позже с нуля против актуальных канонических компонентов.
