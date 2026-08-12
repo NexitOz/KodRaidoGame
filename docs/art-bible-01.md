@@ -30,7 +30,7 @@ time, not art with a frame pre-composited into the file.
 | 3 | BOND | Матриарх Дома Весеннего Света (Matriarch of the Spring Light) | `matriarch-of-the-spring-light` | **Reference 03 LOCKED** — see below |
 | 4 | VEIL | Владыка Безымянной Тени (Lord of the Nameless Shadow) | `lord-of-the-nameless-shadow` | **Reference 04 LOCKED** — see below |
 | 5 | MYSTERY | Хранитель Серого Тумана (Keeper of the Grey Mist) | `keeper-of-the-grey-mist` | **Reference 05 LOCKED** — see below |
-| 6 | COSMIC | Владыка Звёздного Потока | `lord-of-the-stellar-stream` | Pending reference |
+| 6 | COSMIC | Владыка Звёздного Потока (Lord of the Stellar Stream) | `lord-of-the-stellar-stream` | **Reference 06 LOCKED** — see below |
 
 Slugs for #2–6 confirmed directly against `apps/game-server/prisma/seed.ts`.
 
@@ -412,37 +412,115 @@ a hem the way earlier factions lost detail. That's an acceptable loss for scene-
 production art should keep at least one signature instrument (the astrolabe globe, say) positioned
 higher/more central if it needs to reliably survive the crop rather than relying on the bottom row.
 
-## The one remaining faction — briefed, awaiting its own reference
+## COSMIC — Наследники Звёздного Потока (Reference 06, LOCKED)
 
-Per your direction, each locked reference sets its own faction's benchmark only. COSMIC keeps its
-own materials, palette, architecture, silhouette, weapon, and VFX — it should not read as a repaint
-of any already-locked faction. The table below is the standing brief until COSMIC's own reference
-image arrives and gets folded in the same way the other five were.
+**Reference 06** (received 2026-08-12, clean character illustration, mood/style reference — not
+committed to the repo, not itself the final production file) is now **locked** for COSMIC — the
+sixth and final faction reference. Target card: **Lord of the Stellar Stream**
+(`lord-of-the-stellar-stream`, LEGENDARY, cost 8, 7/8 — its ability, "on play: draw a card," Resonance
+T5+ "permanent +2/+2," fits a sovereign literally growing a galaxy in his outstretched palm: the
+gesture *is* the scaling/growth mechanic made visible).
+
+**Silhouette:** tall, regal, upright, wide from a voluminous flowing robe/cape; a spiked gold crown
+adds a vertical apex. One arm extended outward with a spiral galaxy actively forming in the open
+palm, the other holding a staff topped with a small dark orb/planet.
+**Costume/materials:** richly detailed white-and-gold flowing robes with structured gold
+shoulder-pieces and blue gem accents, long flowing white/silver hair — a hybrid of PURIFICATION's
+ceremonial gold-on-white and VEIL's long-haired sovereign read, but in COSMIC's own dual gold/cyan
+palette rather than either faction's.
+**Architecture:** an open cosmic void — swirling galaxies, nebula clouds, floating planets and
+moons. There is a distant, sparse shimmering plane with light-ring patterns and a few thin
+obelisk/spire silhouettes far below the figure, but these are scattered atmospheric scenery, not a
+monumental facade the character is presented against — this confirms the placeholder brief's
+"open starfield rather than architecture" and keeps COSMIC out of the architecture cluster
+(SHADOW/PURIFICATION exterior facades, MYSTERY's interior dome).
+**Lighting:** deep-space black/navy ambient with a **dual accent** — warm gold (crown, robe trim, one
+of the two visible galaxies) and cool cyan/blue-violet (nebula, ambient starlight, the other galaxy).
+This refines the placeholder brief's "cyan rim-light" guess, which anticipated a purely cool palette;
+the real reference is warm+cool mixed, structurally similar to SHADOW's warm-ember/cold-violet mix
+but built from entirely different hues (gold/cyan vs. crimson/violet) and an entirely different
+setting (open void vs. ruined architecture), so no collision.
+**Signature weapon/object:** dual — a staff topped with a small dark orb/planet in one hand, and a
+spiral galaxy actively growing/forming in the other outstretched palm. Refines the placeholder
+brief's "ring of orbiting star-motes" guess into something more specific and more literal: the
+galaxy is visibly *being created*, not just orbiting passively — a direct illustration of the card's
+permanent-growth Resonance bonus.
+**VFX language:** swirling spiral galaxies (one distant, one actively forming in-hand), nebula
+clouds, scattered planets/moons/asteroids at varying scale, thin trailing light-ribbons. Reads as
+expansive, universe-building energy — matches COSMIC's archetype (temporary Energy, cost reduction,
+late-game scaling) better than a static orbiting-motes ring would have.
+**Palette:** deep space black/navy base with dual gold + cyan/blue-violet accents
+(`FACTION_ACCENT.COSMIC` `#6fe2ec` as the cool half of the pair).
+**Forbidden drift:** no enclosed/roofed architecture (temple, cathedral, library) — the setting must
+always read as open void/space, even with sparse distant structures; no crimson/magenta (would drift
+toward SHADOW); the growing-galaxy-in-palm gesture is COSMIC's signature and shouldn't be flattened
+into a static held orb, which would collide with BOND's and VEIL's already-established held-orb
+props.
+
+**Background crowd device:** ABSENT as humanoid figures — confirmed, matching the placeholder guess
+exactly. Distant planets, moons, and sparse spire silhouettes populate the scene, but nothing
+humanoid — COSMIC's "crowd" is genuinely cosmic scenery, not people.
+
+**Comparison against already-locked references:** vs. SHADOW/PURIFICATION/MYSTERY — COSMIC is the
+faction that actually delivers on staying non-architectural once a real reference existed, closing
+out the collision risk flagged after Reference 05. vs. VEIL and BOND — COSMIC's growing-galaxy-in-hand
+reads differently in both material and motion from VEIL's static cold crystal orb and BOND's cradled
+warm light-sphere, but it's now the third faction with a held glowing sphere-shaped prop in the palm;
+the differentiator across all three is material and gesture (COSMIC = actively expanding/forming
+galaxy, held outward, dual gold+cyan; VEIL = static crystal wrapped in dark tendrils, held
+commandingly, cold-only; BOND = a small solid orb, cradled gently, warm-only). Crowned figures: with
+COSMIC's spiked gold crown, three of six factions (PURIFICATION, VEIL, COSMIC) now wear an ornate
+crown/headpiece — distinct in material and color (ceremonial gold-and-white tiara vs. black thorned
+crown vs. spiked gold star-crown) so the motif doesn't blur, but worth noting as a recurring silhouette
+element across half the set.
+
+**Crop/readability check against the actual current implementation:** using the verified crop math
+above, the face, crown, and staff-hand sit safely within the ~83% central zone in both crops. The
+outward-extended arm with the forming galaxy reaches toward the right edge of the frame — per the
+crop math, left/right edges are never trimmed by `object-cover`, so this reads as safe in both
+`CardView` and `CardDetailDrawer`. The most distant background galaxies/planets near the very top and
+the shimmering ring-plane/spires at the very bottom are the elements at risk of being trimmed —
+acceptable loss, consistent with the pattern across all six factions.
+
+## Reference set complete — all six factions locked
+
+All six Content Pack 01 faction flagships now have a **locked reference**: SHADOW (01),
+PURIFICATION (02), BOND (03), VEIL (04), MYSTERY (05), COSMIC (06). This is a real milestone, but
+it is **not** the same as Art Pack 01 being FINAL APPROVED — per the standing rule (and per your
+original instruction), that requires all six *final production illustrations* to also be reviewed,
+which hasn't happened yet; nothing in this doc authorizes commissioning production art or touching
+the placeholder pipeline on its own. The final, confirmed differentiation table:
 
 | Faction | Accent / glyph | Mood & architecture | Materials / silhouette | Light source | Signature weapon/prop | Background crowd device |
 | --- | --- | --- | --- | --- | --- | --- |
-| **SHADOW** — Орден Сумеречного Эха | `#c24855` crimson / ⟁ | Gothic ruin, mourning cult | Black layered cloth + light dark-metal accents | Cold violet ambient + warm ember accent from the caster's hand | Curved dark blade, red rune inlay | Translucent echo-figures behind the lead |
-| **PURIFICATION** — Стражи Белой Руны | `#e7e2d3` ivory / ✦ | Monumental cathedral facade (exterior), rose-window halo | Fitted pressed plate armor + gold filigree + flowing cape, wide symmetrical silhouette | Diffuse white/near-shadowless — the opposite of SHADOW's chiaroscuro | Ceremonial spear + rune-engraved round shield (dual) | Solid, symmetric, ranked hooded acolytes (living order, not memory) |
-| **BOND** — Дом Весеннего Света | `#e0a458` amber / ❖ | Terraced classical garden, living tree-canopy frame | Soft flowing fabric + organic vine filigree, no armor, wide bell-shaped silhouette | Golden-hour backlight, low contrast, no harsh shadow | Gold staff (flower finial) + glowing light-orb (dual) | Solid, asymmetric, at-ease sisterhood/attendants (domestic, not military or spectral) |
-| **VEIL** — Двор Безымянной Тени | `#9b7ec2` violet / ☾ | Desolate rock-spire void, floating sky rune-circle, reflective black water | Flowing dark fabric dissolving into shadow-tendrils + thorned crown, wide willowy silhouette | Single cold violet-silver rim light, no warm color anywhere | Crystal/void orb wreathed in shadow-tendrils | None, confirmed — the only faction whose "solitary" guess matched the real reference exactly |
-| **MYSTERY** — Архив Серого Тумана | `#9fb4c6` grey-blue / ◎ | Interior domed library/observatory, book-lined galleries | Heavy hooded robe, gold star-chart embroidery, visibly aged face — the only elderly character of the six | Flat, hazy, cool ambient with isolated warm candle points — deliberately the least dramatic lighting of the six | Golden armillary sphere/astrolabe + open astrological tome (dual) | Dense field of inanimate instruments/books, not people |
-| **COSMIC** — Наследники Звёздного Потока | `#6fe2ec` cyan / ✵ | Open starfield rather than architecture | Sleek fitted silhouette, energy visibly ascending off the body | Cyan rim-light against a dark starfield, energy visibly *building* | Ring of orbiting star-motes, denser toward Legendary rarity | Orbiting star-motes, not figures — energy scaling up is COSMIC's "crowd" |
+| **SHADOW** — Орден Сумеречного Эха | `#c24855` crimson / ⟁ | Gothic ruin (exterior), mourning cult | Black layered cloth + light dark-metal accents | Cold violet ambient + warm ember accent from the caster's hand | Curved dark blade, red rune inlay | Translucent, asymmetric echo-figures (memory) |
+| **PURIFICATION** — Стражи Белой Руны | `#e7e2d3` ivory / ✦ | Monumental cathedral facade (exterior), rose-window halo | Fitted pressed plate armor + gold filigree + flowing cape + ceremonial tiara, wide symmetrical silhouette | Diffuse white/near-shadowless — the opposite of SHADOW's chiaroscuro | Ceremonial spear + rune-engraved round shield (dual) | Solid, symmetric, ranked hooded acolytes (living military order) |
+| **BOND** — Дом Весеннего Света | `#e0a458` amber / ❖ | Terraced classical garden, living tree-canopy frame | Soft flowing fabric + organic vine filigree, no armor, no crown, wide bell-shaped silhouette | Golden-hour backlight, low contrast, no harsh shadow | Gold staff (flower finial) + warm gold light-orb, cradled gently (dual) | Solid, asymmetric, at-ease sisterhood/attendants (domestic) |
+| **VEIL** — Двор Безымянной Тени | `#9b7ec2` violet / ☾ | Desolate rock-spire void, floating sky rune-circle, reflective black water | Flowing dark fabric dissolving into shadow-tendrils + thorned black crown, wide willowy silhouette | Single cold violet-silver rim light, no warm color anywhere | Cold crystal orb wreathed in shadow-tendrils, held commandingly | None, confirmed — solitary |
+| **MYSTERY** — Архив Серого Тумана | `#9fb4c6` grey-blue / ◎ | Interior domed library/observatory (the one interior architectural setting), book-lined galleries | Heavy hooded robe, gold star-chart embroidery, visibly aged face — the only elderly character of the six | Flat, hazy, cool ambient with isolated warm candle points — the least dramatic lighting of the six | Golden armillary sphere/astrolabe + open astrological tome (dual) | Dense field of inanimate instruments/books, not people |
+| **COSMIC** — Наследники Звёздного Потока | `#6fe2ec` cyan / ✵ | Open cosmic void, sparse distant scenery only — no monumental facade | Flowing gold/white robes + structured gold shoulder-pieces + spiked gold crown, tall regal silhouette | Deep-space black/navy base, dual warm-gold + cool-cyan accent | Staff with orb + a galaxy actively forming in the outstretched palm (dual) | None, confirmed — cosmic scenery only, no humanoid figures |
 
-Collision risks to actively guard against for the final reference:
+Final collision map across the completed set:
 
-- **SHADOW vs. VEIL** remains the tightest pair in the set — hold the line on warm-ember-present-vs-
-  absent, echo-crowd-vs-zero-crowd, and blade-vs-orb.
-- **BOND vs. VEIL**: both hold a raised glowing orb, differentiated by material/temperature/gesture,
-  not prop shape.
-- **Architecture is now used by three of five locked factions** (SHADOW and PURIFICATION exterior
-  facades, MYSTERY an interior dome) — each is differentiated by interior/exterior and mood, but
-  **COSMIC absolutely must land on its open-starfield, non-architectural brief** when its reference
-  arrives, or the set becomes four-of-six architectural and the variety this doc has been tracking
-  collapses.
-- **Crowd tally after five locks:** SHADOW (spectral/asymmetric), PURIFICATION (solid/symmetric
-  military), BOND (solid/asymmetric domestic), VEIL (none), MYSTERY (dense inanimate
-  instruments/books, not people). COSMIC is currently briefed as "orbiting star-motes, not figures" —
-  holding that line keeps the final set from ever having two factions share a crowd type.
+- **SHADOW vs. VEIL** — closest pair in the set. Held apart by warm-ember-present-vs-absent,
+  spectral-echo-crowd-vs-zero-crowd, and blade-vs-orb.
+- **Three-way held-sphere prop** (BOND, VEIL, COSMIC) — each holds a glowing sphere/orb-shaped
+  object, differentiated by material and gesture: BOND cradles a warm solid orb gently; VEIL grips a
+  cold crystal orb commandingly; COSMIC extends an actively-forming, expanding galaxy outward. Never
+  let any of the three become a static, ungestured, single-toned sphere or the trio collapses into
+  one prop.
+- **Architecture tally**: three of six factions use built architecture (SHADOW and PURIFICATION as
+  exterior facades, MYSTERY as an interior dome); three use natural/open settings (BOND's garden,
+  VEIL's void, COSMIC's cosmos). That's a workable split, not a collision, as long as no seventh
+  faction ever needs to slot in without landing on the "natural/open" side.
+- **Crowd tally**: three factions carry a background crowd (SHADOW spectral, PURIFICATION military,
+  BOND domestic — three genuinely different crowd *types*, not a repeated pattern); three are
+  solitary or non-humanoid (VEIL empty void, MYSTERY inanimate-instrument clutter, COSMIC cosmic
+  scenery). Balanced 3-3 split with no two factions sharing a crowd type.
+- **Crown tally**: PURIFICATION, VEIL, and COSMIC all feature an ornate crown/headpiece, each
+  materially distinct (ceremonial gold-and-white tiara, black thorned crown, spiked gold star-crown).
+  SHADOW, BOND, and MYSTERY go bareheaded or wear soft headwear (flower/vine crown for BOND, hood for
+  SHADOW and MYSTERY) — another workable 3-3 split.
 
 ## Process for each incoming reference (02–06)
 
@@ -465,14 +543,14 @@ now locked for that faction, (3) what differentiates it from already-approved fa
 crop/readability risk found against the real `CardView` implementation, (5) confirmation that no
 gameplay/card-data/balance/Battlefield/database values changed.
 
-**Reference 06 (COSMIC — Lord of the Stellar Stream, `lord-of-the-stellar-stream`) is expected
-next** — not yet supplied as of this update. SHADOW (01), PURIFICATION (02), BOND (03), VEIL (04),
-and MYSTERY (05) are now locked; COSMIC is the only faction remaining, and the last one needed
-before Art Pack 01's reference set is complete.
+**All six references are now locked** (SHADOW 01, PURIFICATION 02, BOND 03, VEIL 04, MYSTERY 05,
+COSMIC 06) — the reference-gathering phase described above is complete. The same 5-step process and
+5-point report template still apply to anything that revises an already-locked reference, and to
+each faction's **final production illustration** when those start arriving.
 
 Only after all six rows show **both** a locked reference **and** a reviewed final production
-illustration does Art Pack 01 become eligible to be called FINAL APPROVED — and even then, that
-authorizes commissioning/production art, not an automatic change to `rightsStatus` or the in-game
-placeholder pipeline. Swapping any specific card's placeholder happens only when the project owner
-explicitly marks a specific file as final production artwork for that card — a separate, later step
-with its own review, per card.
+illustration does Art Pack 01 become eligible to be called FINAL APPROVED — the reference set being
+complete is a milestone, not that approval. Even full approval authorizes commissioning/production
+art, not an automatic change to `rightsStatus` or the in-game placeholder pipeline. Swapping any
+specific card's placeholder happens only when the project owner explicitly marks a specific file as
+final production artwork for that card — a separate, later step with its own review, per card.
