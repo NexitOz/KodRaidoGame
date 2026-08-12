@@ -28,7 +28,7 @@ time, not art with a frame pre-composited into the file.
 | 1 | SHADOW | Некромант Сумеречного Ордена (Necromancer of the Twilight Order) | `necromancer-of-the-twilight-order` | **Reference 01 LOCKED (baseline)** — see below |
 | 2 | PURIFICATION | Верховная Хранительница Руны (High Warden of the White Rune) | `high-warden-of-the-white-rune` | **Reference 02 LOCKED** — see below |
 | 3 | BOND | Матриарх Дома Весеннего Света (Matriarch of the Spring Light) | `matriarch-of-the-spring-light` | **Reference 03 LOCKED** — see below |
-| 4 | VEIL | Владыка Безымянной Тени | `lord-of-the-nameless-shadow` | Pending reference |
+| 4 | VEIL | Владыка Безымянной Тени (Lord of the Nameless Shadow) | `lord-of-the-nameless-shadow` | **Reference 04 LOCKED** — see below |
 | 5 | MYSTERY | Хранитель Серого Тумана | `keeper-of-the-grey-mist` | Pending reference |
 | 6 | COSMIC | Владыка Звёздного Потока | `lord-of-the-stellar-stream` | Pending reference |
 
@@ -273,42 +273,105 @@ comfortably mid-frame and are safe in both crops. The gown's hem pooling at the 
 outermost canopy branches are lower-priority background/frame elements and an acceptable loss,
 consistent with the pattern seen in SHADOW and PURIFICATION.
 
-## The other three factions — briefed, awaiting their own reference
+## VEIL — Двор Безымянной Тени (Reference 04, LOCKED)
+
+**Reference 04** (received 2026-08-12, clean character illustration, mood/style reference — not
+committed to the repo, not itself the final production file) is now **locked** for VEIL. Target
+card: **Lord of the Nameless Shadow** (`lord-of-the-nameless-shadow`, LEGENDARY, cost 5, 5/4 — its
+choose-one ability, "Hidden to an ally OR Silence an enemy," fits a solitary sovereign summoning an
+occult orb of power rather than a knife-fighter; VEIL's kit is about concealment/negation, not
+melee).
+
+**Silhouette:** tall, willowy, dramatically wide from a billowing tattered cloak that frays into
+smoke-like ribbons at its edges — not the lean fitted-leather silhouette the placeholder brief had
+guessed. A thorned/horned dark crown adds a vertical spike at the crown of the head (a "Lord," not
+a rogue). One arm raised holding an orb, the other lowered open — asymmetric spellcaster pose.
+**Costume/materials:** dark layered fabric that dissolves into wispy shadow-tendrils at the hems and
+sleeve edges, silver-blue metallic filigree accents at the shoulders/chest, a horned/thorned crown.
+Flowing and regal, not fitted rogue leather — corrects the placeholder brief's "fitted dark leathers"
+guess now that a real reference exists.
+**Architecture:** NOT a court/throne setting (correcting the placeholder brief's "court intrigue"
+guess) — a desolate otherworldly void: jagged black rock spires, roiling storm cloud, the figure
+standing on/above reflective black water. A large free-floating rune-circle halo hangs in the open
+sky behind the head — distinct from PURIFICATION's halo, which is set into cathedral glass, not
+floating in empty air.
+**Lighting:** single cold violet-silver rim light against near-total darkness — critically, **no
+warm color anywhere in the piece**. This is the one axis that must never blur with SHADOW, which
+mixes warm ember into its otherwise-cold palette.
+**Signature weapon/object:** a crystal/void orb wreathed in dark shadow-tendrils, held raised in one
+hand — no blade present. Corrects the placeholder brief's "twin daggers" guess, which assumed a
+rogue/assassin read that the real reference doesn't support.
+**VFX language:** wispy dark smoke-tendrils curling off the cloak and coiling around the orb, plus
+the large glowing rune-circle halo in the sky. Magic reads as a **summoned emanation/calling**,
+distinct from SHADOW's single contained palm-sigil, PURIFICATION's static engraved runes, and BOND's
+soft ambient light-wisps.
+**Palette:** near-monochrome cold violet/silver/black (`FACTION_ACCENT.VEIL` `#9b7ec2`) — no gold,
+amber, crimson, or any warm hue anywhere.
+**Forbidden drift:** no warm color of any kind (ember, gold, amber — this is VEIL's hardest line, and
+the one most likely to be broken by drifting toward SHADOW), no bladed weapon as the primary prop
+(this reference shows an orb, not daggers — flagging the discrepancy from the original placeholder
+guess explicitly so a future artist doesn't default back to "assassin with knives"), no crowd or
+background figures of any kind, no built/inhabited architecture (ruins, cathedrals) — VEIL's setting
+is natural/otherworldly rock and water, not construction.
+
+**Background crowd device:** ABSENT — confirmed, not corrected. This is the first faction where the
+placeholder brief's guess ("deliberately solitary") matched the real reference exactly. VEIL's
+solitary identity is now doubly locked: predicted correctly, then confirmed by Reference 04.
+
+**Comparison against already-locked references:** VEIL vs. SHADOW is now the tightest read-collision
+in the whole set — both are lone dark-cloaked robed male figures with one hand raised holding a
+magical light source, no daylight, no built crowd of onlookers nearby them personally. They must be
+held apart on every other axis: SHADOW mixes warm ember into cold violet and VEIL stays purely cold;
+SHADOW has a translucent echo-crowd and VEIL has zero crowd; SHADOW's setting is inhabited ruined
+architecture and VEIL's is uninhabited natural rock/void; SHADOW wields a blade and VEIL wields an
+orb; SHADOW is bareheaded and VEIL wears a crown. VEIL vs. BOND: both hold a glowing orb in a raised
+hand, so the prop itself repeats across two factions — but BOND's orb is warm gold with soft light
+wisps cradled gently in a healing gesture, while VEIL's is cold crystal wrapped in dark smoke held in
+a commanding, not nurturing, grip; the material and gesture, not the prop shape, carry the
+differentiation. VEIL vs. PURIFICATION: both technically "cool" in hue, but PURIFICATION is bright/
+diffuse/near-white while VEIL is dark/moody/near-black — opposite ends of the value scale, no real
+collision risk.
+
+**Crop/readability check against the actual current implementation:** using the verified crop math
+above, VEIL is the first faction so far with **no major clipping risk** to the primary character
+read — the face, crown, and raised orb-hand all sit comfortably within the middle ~83% of canvas
+height in both the `CardView` 3:4 and `CardDetailDrawer` 4:5 crops. The uppermost arc of the sky
+rune-circle halo and the cloak's hem pooling in the water at the very bottom edge will likely be
+trimmed, but both are lower-priority background/environment reads and an acceptable loss, consistent
+with every other faction so far.
+
+## The other two factions — briefed, awaiting their own reference
 
 Per your direction, each locked reference sets its own faction's benchmark only. Each of the
 remaining factions keeps its own materials, palette, architecture, silhouette, weapon, and VFX —
 none should read as a repaint of an already-locked faction. The table below is the standing brief
 until each faction's own reference image arrives and gets folded in the same way SHADOW's,
-PURIFICATION's, and BOND's were.
+PURIFICATION's, BOND's, and VEIL's were.
 
 | Faction | Accent / glyph | Mood & architecture | Materials / silhouette | Light source | Signature weapon/prop | Background crowd device |
 | --- | --- | --- | --- | --- | --- | --- |
 | **SHADOW** — Орден Сумеречного Эха | `#c24855` crimson / ⟁ | Gothic ruin, mourning cult | Black layered cloth + light dark-metal accents | Cold violet ambient + warm ember accent from the caster's hand | Curved dark blade, red rune inlay | Translucent echo-figures behind the lead |
 | **PURIFICATION** — Стражи Белой Руны | `#e7e2d3` ivory / ✦ | Monumental cathedral facade, rose-window halo | Fitted pressed plate armor + gold filigree + flowing cape, wide symmetrical silhouette | Diffuse white/near-shadowless — the opposite of SHADOW's chiaroscuro | Ceremonial spear + rune-engraved round shield (dual) | Solid, symmetric, ranked hooded acolytes (living order, not memory) |
 | **BOND** — Дом Весеннего Света | `#e0a458` amber / ❖ | Terraced classical garden, living tree-canopy frame | Soft flowing fabric + organic vine filigree, no armor, wide bell-shaped silhouette | Golden-hour backlight, low contrast, no harsh shadow | Gold staff (flower finial) + glowing light-orb (dual) | Solid, asymmetric, at-ease sisterhood/attendants (domestic, not military or spectral) |
-| **VEIL** — Двор Безымянной Тени | `#9b7ec2` violet / ☾ | Court intrigue, moonlit ambush | Fitted dark leathers, half the figure dissolving into shadow | Single cool moonlight rim-light, rest near-total silhouette | Twin daggers | None — deliberately solitary; a crowd would contradict Hidden/ambush identity |
+| **VEIL** — Двор Безымянной Тени | `#9b7ec2` violet / ☾ | Desolate rock-spire void, floating sky rune-circle, reflective black water | Flowing dark fabric dissolving into shadow-tendrils + thorned crown, wide willowy silhouette | Single cold violet-silver rim light, no warm color anywhere | Crystal/void orb wreathed in shadow-tendrils | None, confirmed — the only faction whose "solitary" guess matched the real reference exactly |
 | **MYSTERY** — Архив Серого Тумана | `#9fb4c6` grey-blue / ◎ | Fog-drowned archive/library | Layered robes, indistinct lower body in fog | Flat, hazy, low-saturation — deliberately the least dramatic lighting of the six | Open scroll/tome with self-reordering glyphs | Floating pages/fragments, not figures |
 | **COSMIC** — Наследники Звёздного Потока | `#6fe2ec` cyan / ✵ | Open starfield rather than architecture | Sleek fitted silhouette, energy visibly ascending off the body | Cyan rim-light against a dark starfield, energy visibly *building* | Ring of orbiting star-motes, denser toward Legendary rarity | Orbiting star-motes, not figures — energy scaling up is COSMIC's "crowd" |
 
 Collision risks to actively guard against as more references arrive:
 
-- **SHADOW vs. VEIL** both read "dark." SHADOW is warm-ember and communal (a leader with followers,
-  ruins, ash); VEIL is cool-moonlight and solitary (a lone figure dissolving into shadow, no crowd).
-  Push SHADOW warmer/more crowded and VEIL cooler/more isolated if a piece could be mistaken for
-  either. Only SHADOW gets the ghostly-echo-crowd device.
+- **SHADOW vs. VEIL** is now the tightest pair in the set (see VEIL's comparison note above) — hold
+  the line on warm-ember-present-vs-absent, echo-crowd-vs-zero-crowd, and blade-vs-orb.
+- **BOND vs. VEIL**: both hold a raised glowing orb. Differentiate on material/temperature/gesture
+  (warm gold cradled gently vs. cold crystal held commandingly), not the prop shape itself.
 - **SHADOW vs. PURIFICATION** both use "leader + flanking background crowd + monumental gothic
-  facade." They stay distinct on palette/material/crowd-solidity (near-black/crimson/tattered/
-  translucent-asymmetric vs. white-gold/pressed/solid-symmetric). BOND's reference confirmed a
-  garden setting instead of a third cathedral, which is the right call — VEIL/MYSTERY/COSMIC should
-  keep steering toward their own non-architectural settings too (court/moonlight, fog-archive, open
-  starfield) rather than adding a fourth monumental-facade composition.
-- **All three locked factions now have a background crowd of humanoid figures**, each a different
-  type: SHADOW = translucent/spectral/asymmetric (memory), PURIFICATION = solid/symmetric/ranked
-  (military order), BOND = solid/asymmetric/at-ease (domestic sisterhood). That variety is what
-  keeps the pattern from feeling repeated, but it means VEIL, MYSTERY, and COSMIC — all three
-  currently briefed as solitary or non-humanoid — need to hold that line strictly once their own
-  references arrive, or Art Pack 01 risks reading as "six factions, six crowds" instead of six
-  distinct compositions.
+  facade." They stay distinct on palette/material/crowd-solidity. BOND and VEIL both confirmed
+  non-cathedral settings (garden, void/rock-spires) — MYSTERY and COSMIC should do the same so a
+  third monumental-facade composition never appears.
+- **Three of four locked factions now have a background crowd of humanoid figures** (SHADOW,
+  PURIFICATION, BOND), each a different type; VEIL is the first confirmed zero-crowd solitary
+  faction. MYSTERY and COSMIC — both currently briefed as non-humanoid/atmospheric crowd devices —
+  need to hold that line once their references arrive so Art Pack 01 doesn't converge on "every
+  faction has a crowd."
 
 ## Process for each incoming reference (02–06)
 
@@ -331,8 +394,8 @@ now locked for that faction, (3) what differentiates it from already-approved fa
 crop/readability risk found against the real `CardView` implementation, (5) confirmation that no
 gameplay/card-data/balance/Battlefield/database values changed.
 
-**Reference 04 (next faction, TBD by the user) is expected next** — not yet supplied as of this
-update. SHADOW (01), PURIFICATION (02), and BOND (03) are now locked; VEIL, MYSTERY, and COSMIC
+**Reference 05 (next faction, TBD by the user) is expected next** — not yet supplied as of this
+update. SHADOW (01), PURIFICATION (02), BOND (03), and VEIL (04) are now locked; MYSTERY and COSMIC
 remain Pending.
 
 Only after all six rows show **both** a locked reference **and** a reviewed final production
