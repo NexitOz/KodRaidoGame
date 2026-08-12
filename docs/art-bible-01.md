@@ -27,7 +27,7 @@ time, not art with a frame pre-composited into the file.
 | - | --- | --- | --- | --- |
 | 1 | SHADOW | Некромант Сумеречного Ордена (Necromancer of the Twilight Order) | `necromancer-of-the-twilight-order` | **Reference 01 LOCKED (baseline)** — see below |
 | 2 | PURIFICATION | Верховная Хранительница Руны (High Warden of the White Rune) | `high-warden-of-the-white-rune` | **Reference 02 LOCKED** — see below |
-| 3 | BOND | Матриарх Дома Весеннего Света | `matriarch-of-the-spring-light` | Pending reference |
+| 3 | BOND | Матриарх Дома Весеннего Света (Matriarch of the Spring Light) | `matriarch-of-the-spring-light` | **Reference 03 LOCKED** — see below |
 | 4 | VEIL | Владыка Безымянной Тени | `lord-of-the-nameless-shadow` | Pending reference |
 | 5 | MYSTERY | Хранитель Серого Тумана | `keeper-of-the-grey-mist` | Pending reference |
 | 6 | COSMIC | Владыка Звёздного Потока | `lord-of-the-stellar-stream` | Pending reference |
@@ -203,35 +203,112 @@ down with headroom so both survive the tighter 4:5 crop, not just the looser 3:4
 face sit comfortably mid-frame and are safe in both crops; the stair/hem detail at the very bottom
 edge is lower-priority background and an acceptable loss.
 
-## The other four factions — briefed, awaiting their own reference
+## BOND — Дом Весеннего Света (Reference 03, LOCKED)
+
+**Reference 03** (received 2026-08-12, clean character illustration, mood/style reference — not
+committed to the repo, not itself the final production file) is now **locked** for BOND. Target
+card: **Matriarch of the Spring Light** (`matriarch-of-the-spring-light`, LEGENDARY, cost 5, 4/7 —
+its ability, "on play: heal 2 to all allies," Resonance T5+: "shield all allies," fits a matriarch
+figure gathered with her House/sisterhood in a living garden, radiating warmth outward to everyone
+around her).
+
+**Silhouette:** wide, soft, bell-shaped gown silhouette rather than armored or angular; one arm
+extended low holding a glowing orb, the other raised holding a tall staff — an open, welcoming
+diagonal gesture. Long loose flowing hair (no crown/helm rigidity) contrasts with SHADOW's controlled
+short hair and PURIFICATION's structured tiara.
+**Costume/materials:** flowing fabric gown (ivory + sage green) with sheer gauze off-shoulder cape,
+organic gold vine/branch filigree embroidery (curling, branching lines — not PURIFICATION's straight
+geometric filigree), small blossoms woven directly into the fabric, a flower/vine crown instead of
+metal headwear. No armor anywhere — confirms the placeholder brief's "minimal armor" prediction.
+**Architecture:** NOT a monumental cathedral (deliberately, avoiding the SHADOW/PURIFICATION
+collision already flagged below) — a terraced classical garden courtyard: balustrades, columns,
+domes, cascading waterfalls, all overgrown with vines and blossom. Flowering tree branches arch
+over the top of the frame, forming a living natural canopy that frames the composition — a motif
+unique to BOND.
+**Lighting:** warm golden-hour backlight through clouds, soft and diffuse, no harsh shadow — confirms
+the placeholder brief's "low contrast, no harsh shadow" prediction. Reads as natural sunset ambience
+rather than a magical key light.
+**Signature weapon/object:** dual — a tall gold staff topped with an ornate flower/blossom finial in
+one hand, a small glowing warm-gold orb of light cradled in the other palm with soft light-strand
+tendrils curling around the wrist. (Placeholder brief guessed "staff or lantern"; the real reference
+confirms staff + separate light-orb as the pair, closer to PURIFICATION's dual-prop pattern than a
+single object.)
+**VFX language:** soft golden light strands/wisps trailing from the orb, gentle sparkle motes
+drifting through the trees and hair — ambient warmth radiating from the character herself, not a
+cast spell or an engraved rune. Distinct from SHADOW's ember/single-sigil and PURIFICATION's
+engraved-static-rune magic: BOND's light is soft, diffuse, and body-warm rather than cast or
+inscribed.
+**Palette:** warm ivory/pale sage-green base with gold filigree and a warm-gold glowing orb —
+reads through as `FACTION_ACCENT.BOND` amber (`#e0a458`) even though the dress itself isn't a solid
+amber fill; the warmth comes from the gold light and golden-hour color grade rather than a literal
+amber garment.
+**Forbidden drift:** no cold/blue tones, no metal armor or plating, no gothic/monumental stone
+architecture (classical garden architecture only), no geometric/straight-edge filigree (organic
+vine patterns only), no bladed/aggressive weapon (the staff is ceremonial, never sharpened or
+threatening), no harsh directional shadow.
+
+**Background crowd device:** PRESENT — again correcting the placeholder brief, which had guessed
+"light-motes only, not humanoid figures" for BOND before a real reference existed. Reference 03
+shows solid, living attendant/sisterhood figures in simple robes, seated and standing **informally
+and asymmetrically** around her in the garden (one tending a candle, one seated with flowers) — a
+third, categorically distinct crowd type: not SHADOW's translucent/asymmetric echoes, not
+PURIFICATION's solid/symmetric ranked formation, but a solid/asymmetric, at-ease domestic grouping.
+
+**Comparison against already-locked references:** BOND reads warm like SHADOW but is otherwise its
+near-opposite — soft fabric vs. black cloth+metal, living garden vs. ruin, gathered family at ease
+vs. ghostly mourning cult, healing/warmth vs. death/revival. Against PURIFICATION: both are
+warm-lit... actually PURIFICATION is cold/diffuse-white while BOND is warm-gold, so temperature
+alone separates them; architecturally PURIFICATION is vertical monumental stone, BOND is
+horizontal/organic living garden — no collision. **All three locked factions now use a background
+crowd of some kind** (spectral-asymmetric / solid-symmetric-military / solid-asymmetric-domestic) —
+each type is categorically distinct so the set still reads clean, but this raises the stakes for the
+remaining three: VEIL, MYSTERY, and COSMIC must hold the line on staying solitary/non-humanoid (their
+existing briefs already do this) so Art Pack 01 doesn't end up as "six factions, six crowds."
+
+**Crop/readability check against the actual current implementation:** using the verified crop math
+above (full width always preserved; ~11%/~17% top-bottom trim for `CardView`/`CardDetailDrawer`
+respectively), the staff's flower finial extends close to the very top of the frame, above the tree
+canopy — at real risk of clipping under the drawer's ~8.5% top trim. Face and the orb-in-hand sit
+comfortably mid-frame and are safe in both crops. The gown's hem pooling at the bottom edge and the
+outermost canopy branches are lower-priority background/frame elements and an acceptable loss,
+consistent with the pattern seen in SHADOW and PURIFICATION.
+
+## The other three factions — briefed, awaiting their own reference
 
 Per your direction, each locked reference sets its own faction's benchmark only. Each of the
 remaining factions keeps its own materials, palette, architecture, silhouette, weapon, and VFX —
 none should read as a repaint of an already-locked faction. The table below is the standing brief
-until each faction's own reference image arrives and gets folded in the same way SHADOW's and
-PURIFICATION's were.
+until each faction's own reference image arrives and gets folded in the same way SHADOW's,
+PURIFICATION's, and BOND's were.
 
 | Faction | Accent / glyph | Mood & architecture | Materials / silhouette | Light source | Signature weapon/prop | Background crowd device |
 | --- | --- | --- | --- | --- | --- | --- |
 | **SHADOW** — Орден Сумеречного Эха | `#c24855` crimson / ⟁ | Gothic ruin, mourning cult | Black layered cloth + light dark-metal accents | Cold violet ambient + warm ember accent from the caster's hand | Curved dark blade, red rune inlay | Translucent echo-figures behind the lead |
 | **PURIFICATION** — Стражи Белой Руны | `#e7e2d3` ivory / ✦ | Monumental cathedral facade, rose-window halo | Fitted pressed plate armor + gold filigree + flowing cape, wide symmetrical silhouette | Diffuse white/near-shadowless — the opposite of SHADOW's chiaroscuro | Ceremonial spear + rune-engraved round shield (dual) | Solid, symmetric, ranked hooded acolytes (living order, not memory) |
-| **BOND** — Дом Весеннего Света | `#e0a458` amber / ❖ | Warm domestic sanctuary, spring garden | Soft flowing fabric, minimal armor | Golden-hour side light, low contrast, no harsh shadow | Staff or lantern glowing warm amber | Small warm light-motes drifting near allies, not humanoid figures |
+| **BOND** — Дом Весеннего Света | `#e0a458` amber / ❖ | Terraced classical garden, living tree-canopy frame | Soft flowing fabric + organic vine filigree, no armor, wide bell-shaped silhouette | Golden-hour backlight, low contrast, no harsh shadow | Gold staff (flower finial) + glowing light-orb (dual) | Solid, asymmetric, at-ease sisterhood/attendants (domestic, not military or spectral) |
 | **VEIL** — Двор Безымянной Тени | `#9b7ec2` violet / ☾ | Court intrigue, moonlit ambush | Fitted dark leathers, half the figure dissolving into shadow | Single cool moonlight rim-light, rest near-total silhouette | Twin daggers | None — deliberately solitary; a crowd would contradict Hidden/ambush identity |
 | **MYSTERY** — Архив Серого Тумана | `#9fb4c6` grey-blue / ◎ | Fog-drowned archive/library | Layered robes, indistinct lower body in fog | Flat, hazy, low-saturation — deliberately the least dramatic lighting of the six | Open scroll/tome with self-reordering glyphs | Floating pages/fragments, not figures |
 | **COSMIC** — Наследники Звёздного Потока | `#6fe2ec` cyan / ✵ | Open starfield rather than architecture | Sleek fitted silhouette, energy visibly ascending off the body | Cyan rim-light against a dark starfield, energy visibly *building* | Ring of orbiting star-motes, denser toward Legendary rarity | Orbiting star-motes, not figures — energy scaling up is COSMIC's "crowd" |
 
-Two collision risks to actively guard against as more references arrive:
+Collision risks to actively guard against as more references arrive:
 
 - **SHADOW vs. VEIL** both read "dark." SHADOW is warm-ember and communal (a leader with followers,
   ruins, ash); VEIL is cool-moonlight and solitary (a lone figure dissolving into shadow, no crowd).
   Push SHADOW warmer/more crowded and VEIL cooler/more isolated if a piece could be mistaken for
   either. Only SHADOW gets the ghostly-echo-crowd device.
-- **SHADOW vs. PURIFICATION** both now use "leader + flanking background crowd + monumental gothic
-  facade." They stay distinct purely on palette/material/crowd-solidity (near-black/crimson/
-  tattered/translucent-asymmetric vs. white-gold/pressed/solid-symmetric) — but a third faction
-  landing on the same architecture-plus-crowd template would blur the set, so BOND/VEIL/MYSTERY/
-  COSMIC references should be steered toward non-cathedral settings (their briefs below already do
-  this — domestic garden, court/moonlight, fog-archive, open starfield).
+- **SHADOW vs. PURIFICATION** both use "leader + flanking background crowd + monumental gothic
+  facade." They stay distinct on palette/material/crowd-solidity (near-black/crimson/tattered/
+  translucent-asymmetric vs. white-gold/pressed/solid-symmetric). BOND's reference confirmed a
+  garden setting instead of a third cathedral, which is the right call — VEIL/MYSTERY/COSMIC should
+  keep steering toward their own non-architectural settings too (court/moonlight, fog-archive, open
+  starfield) rather than adding a fourth monumental-facade composition.
+- **All three locked factions now have a background crowd of humanoid figures**, each a different
+  type: SHADOW = translucent/spectral/asymmetric (memory), PURIFICATION = solid/symmetric/ranked
+  (military order), BOND = solid/asymmetric/at-ease (domestic sisterhood). That variety is what
+  keeps the pattern from feeling repeated, but it means VEIL, MYSTERY, and COSMIC — all three
+  currently briefed as solitary or non-humanoid — need to hold that line strictly once their own
+  references arrive, or Art Pack 01 risks reading as "six factions, six crowds" instead of six
+  distinct compositions.
 
 ## Process for each incoming reference (02–06)
 
@@ -254,9 +331,9 @@ now locked for that faction, (3) what differentiates it from already-approved fa
 crop/readability risk found against the real `CardView` implementation, (5) confirmation that no
 gameplay/card-data/balance/Battlefield/database values changed.
 
-**Reference 03 (next faction, TBD by the user) is expected next** — not yet supplied as of this
-update. SHADOW (01) and PURIFICATION (02) are now locked; BOND, VEIL, MYSTERY, and COSMIC remain
-Pending.
+**Reference 04 (next faction, TBD by the user) is expected next** — not yet supplied as of this
+update. SHADOW (01), PURIFICATION (02), and BOND (03) are now locked; VEIL, MYSTERY, and COSMIC
+remain Pending.
 
 Only after all six rows show **both** a locked reference **and** a reviewed final production
 illustration does Art Pack 01 become eligible to be called FINAL APPROVED — and even then, that
