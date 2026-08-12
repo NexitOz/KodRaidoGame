@@ -1,0 +1,59 @@
+/* Battlefield Visual Foundation (Phase A) — responsive grid restructure of the SAME component
+   tree (no duplicate gameplay components). Mobile keeps the exact visual order the board already
+   had; the desktop breakpoint reorders the same DOM into a wider layout with hero portraits
+   flanking the board, closer to the reference art direction, without inventing new UI. */
+
+.board {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    'header'
+    'banner'
+    'opp-status'
+    'opp-content'
+    'core'
+    'ply-content'
+    'ply-status'
+    'hand-section';
+}
+
+.header {
+  grid-area: header;
+}
+.banner {
+  grid-area: banner;
+}
+.oppStatus {
+  grid-area: opp-status;
+}
+.oppContent {
+  grid-area: opp-content;
+}
+.core {
+  grid-area: core;
+}
+.plyContent {
+  grid-area: ply-content;
+}
+.plyStatus {
+  grid-area: ply-status;
+}
+.handSection {
+  grid-area: hand-section;
+}
+
+@media (min-width: 1024px) {
+  .board {
+    max-width: 64rem;
+    gap: 1rem;
+    grid-template-columns: 1fr 15rem;
+    grid-template-areas:
+      'header header'
+      'banner banner'
+      'opp-content opp-status'
+      'core core'
+      'ply-content ply-status'
+      'hand-section hand-section';
+  }
+}

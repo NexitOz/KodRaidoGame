@@ -840,3 +840,54 @@ set" в [`docs/content-pack-01.md`](./content-pack-01.md).
   128×160 до крупного (~240px) hero-изображения с фракционным ambient glow позади. Концепция
   ценная (текущая подача недоиспользует утверждённый Art Pack 01 арт), но реализация не
   импортируется — редизайн будет сделан позже с нуля против актуальных канонических компонентов.
+
+## Battlefield Visual Upgrade — Phase A: Visual Foundation ✅ Done (Phase B/C не начаты)
+
+Первая из трёх согласованных владельцем фаз масштабного визуального апгрейда реального Battlefield
+(`MatchBoard.tsx`), по референсному изображению премиального fantasy-CCG арены. Referenced image —
+чистая арт-референция, нигде не запечена как фон; каждый элемент на скриншотах ниже — это реальный,
+управляемый живым состоянием матча компонент. Баланс карт, Resonance-правила, deck/turn/targeting
+правила, matchmaking, backend и 6 утверждённых Art Pack 01 иллюстраций не тронуты.
+
+Новые декоративные компоненты — `apps/web/src/components/battlefield/arena/`:
+- `ArenaSurface.tsx` — каменная база арены, гравированная металлическая рамка, угловые филигранные
+  SVG-орнаменты, руно-каналы по краям, центральный "energy seam", `ArenaCracks`; оборачивает
+  реальный контент как `children`, ничего не подменяет.
+- `ArenaCore.tsx` — декоративная руническая медальон-рамка вокруг существующего `ResonancePulse`
+  (idle-вращающиеся кольца + breathing-glow), Resonance-механика не переопределена.
+- `HeroFrame.tsx` — премиальная рамка иконки-круга `ConductorPanel` (тот же HP/energy/impact-shake
+  проп-контракт, без выдуманных постоянных портретов).
+- `DeckPile.tsx` / `DiscardPile.tsx` — колода/сброс как физические объекты-стопки card-back, теперь
+  на обеих сторонах (раньше только текстовые "Колода N · Сброс N" у игрока, у оппонента вообще не
+  рендерились несмотря на то что `deckCount`/`discardCount` уже приходили с сервера).
+- `EndTurnArtifact.tsx` — обёртка вокруг того же `Button`/`onClick`/`disabled`/
+  `data-tutorial-target="end-turn"`, idle-кольцо только когда реально ход игрока и ничего не pending.
+- `FactionAmbience.tsx` — статичный per-slot tint по `card.faction` занятого юнита через канонический
+  `factionAccent()`; на уровне `PlayerStateView` фракции нет, поэтому ambience только per-slot, а не
+  на весь "свой"/"чужой" фланг.
+
+Изменённые файлы: `MatchBoard.tsx` (обёрнут в `ArenaSurface`, переведён на CSS Grid через новый
+`MatchBoard.module.css` — на мобильном грид повторяет прежний DOM-порядок 1:1, на `≥1024px`
+переключается на 2-колоночный layout с портретами героев в правой колонке рядом с доской, без
+дублирования игровых компонентов), `ConductorPanel.tsx` (иконка-круг заменена на `HeroFrame`, добавлен
+необязательный `active?: boolean`), `CreatureSlot.tsx` (углублённый вид пустого слота, металлическая
+угловая окантовка, `FactionAmbience` на занятых слотах — все существующие пропы/поведение сохранены
+буквально). `packages/config/tailwind-preset.js` + `globals.css`: три новых keyframes
+(`spin-slow`, `spin-slow-reverse`, `arena-breathe`), добавлены в оба существующих gate — Low Data
+Mode и `prefers-reduced-motion`.
+
+Проверено вживую (реальное PvE через `/play`, NORMAL-бот, не моки): lint/typecheck/`npm run build`
+чисты, все 340 unit-тестов зелёные (game-server 147, web 32, worker 24, game-engine 88, shared 49),
+`data-tutorial-target="end-turn"`/`own-board`/`hand-*` по-прежнему находятся и кликаются (та же
+цепочка, что использует `player-progression.spec.ts`). Скриншоты реального приложения: desktop
+1920×1080 и 1440×900 (пустая и занятая доска), mobile 390×844 (пустая и занятая), targetable/selected
+состояния (зелёное кольцо на занятом слоте и на своём Проводнике при активном выборе карты с целью),
+ход оппонента после `Завершить ход`.
+
+**Осознанные ограничения Phase A** (по ТЗ — "no excessive combat effects yet"): decorative-слои
+статичны/idle-only, без триггерных VFX по фракциям, без частиц, без per-node Resonance energy travel,
+без анимаций draw/discard — всё это по плану Phase B/C. `EndTurnArtifact`'s idle-кольцо визуально
+слабо заметно, т.к. кнопка осталась широкой (`flex-1`), а не компактной круглой — сознательный
+компромисс ради сохранения точного текущего tap-target/поведения; кандидат на доработку в Phase C.
+
+**Phase B и Phase C не начаты** — ждут отдельного owner approval, как было явно оговорено.

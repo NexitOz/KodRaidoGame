@@ -5,6 +5,7 @@ import clsx from 'clsx';
 import type { StatusType, UnitInstanceView } from '@kod-raido/shared';
 import { Icon, type IconName } from '@kod-raido/ui';
 import { FloatingFeedback } from './FloatingFeedback';
+import { FactionAmbience } from './arena/FactionAmbience';
 import type { FeedbackItem } from '@/lib/use-combat-feedback';
 
 /** Original SVG icon + accessible Russian label per status - no emoji in the premium battlefield
@@ -59,8 +60,13 @@ export function CreatureSlot({
     return (
       <div
         aria-hidden="true"
-        className="flex aspect-[3/4] w-full flex-col items-center justify-center rounded-lg border border-dashed border-white/10 bg-white/[0.02]"
+        className="relative flex aspect-[3/4] w-full flex-col items-center justify-center overflow-hidden rounded-lg border border-dashed border-white/10 bg-white/[0.02] [box-shadow:inset_0_2px_10px_rgba(0,0,0,0.55)]"
       >
+        {/* Empty slots read as a carved-out cavity in the arena stone, not a floating box. */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-1.5 rounded-md border border-white/[0.04]"
+        />
         <span className="text-lg text-white/[0.08]">ᚱ</span>
       </div>
     );
@@ -78,7 +84,7 @@ export function CreatureSlot({
       aria-label={`${unit.card.name}: атака ${unit.attack}, здоровье ${unit.health}${targetable ? ' — доступная цель' : ''}${selected ? ' — выбран' : ''}`}
       aria-pressed={selected}
       className={clsx(
-        'relative flex aspect-[3/4] w-full flex-col overflow-hidden rounded-lg border bg-raido-graphite text-left shadow-[0_6px_10px_-6px_rgba(0,0,0,0.7)] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-raido-red',
+        'relative flex aspect-[3/4] w-full flex-col overflow-hidden rounded-lg border bg-raido-graphite text-left shadow-[0_6px_10px_-6px_rgba(0,0,0,0.7)] [box-shadow:inset_0_1px_6px_rgba(0,0,0,0.5),0_6px_10px_-6px_rgba(0,0,0,0.7)] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-raido-red',
         canInteract && 'active:scale-95',
         selected ? '-translate-y-1 border-raido-red ring-2 ring-raido-red' : 'border-white/10',
         dimmed && !targetable && !selected && 'opacity-40',
@@ -87,6 +93,13 @@ export function CreatureSlot({
         unit.summonedThisTurn && 'animate-card-in',
       )}
     >
+      {/* Metallic corner trim - a quiet reminder the slot is a carved arena fixture, not a plain
+          card frame. Static in Phase A. */}
+      <span aria-hidden className="pointer-events-none absolute left-0.5 top-0.5 z-10 h-2 w-2 border-l border-t border-raido-gold/20" />
+      <span aria-hidden className="pointer-events-none absolute right-0.5 top-0.5 z-10 h-2 w-2 border-r border-t border-raido-gold/20" />
+      <span aria-hidden className="pointer-events-none absolute bottom-0.5 left-0.5 z-10 h-2 w-2 border-b border-l border-raido-gold/20" />
+      <span aria-hidden className="pointer-events-none absolute bottom-0.5 right-0.5 z-10 h-2 w-2 border-b border-r border-raido-gold/20" />
+
       {/* Targetable = an expanding ring pulse, not a bright warning color - legality reads as an
           invitation, not an error. */}
       {targetable ? (
@@ -102,6 +115,7 @@ export function CreatureSlot({
           className="h-full w-full object-cover opacity-90"
           loading="lazy"
         />
+        <FactionAmbience faction={unit.card.faction} />
         {unit.statuses.length > 0 ? (
           <div className="absolute left-0.5 top-0.5 flex gap-0.5">
             {unit.statuses.map((s) => (

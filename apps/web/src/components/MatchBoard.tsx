@@ -20,7 +20,6 @@ import { CreatureRow } from './battlefield/CreatureRow';
 import { OpponentHandBacks } from './battlefield/OpponentHandBacks';
 import { HandFan } from './battlefield/HandFan';
 import { HandCardPreview } from './battlefield/HandCardPreview';
-import { ResonancePulse } from './battlefield/ResonancePulse';
 import { TrackZone } from './battlefield/TrackZone';
 import { CardPlayReveal } from './battlefield/CardPlayReveal';
 import { RuneZone } from './battlefield/RuneZone';
@@ -28,6 +27,12 @@ import { TurnOverlay } from './battlefield/TurnOverlay';
 import { EventLogSheet } from './battlefield/EventLogSheet';
 import { HelpSheet } from './battlefield/HelpSheet';
 import { ResultModal } from './battlefield/ResultModal';
+import { ArenaSurface } from './battlefield/arena/ArenaSurface';
+import { ArenaCore } from './battlefield/arena/ArenaCore';
+import { DeckPile } from './battlefield/arena/DeckPile';
+import { DiscardPile } from './battlefield/arena/DiscardPile';
+import { EndTurnArtifact } from './battlefield/arena/EndTurnArtifact';
+import styles from './MatchBoard.module.css';
 
 export type MatchSelection =
   | { kind: 'hand'; instanceId: string; cost: number }
@@ -114,29 +119,10 @@ export function MatchBoard({
   const ownRunePulse = runeTriggerKey?.playerId === you.playerId ? runeTriggerKey.key : 0;
 
   return (
-    <div className="relative mx-auto flex w-full max-w-md flex-col gap-1.5 pb-20">
-      {/* Battlefield background 2.0: layered vignette + faint fog, no structural change to the
-          board - a light-shift across whichever half is the active player's, warm/red for "my
-          turn", cool/dim for the opponent's (section 12: board state hierarchy). */}
-      <div aria-hidden className="bg-noise-layer pointer-events-none absolute inset-0 -z-10 rounded-3xl bg-raido-vignette" />
-      <div
-        aria-hidden
-        className={clsx(
-          'pointer-events-none absolute inset-x-0 top-0 -z-10 h-1/2 rounded-t-3xl transition-opacity duration-700',
-          isMyTurn ? 'opacity-0' : 'bg-gradient-to-b from-sky-500/[0.05] to-transparent opacity-100',
-        )}
-      />
-      <div
-        aria-hidden
-        className={clsx(
-          'pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-1/2 rounded-b-3xl transition-opacity duration-700',
-          isMyTurn ? 'bg-gradient-to-t from-raido-red/[0.07] to-transparent opacity-100' : 'opacity-0',
-        )}
-      />
-
+    <ArenaSurface isMyTurn={isMyTurn} className={clsx('mx-auto w-full pb-20', styles.board)}>
       <TurnOverlay activePlayerId={view.activePlayerId} isMyTurn={isMyTurn} />
 
-      <header className="flex items-center justify-between text-xs text-raido-mist">
+      <header className={clsx('flex items-center justify-between text-xs text-raido-mist', styles.header)}>
         <span>
           Ход {view.turn} · <span className={isMyTurn ? 'font-semibold text-raido-red' : ''}>
             {isMyTurn ? 'Твой ход' : opponentTurnLabel}
@@ -148,9 +134,9 @@ export function MatchBoard({
         </span>
       </header>
 
-      {banner}
+      <div className={styles.banner}>{banner}</div>
 
-      <section className="flex flex-col gap-1.5">
+      <section className={clsx('flex flex-col gap-1.5', styles.oppStatus)}>
         <ConductorPanel
           player={opponent}
           name={opponentName}
@@ -159,7 +145,11 @@ export function MatchBoard({
           targetable={targetingEnemy}
           onTap={onTapEnemyConductor}
           feedback={feedbackByTarget.get(`conductor:${opponent.playerId}`) ?? []}
+          active={!isMyTurn}
         />
+      </section>
+
+      <section className={clsx('flex flex-col gap-1.5', styles.oppContent)}>
         <div className="flex items-center justify-between">
           <OpponentHandBacks count={opponent.handCount} />
           <RuneZone runeCardIds={opponent.runeCardIds} cardsById={cardsById} pulseKey={opponentRunePulse} />
@@ -173,15 +163,19 @@ export function MatchBoard({
           feedbackByTarget={feedbackByTarget}
           deathToasts={opponentDeathToasts}
         />
+        <div className="flex items-center gap-3">
+          <DeckPile count={opponent.deckCount} />
+          <DiscardPile count={opponent.discardCount} />
+        </div>
       </section>
 
-      <section className="relative flex items-center justify-center py-1" data-tutorial-target="resonance">
-        <ResonancePulse tier={resonanceHeat} triggerKey={resonanceTriggerKey} />
+      <section className={clsx('relative flex items-center justify-center py-1', styles.core)} data-tutorial-target="resonance">
+        <ArenaCore tier={resonanceHeat} triggerKey={resonanceTriggerKey} isMyTurn={isMyTurn} />
         <TrackZone trigger={cardPlayTrigger} cardsById={cardsById} />
         <CardPlayReveal trigger={cardPlayTrigger} cardsById={cardsById} />
       </section>
 
-      <section className="flex flex-col gap-1.5">
+      <section className={clsx('flex flex-col gap-1.5', styles.plyContent)}>
         <CreatureRow
           units={you.board}
           selectedInstanceId={selection?.kind === 'unit' ? selection.instanceId : null}
@@ -195,10 +189,14 @@ export function MatchBoard({
         />
         <div className="flex items-center justify-between">
           <RuneZone runeCardIds={you.runeCardIds} cardsById={cardsById} pulseKey={ownRunePulse} />
-          <span className="text-[11px] text-raido-mist">
-            Колода {you.deckCount} · Сброс {you.discardCount}
-          </span>
+          <div className="flex items-center gap-3">
+            <DeckPile count={you.deckCount} align="right" />
+            <DiscardPile count={you.discardCount} align="right" />
+          </div>
         </div>
+      </section>
+
+      <section className={clsx('flex flex-col gap-1.5', styles.plyStatus)}>
         <ConductorPanel
           player={you}
           name="Ты"
@@ -209,10 +207,11 @@ export function MatchBoard({
           feedback={feedbackByTarget.get(`conductor:${you.playerId}`) ?? []}
           rank={viewerRank}
           tutorialTarget="own-conductor"
+          active={isMyTurn}
         />
       </section>
 
-      <section className="flex flex-col gap-1.5">
+      <section className={clsx('flex flex-col gap-1.5', styles.handSection)}>
         <HandFan
           cards={you.hand}
           energy={you.energy}
@@ -234,14 +233,13 @@ export function MatchBoard({
               Сыграть без цели
             </Button>
           ) : null}
-          <Button
+          <EndTurnArtifact
             onClick={onEndTurn}
             disabled={!isMyTurn || pending}
-            data-tutorial-target="end-turn"
-            className={clsx('min-h-12 flex-1 text-base', isMyTurn && !pending && 'shadow-glow')}
-          >
-            {pending ? 'Обработка…' : 'Завершить ход'}
-          </Button>
+            pending={pending}
+            isMyTurn={isMyTurn}
+            className="flex-1"
+          />
         </div>
       </section>
 
@@ -250,6 +248,6 @@ export function MatchBoard({
       {view.finished ? (
         <ResultModal won={view.winnerId === you.playerId} rewards={rewards} rematchHref={rematchHref} />
       ) : null}
-    </div>
+    </ArenaSurface>
   );
 }

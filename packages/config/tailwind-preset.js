@@ -76,6 +76,9 @@ module.exports = {
         'rune-reveal': 'rune-reveal 0.4s ease-out',
         'event-flash': 'event-flash 0.38s ease-out forwards',
         'level-up-ring': 'level-up-ring 0.8s ease-out forwards',
+        'spin-slow': 'spin-slow 70s linear infinite',
+        'spin-slow-reverse': 'spin-slow 56s linear infinite reverse',
+        'arena-breathe': 'arena-breathe 5s ease-in-out infinite',
       },
       keyframes: {
         'pulse-rune': {
@@ -190,6 +193,19 @@ module.exports = {
           '0%': { transform: 'scale(0.55)', opacity: '0', boxShadow: '0 0 0 0 rgba(227,18,62,0.65)' },
           '35%': { opacity: '1' },
           '100%': { transform: 'scale(1.7)', opacity: '0', boxShadow: '0 0 45px 14px rgba(227,18,62,0)' },
+        },
+        /* Battlefield Visual Foundation (Phase A): idle rotation for the Arena Core's decorative
+         * outer ring(s) and the End Turn artifact's ring - deliberately very slow (60-70s/turn) so
+         * it reads as "alive" ambient machinery, never a distracting spinner. */
+        'spin-slow': {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
+        },
+        /* Shared slow "breathing" glow for rune channels/cracks/Arena Core backdrop - quieter and
+         * slower than pulse-rune (which marks an active rarity), since this is ambient scenery. */
+        'arena-breathe': {
+          '0%, 100%': { opacity: '0.35' },
+          '50%': { opacity: '0.65' },
         },
       },
     },

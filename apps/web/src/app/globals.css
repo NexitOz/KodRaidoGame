@@ -37,7 +37,10 @@ body {
 [data-low-data='true'] .animate-raido-sweep,
 [data-low-data='true'] .animate-rune-reveal,
 [data-low-data='true'] .animate-event-flash,
-[data-low-data='true'] .animate-level-up-ring {
+[data-low-data='true'] .animate-level-up-ring,
+[data-low-data='true'] .animate-spin-slow,
+[data-low-data='true'] .animate-spin-slow-reverse,
+[data-low-data='true'] .animate-arena-breathe {
   animation: none;
 }
 
@@ -74,7 +77,10 @@ body {
   .animate-rise-select,
   .animate-rune-reveal,
   .animate-event-flash,
-  .animate-level-up-ring {
+  .animate-level-up-ring,
+  .animate-spin-slow,
+  .animate-spin-slow-reverse,
+  .animate-arena-breathe {
     animation: none !important;
   }
 

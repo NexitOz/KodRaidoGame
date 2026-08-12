@@ -6,6 +6,7 @@ import { STARTING_CONDUCTOR_HP, type PlayerStateView, type RankTierDefinition } 
 import { Icon, type IconName } from '@kod-raido/ui';
 import { EnergyPips } from './EnergyPips';
 import { FloatingFeedback } from './FloatingFeedback';
+import { HeroFrame } from './arena/HeroFrame';
 import type { FeedbackItem } from '@/lib/use-combat-feedback';
 
 export interface ConductorPanelProps {
@@ -21,6 +22,8 @@ export interface ConductorPanelProps {
   rank?: RankTierDefinition;
   /** data-tutorial-target value for the tutorial overlay to spotlight, if any. */
   tutorialTarget?: string;
+  /** Whether it is currently this Conductor's turn - a quiet hero-frame lighting cue only. */
+  active?: boolean;
 }
 
 export function ConductorPanel({
@@ -33,6 +36,7 @@ export function ConductorPanel({
   feedback,
   rank,
   tutorialTarget,
+  active = false,
 }: ConductorPanelProps) {
   const hpPercent = Math.max(0, Math.min(100, (player.conductorHp / STARTING_CONDUCTOR_HP) * 100));
   const low = hpPercent <= 30;
@@ -66,24 +70,17 @@ export function ConductorPanel({
       {damaged && impactKey > 0 ? (
         <span aria-hidden className="pointer-events-none absolute inset-0 z-0 rounded-panel ring-2 ring-raido-red/70 animate-ring-expand" />
       ) : null}
-      <span
-        key={impactKey}
-        aria-hidden
-        className={clsx(
-          'relative z-10 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-raido-black text-raido-white ring-1',
-          low ? 'ring-raido-red/50' : 'ring-white/10',
-          impactKey > 0 && (damaged ? 'animate-shake-hit' : healed ? 'animate-flash-hit' : ''),
-        )}
-      >
-        <Icon name={icon} size={20} />
-        {rank ? (
-          <span
-            className="absolute -bottom-1 -right-1 rounded-full border border-raido-black bg-raido-steel px-1 text-[9px] font-bold uppercase text-raido-gold"
-            title={rank.label}
-          >
-            {rank.tier.slice(0, 2)}
-          </span>
-        ) : null}
+      <span className="relative z-10">
+        <HeroFrame
+          icon={icon}
+          low={low}
+          targetable={targetable}
+          rank={rank ? { tier: rank.tier, label: rank.label } : undefined}
+          impactKey={impactKey}
+          damaged={damaged}
+          healed={healed}
+          active={active}
+        />
       </span>
 
       <span className="relative z-10 flex min-w-0 flex-1 flex-col gap-1">
