@@ -70,23 +70,35 @@ Reference 01 (below) refines these pillars for the whole game, not just SHADOW:
   character.
 - **Safe central area:** face, torso, signature weapon/object, and the major VFX read must all sit
   inside the center of the canvas, clear of the outer margins on all sides. This safe area is what
-  gets cropped for the in-game card. Two real crops exist in the shipped codebase today (Card Frame
-  2.0 — no "2.1" exists anywhere in this repo; flag it if you're tracking that version elsewhere):
-  `packages/ui/src/components/CardView.tsx` renders art at `aspect-[3/4]` (collection grid, hand,
-  battlefield), and `apps/web/src/components/CardDetailDrawer.tsx` renders it at a `h-40 w-32`
-  container (**4:5**, the card-detail "cinematic" thumbnail). Both use `object-cover` at the default
-  center anchor.
+  gets cropped for the in-game card. **Three** real crops exist in the shipped codebase today (Card
+  Frame 2.0 — no "2.1" exists anywhere in this repo; flag it if you're tracking that version
+  elsewhere) — a third was found while preparing `/admin/art-review` for Production Art Pass 01 and
+  wasn't in earlier versions of this doc:
+  - `packages/ui/src/components/CardView.tsx` — `aspect-[3/4]`. Used by the Collection grid, Deck
+    Select, `HandFan` (the in-match hand), and `CreatureSlot` (the battlefield board slot, which uses
+    its own `aspect-[3/4]` container but the identical ratio).
+  - `apps/web/src/components/CardDetailDrawer.tsx` — `h-40 w-32` (**4:5**). The Collection "tap a
+    card" detail modal.
+  - `apps/web/src/components/battlefield/HandCardPreview.tsx` — `h-36 w-28` (**7:9**, ≈0.778). The
+    in-match "tap a card in your hand" preview modal — a distinct crop from CardDetailDrawer's 4:5
+    despite the similar purpose.
+  All three use `object-cover` at the default center anchor.
   **Verified crop math** (source master 2:3 = width/height 0.667, always narrower per unit height
-  than either target crop): `object-cover` always scales to match container **width** first, so
-  **the left/right edges of the master are never trimmed** — full width is always preserved. The
-  overflow is entirely vertical, trimmed evenly off the top and bottom:
-  - 3:4 crop (CardView): ~11% of the master's height is lost, ~5.5% off the top and ~5.5% off the
-    bottom.
-  - 4:5 crop (CardDetailDrawer): ~17% of the master's height is lost, ~8.5% off the top and ~8.5%
-    off the bottom — this is the **binding, tighter constraint**.
+  than any of the three target crops): `object-cover` always scales to match container **width**
+  first, so **the left/right edges of the master are never trimmed** — full width is always
+  preserved regardless of which of the three crops applies. The overflow is entirely vertical,
+  trimmed evenly off the top and bottom:
+  - 3:4 crop (`CardView` / `CreatureSlot`): ~11% of the master's height is lost, ~5.5% off the top
+    and ~5.5% off the bottom.
+  - 7:9 crop (`HandCardPreview`): ~14.3% of the master's height is lost, ~7.15% off the top and
+    ~7.15% off the bottom.
+  - 4:5 crop (`CardDetailDrawer`): ~17% of the master's height is lost, ~8.5% off the top and ~8.5%
+    off the bottom — this remains the **binding, tightest constraint** of the three.
   Practical rule: keep everything essential — face, crown/head ornament, weapon tips, VFX reads —
   within the middle ~83% of the canvas height, centered. Side content close to the left/right edge
-  is safe; content close to the very top or very bottom edge is not.
+  is safe; content close to the very top or very bottom edge is not. Checking only `CardDetailDrawer`
+  is sufficient for a pass/fail crop-safety call (it's the tightest), but a production review should
+  still eyeball all three since they're different absolute pixel sizes, not just different ratios.
 - **Character remains the visual focus** even with a rich background — background architecture/VFX
   should frame and contextualize, never compete with, the character's silhouette and face.
 - **Mobile legibility:** the character must stay clearly readable after the card is cropped and

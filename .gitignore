@@ -16,3 +16,8 @@ dump.rdb
 test-results/
 playwright-report/
 blob-report/
+
+# Production Art Pass 01 review-only candidates (apps/web/src/app/admin/art-review) - never
+# committed; these are unapproved artwork files staged locally for crop/identity review only.
+apps/web/public/art-review-candidates/*
+!apps/web/public/art-review-candidates/.gitkeep
