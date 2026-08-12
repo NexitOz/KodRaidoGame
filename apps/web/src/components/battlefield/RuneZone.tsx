@@ -11,7 +11,18 @@ export function RuneZone({ runeCardIds, cardsById, pulseKey = 0 }: RuneZoneProps
   if (runeCardIds.length === 0) return null;
 
   return (
-    <div className="flex flex-wrap items-center gap-1.5" role="list" aria-label="Активные руны">
+    <div
+      className="relative flex flex-wrap items-center gap-1.5 rounded-full px-1 py-0.5"
+      role="list"
+      aria-label="Активные руны"
+    >
+      {/* Battlefield 3.3: a faint embossed backing plate ties the rune row to the arena's
+          material language (same rim-light recipe as its rings/sockets) instead of the icons
+          floating on transparent background. */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-0 rounded-full border border-raido-gold/[0.08] bg-black/20"
+      />
       {runeCardIds.map((cardId, i) => {
         const card = cardsById.get(cardId);
         return (

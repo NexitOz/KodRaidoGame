@@ -33,7 +33,22 @@ export function ResonancePulse({ tier, triggerKey }: ResonancePulseProps) {
     <div className="relative flex flex-col items-center justify-center">
       <span
         aria-hidden
-        className={`pointer-events-none absolute inset-[-18px] rounded-full blur-2xl ${TIER_GLOW[tier]}`}
+        className={`pointer-events-none absolute inset-[-28px] rounded-full blur-2xl ${TIER_GLOW[tier]}`}
+      />
+      {/* Battlefield 3.3: a small embossed dais beneath the ring - the same rim-lit "carved
+          platform" language as the arena's rings/creature sockets - so this reads as the arena's
+          grounded energy source rather than a badge floating on transparent background. */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute inset-[-6px] rounded-full border border-raido-gold/[0.14]"
+        style={{
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), inset 0 -1px 0 rgba(0,0,0,0.3)',
+        }}
+      />
+      <span
+        aria-hidden
+        className="animate-rune-rotate pointer-events-none absolute inset-[-2px] rounded-full opacity-40"
+        style={{ border: '1px dashed rgba(217,180,106,0.3)' }}
       />
       <div className={triggerKey > 0 ? 'animate-resonance-pulse' : ''}>
         <ResonanceRing

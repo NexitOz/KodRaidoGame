@@ -56,20 +56,36 @@ export function CreatureSlot({
   }, [feedback.length]);
 
   if (!unit) {
-    // Battlefield Visual Target 3.0: an empty slot reads as an engraved socket sunk into the
-    // arena floor (inset shadow + circular rune plate), not a dashed UI placeholder rectangle.
+    // Battlefield 3.3: an empty slot reads as a small ritual platform set into the arena floor -
+    // a rim-lit raised rim (same embossed-metal language as BattlefieldArena's rings), a ring of
+    // fine engraved tick marks, and a warm ambient base glow - rather than a plain sunken circle.
     return (
       <div aria-hidden="true" className="flex aspect-[3/4] w-full items-center justify-center">
-        <div
-          className="relative flex aspect-square w-[78%] items-center justify-center rounded-full"
-          style={{
-            background:
-              'radial-gradient(circle at 50% 40%, rgba(255,255,255,0.03), rgba(0,0,0,0.35) 75%)',
-            boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.6), inset 0 -1px 2px rgba(255,255,255,0.03)',
-          }}
-        >
-          <span className="absolute inset-0 rounded-full border border-white/[0.07]" />
-          <span className="text-lg text-white/[0.1]">ᚱ</span>
+        <div className="relative flex aspect-square w-[78%] items-center justify-center">
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-x-[8%] bottom-[2%] h-[18%] rounded-full bg-raido-gold/[0.06] blur-md"
+          />
+          <div
+            className="relative flex h-full w-full items-center justify-center rounded-full"
+            style={{
+              background:
+                'radial-gradient(circle at 50% 40%, rgba(255,255,255,0.04), rgba(0,0,0,0.4) 78%)',
+              boxShadow:
+                'inset 0 2px 6px rgba(0,0,0,0.6), inset 0 -1px 2px rgba(255,255,255,0.04), 0 1px 0 rgba(255,255,255,0.03)',
+            }}
+          >
+            <span className="absolute inset-0 rounded-full border border-raido-gold/[0.1]" />
+            <span
+              className="absolute inset-[12%] rounded-full opacity-[0.08]"
+              style={{
+                backgroundImage:
+                  'repeating-conic-gradient(from 0deg, rgba(217,180,106,0.9) 0deg 1.2deg, transparent 1.2deg 30deg)',
+              }}
+            />
+            <span className="absolute inset-[22%] rounded-full border border-white/[0.05]" />
+            <span className="text-lg text-raido-gold/[0.14]">ᚱ</span>
+          </div>
         </div>
       </div>
     );
