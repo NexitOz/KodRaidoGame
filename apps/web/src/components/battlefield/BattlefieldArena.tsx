@@ -1,21 +1,31 @@
 import clsx from 'clsx';
 
 /**
- * Battlefield Visual Target 3.0 (structure) + 3.2 (atmosphere) + 3.3 (final art-direction
- * richness pass): a layered ritual-arena backdrop built entirely from CSS gradients/borders - no
- * raster mockup embedded, no baked card positions, so it stays correct for any deck/cards. Purely
- * decorative (`aria-hidden`, `pointer-events-none`), painted behind the real interactive board
- * content via `-z-10`, so it never changes hit-testing, DOM structure, or any
- * `data-tutorial-target`/aria-label the e2e suite or tutorial spotlight depend on.
+ * Battlefield Visual Target 3.0 (structure) + 3.2 (atmosphere) + 3.3 (richness pass) + 3.4
+ * (Resonance-as-visual-heart pass, desktop-only): a layered ritual-arena backdrop built entirely
+ * from CSS gradients/borders - no raster mockup embedded, no baked card positions, so it stays
+ * correct for any deck/cards. Purely decorative (`aria-hidden`, `pointer-events-none`), painted
+ * behind the real interactive board content via `-z-10`, so it never changes hit-testing, DOM
+ * structure, or any `data-tutorial-target`/aria-label the e2e suite or tutorial spotlight depend on.
  *
- * Structure, back to front: dark stone/metal base -> environmental pillar silhouettes -> volumetric
- * fog blobs -> a top-down key light that slowly breathes -> a strengthened center "heart" glow (the
- * Resonance zone sits at this same 42%-top point in MatchBoard) -> stone-floor grain -> three
- * rim-lit concentric engraved rings -> radial engraved cuts -> a ring of Raido rune glyphs ->
- * desktop-only runic energy paths radiating from the center -> drifting ember motes -> the
- * Resonance/Track reaction ring -> the existing vignette token -> a desktop-only outer chamber
+ * Structure, back to front: dark stone/metal base -> environmental pillar silhouettes -> desktop-only
+ * flank light wash -> volumetric fog blobs -> a top-down key light that slowly breathes -> a
+ * strengthened center "heart" glow (the Resonance zone sits at this same 42%-top point in
+ * MatchBoard) -> stone-floor grain -> three rim-lit concentric engraved rings -> radial engraved
+ * cuts -> a ring of Raido rune glyphs -> drifting ember motes -> the Resonance/Track reaction ring ->
+ * the vignette token + cinematic corner falloff -> a desktop-only Resonance-heart cluster (soft
+ * illumination halo + two tighter layered rings + a waveform/frequency ring) and desktop-only
+ * energy conduits connecting the center toward the creature rows, both painted *after* the vignette
+ * so they read as light sources rather than being darkened by it -> a desktop-only outer chamber
  * frame with corner brackets, so the rectangle around the circular arena reads as a designed
  * chamber rather than empty margin.
+ *
+ * 3.4 sizing note: measured live at 1440x900 (see PR discussion) - the real Resonance element sits
+ * only ~56-82px from the nearest creature row, far tighter than the arena container's own width
+ * would suggest. The new inner/mid rings and conduits below are sized off that real gap (as a
+ * percentage of the arena's width, so they still scale across the lg/xl breakpoint range) rather
+ * than echoing the three original 56/78/96%-width rings, which stay sparse/large/unchanged as a
+ * distant outer echo.
  */
 export interface BattlefieldArenaProps {
   className?: string;
@@ -31,10 +41,24 @@ const EMBER_MOTES = [
   { left: '81%', delay: '3.3s', size: 3 },
 ];
 
-/** Five asymmetric spokes (not evenly spaced with the rune ring) reading as energy conduits
- * connecting the center to the rest of the board - a desktop-only enrichment (section: "reduce
- * the feeling of empty black space on desktop") kept off mobile to stay compact/readable. */
-const ENERGY_PATH_ANGLES = [24, 82, 158, 214, 296];
+/** Mirror-symmetric energy conduits connecting the Resonance center toward the creature zones:
+ * the two near-vertical spokes (90deg/270deg) are short - the real measured gap to each row - and
+ * the four diagonals are longer, fanning toward each row's outer flank where there's real
+ * horizontal room. Desktop-only (section: "reduce the feeling of empty black space on desktop"). */
+const ENERGY_PATHS = [
+  { deg: 90, lenPct: 15 },
+  { deg: 270, lenPct: 15 },
+  { deg: 35, lenPct: 27 },
+  { deg: 145, lenPct: 27 },
+  { deg: 215, lenPct: 27 },
+  { deg: 325, lenPct: 27 },
+];
+
+/** A static "paused equalizer" ring around the Resonance center - short radial bars of varying
+ * length, echoing Kod Raido's music-resonance theme without spending a new animation budget. */
+const WAVEFORM_BARS = [
+  9, 14, 7, 18, 11, 6, 15, 10, 8, 16, 12, 7, 9, 17, 10, 6, 13, 9, 15, 8, 11, 18, 7, 12,
+];
 
 export function BattlefieldArena({ className, pulseKey = 0 }: BattlefieldArenaProps) {
   const runeAngles = Array.from({ length: 10 }, (_, i) => (360 / 10) * i);
@@ -42,7 +66,7 @@ export function BattlefieldArena({ className, pulseKey = 0 }: BattlefieldArenaPr
   return (
     <div
       aria-hidden
-      className={clsx('pointer-events-none absolute inset-0 -z-10 overflow-hidden', className)}
+      className={clsx('pointer-events-none absolute inset-0 overflow-hidden', className)}
     >
       <div className="absolute inset-0 bg-gradient-to-b from-raido-steel via-raido-graphite to-raido-black" />
 
@@ -57,6 +81,20 @@ export function BattlefieldArena({ className, pulseKey = 0 }: BattlefieldArenaPr
         className="absolute inset-y-0 right-0 w-[14%] opacity-60"
         style={{ backgroundImage: 'linear-gradient(to left, rgba(0,0,0,0.55), transparent)' }}
       />
+
+      {/* 3.4: a faint warm wash along each flank, desktop-only - fills in the flat black margin
+          beside the Conductor panels with light/geometry rather than new UI, echoing the center's
+          illumination instead of leaving the sides looking like empty background. */}
+      <div className="hidden lg:block">
+        <div
+          className="absolute left-0 top-[30%] aspect-square w-[26%] -translate-x-1/3 rounded-full opacity-60 blur-3xl"
+          style={{ backgroundColor: 'rgba(227,18,62,0.10)' }}
+        />
+        <div
+          className="absolute right-0 top-[54%] aspect-square w-[26%] translate-x-1/3 rounded-full opacity-60 blur-3xl"
+          style={{ backgroundColor: 'rgba(217,180,106,0.08)' }}
+        />
+      </div>
 
       {/* Volumetric fog - two large soft, static color blobs (dark violet/crimson) for a dark-
           fantasy atmosphere, deliberately unanimated to stay cheap on every device. */}
@@ -138,24 +176,6 @@ export function BattlefieldArena({ className, pulseKey = 0 }: BattlefieldArenaPr
         ))}
       </div>
 
-      {/* Runic energy paths - thin conduits radiating from the center "heart" outward, reading as
-          the arena's own circuitry connecting Resonance to the rest of the board. Desktop-only:
-          on mobile they'd add visual noise to an already-compact layout for little payoff. */}
-      <div className="hidden lg:block">
-        {ENERGY_PATH_ANGLES.map((deg) => (
-          <div
-            key={deg}
-            className="animate-pulse-rune absolute left-1/2 top-[42%] h-[2px] w-[46%] origin-left opacity-[0.4]"
-            style={{
-              transform: `rotate(${deg}deg)`,
-              backgroundImage:
-                'linear-gradient(to right, rgba(217,180,106,0.95), rgba(217,180,106,0.35) 40%, transparent 82%)',
-              boxShadow: '0 0 4px 0.5px rgba(217,180,106,0.35)',
-            }}
-          />
-        ))}
-      </div>
-
       {/* Mystical resonance atmosphere: a handful of ember/magic motes drifting up from the arena
           floor and fading - the "living enchantment" cue at rest, independent of any actual
           Resonance trigger (which still gets its own explicit reaction ring below). */}
@@ -195,15 +215,92 @@ export function BattlefieldArena({ className, pulseKey = 0 }: BattlefieldArenaPr
         }}
       />
 
+      {/* 3.4: desktop-only Resonance-heart cluster, so Resonance unmistakably reads as the arena's
+          visual heart instead of one badge among several. Deliberately painted AFTER the vignette
+          above (not with the earlier mobile-shared rings) - the vignette darkens everything below
+          it toward the arena's edges, which was silently swallowing a first attempt at this same
+          idea; light/energy elements read as "the source", so they belong on top of the ambient
+          darkening, not under it. Sits alongside the existing sparse 56/78/96%-width rings (which
+          stay unchanged/mobile-shared, further back in the stack) as a tighter, brighter, much
+          closer layer - "larger" in visual presence/layer-count, since a ring literally scaled to
+          the real ~56-82px row gap has to stay fairly small in raw radius. */}
+      <div className="hidden lg:block">
+        {/* Controlled radial illumination: one big, soft light pool - the arena's true light
+            source, not just a colored badge glow underneath it. */}
+        <div
+          className="absolute left-1/2 top-[42%] aspect-square w-[50%] -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{
+            backgroundImage:
+              'radial-gradient(circle, rgba(227,18,62,0.12) 0%, rgba(217,180,106,0.06) 40%, transparent 72%)',
+          }}
+        />
+        {/* Mid ring: the first layer to actually reach the creature rows, tying them visually to
+            the center. */}
+        <div
+          className="absolute left-1/2 top-[42%] aspect-square w-[27%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-raido-red/30"
+          style={{
+            boxShadow:
+              '0 0 14px 1.5px rgba(227,18,62,0.16), inset 0 1px 0 rgba(255,255,255,0.08), inset 0 -1px 0 rgba(0,0,0,0.3)',
+          }}
+        />
+        {/* Waveform / frequency ring - short radial bars of varying length, like a paused
+            equalizer: the music-resonance motif at the arena's literal center. */}
+        <div className="absolute left-1/2 top-[42%] aspect-square w-[20%] -translate-x-1/2 -translate-y-1/2">
+          {WAVEFORM_BARS.map((h, i) => (
+            <div
+              key={i}
+              className="absolute inset-0"
+              style={{ transform: `rotate(${(360 / WAVEFORM_BARS.length) * i}deg)` }}
+            >
+              <span
+                className="absolute left-1/2 top-0 -translate-x-1/2 rounded-full bg-raido-gold/40"
+                style={{ width: 1.5, height: h }}
+              />
+            </div>
+          ))}
+        </div>
+        {/* Inner ring: tightest, brightest layer, immediately framing the Resonance badge. */}
+        <div
+          className="absolute left-1/2 top-[42%] aspect-square w-[15%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-raido-gold/40"
+          style={{
+            boxShadow: '0 0 10px 1.5px rgba(217,180,106,0.25), inset 0 1px 0 rgba(255,255,255,0.1)',
+          }}
+        />
+      </div>
+
+      {/* Energy conduits connecting the Resonance center toward the creature zones - clearly
+          visible at rest in a plain screenshot, not brightness-dependent, but tuned as an elegant
+          light motif rather than a laser cross: a soft-gold core near the center fading quickly to
+          a faint trace. Painted after the vignette for the same reason as the cluster above.
+          Desktop-only: on mobile they'd add visual noise to an already-compact layout. */}
+      <div className="hidden lg:block">
+        {ENERGY_PATHS.map(({ deg, lenPct }) => (
+          <div
+            key={deg}
+            className="animate-pulse-rune absolute left-1/2 top-[42%] origin-left"
+            style={{
+              width: `${lenPct}%`,
+              height: 2,
+              transform: `rotate(${deg}deg)`,
+              backgroundImage:
+                'linear-gradient(to right, rgba(217,180,106,0.55), rgba(217,180,106,0.32) 28%, rgba(217,180,106,0.12) 60%, transparent 90%)',
+              boxShadow: '0 0 6px 1px rgba(217,180,106,0.25)',
+            }}
+          />
+        ))}
+      </div>
+
       {/* Outer chamber frame - a hairline border plus corner brackets around the whole board
           rectangle (not just the circular arena), desktop-only, so the rectangle itself reads as
-          a designed chamber edge instead of leftover empty margin around a circle. */}
+          a designed chamber edge instead of leftover empty margin around a circle. 3.4: slightly
+          strengthened (still a hairline, not a UI panel) so the arena reads as a physical chamber
+          rather than a background. */}
       <div className="hidden lg:block">
-        <div className="absolute inset-2 rounded-[inherit] border border-raido-gold/[0.07]" />
-        <span className="absolute left-3 top-3 h-4 w-4 border-l border-t border-raido-gold/20" />
-        <span className="absolute right-3 top-3 h-4 w-4 border-r border-t border-raido-gold/20" />
-        <span className="absolute bottom-3 left-3 h-4 w-4 border-b border-l border-raido-gold/20" />
-        <span className="absolute bottom-3 right-3 h-4 w-4 border-b border-r border-raido-gold/20" />
+        <div className="absolute inset-2 rounded-[inherit] border border-raido-gold/[0.12]" />
+        <span className="absolute left-3 top-3 h-5 w-5 border-l border-t border-raido-gold/30" />
+        <span className="absolute right-3 top-3 h-5 w-5 border-r border-t border-raido-gold/30" />
+        <span className="absolute bottom-3 left-3 h-5 w-5 border-b border-l border-raido-gold/30" />
+        <span className="absolute bottom-3 right-3 h-5 w-5 border-b border-r border-raido-gold/30" />
       </div>
     </div>
   );

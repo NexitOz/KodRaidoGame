@@ -134,7 +134,7 @@ export function MatchBoard({
       <div
         aria-hidden
         className={clsx(
-          'pointer-events-none absolute inset-x-0 top-0 -z-10 h-1/2 rounded-t-3xl transition-opacity duration-700',
+          'pointer-events-none absolute inset-x-0 top-0 h-1/2 rounded-t-3xl transition-opacity duration-700',
           isMyTurn
             ? 'opacity-0'
             : 'bg-gradient-to-b from-sky-500/[0.05] to-transparent opacity-100',
@@ -143,7 +143,7 @@ export function MatchBoard({
       <div
         aria-hidden
         className={clsx(
-          'pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-1/2 rounded-b-3xl transition-opacity duration-700',
+          'pointer-events-none absolute inset-x-0 bottom-0 h-1/2 rounded-b-3xl transition-opacity duration-700',
           isMyTurn
             ? 'bg-gradient-to-t from-raido-red/[0.07] to-transparent opacity-100'
             : 'opacity-0',
