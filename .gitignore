@@ -16,3 +16,9 @@ dump.rdb
 test-results/
 playwright-report/
 blob-report/
+
+# Accidental scratch artwork uploaded directly to this path via the GitHub web UI "Add file" flow
+# during Art Pack 01 candidate review (see docs/art-bible-01.md) - not a real project directory,
+# never a production source of truth. The real review workflow lives at
+# apps/web/public/art-review-candidates/ (its own, separate .gitignore rule below).
+apps/web/art-review-candidates/
