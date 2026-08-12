@@ -5,15 +5,16 @@ faction-flagship Legendaries, to eventually replace their `generatePlaceholderAr
 is guidance and review tracking only.
 
 **Scope guardrail:** most of this doc's history is documentation only — reference images are never
-committed, and a card's `artworkUrl`/`rightsStatus` never changes on their account. **One exception
-now exists:** SHADOW (`necromancer-of-the-twilight-order`) was promoted to real production art after
-explicit owner approval of Production Candidate 01b — see its section below and the Approval status
-table. That promotion touched only that one card's `artworkUrl`/`rightsStatus` in
-`apps/game-server/prisma/seed.ts` plus the new asset file itself; the other five factions'
-placeholders, gameplay, balance, Battlefield logic, and economy remain untouched. **A reference or
-candidate image never replaces a placeholder on its own** — that only happens when the project owner
-explicitly approves a specific file as final production artwork, a separate step from adding/locking
-a reference in this doc.
+committed, and a card's `artworkUrl`/`rightsStatus` never changes on their account. **Two exceptions
+now exist:** SHADOW (`necromancer-of-the-twilight-order`) and PURIFICATION
+(`high-warden-of-the-white-rune`) were promoted to real production art after explicit owner approval
+of Production Candidates 01b and 02b respectively — see their sections below and the Approval status
+table. Each promotion touched only that one card's `artworkUrl`/`rightsStatus` in
+`apps/game-server/prisma/seed.ts` plus its own new asset file; the other four factions' placeholders,
+gameplay, balance, Battlefield logic, and economy remain untouched. **A reference or candidate image
+never replaces a placeholder on its own** — that only happens when the project owner explicitly
+approves a specific file as final production artwork, a separate step from adding/locking a reference
+in this doc.
 
 ## Reference vs. production-format note
 
@@ -30,7 +31,7 @@ time, not art with a frame pre-composited into the file.
 | # | Faction | Flagship card | Slug | Status |
 | - | --- | --- | --- | --- |
 | 1 | SHADOW | Некромант Сумеречного Ордена (Necromancer of the Twilight Order) | `necromancer-of-the-twilight-order` | **FINAL APPROVED** — Production Candidate 01b, owner-approved; `artworkUrl`/`rightsStatus: owned` live — see below |
-| 2 | PURIFICATION | Верховная Хранительница Руны (High Warden of the White Rune) | `high-warden-of-the-white-rune` | **Reference 02 LOCKED** — see below |
+| 2 | PURIFICATION | Верховная Хранительница Руны (High Warden of the White Rune) | `high-warden-of-the-white-rune` | **FINAL APPROVED** — Production Candidate 02b, owner-approved; `artworkUrl`/`rightsStatus: owned` live — see below |
 | 3 | BOND | Матриарх Дома Весеннего Света (Matriarch of the Spring Light) | `matriarch-of-the-spring-light` | **Reference 03 LOCKED** — see below |
 | 4 | VEIL | Владыка Безымянной Тени (Lord of the Nameless Shadow) | `lord-of-the-nameless-shadow` | **Reference 04 LOCKED** — see below |
 | 5 | MYSTERY | Хранитель Серого Тумана (Keeper of the Grey Mist) | `keeper-of-the-grey-mist` | **Reference 05 LOCKED** — see below |
@@ -123,8 +124,8 @@ ratios). The approved file is live at `apps/web/public/art/cards/necromancer-of-
 `rightsStatus: 'owned'` are set directly in its `apps/game-server/prisma/seed.ts` entry — the only
 card in Content Pack 01 with real art; every other card still calls `generatePlaceholderArt()`
 unconditionally. **This is the only faction promoted to production art. Art Pack 01 as a whole is
-still not FINAL APPROVED** — PURIFICATION, BOND, VEIL, MYSTERY, and COSMIC remain reference-only,
-pending their own production candidates.
+still not FINAL APPROVED** — BOND, VEIL, MYSTERY, and COSMIC remain reference-only, pending their
+own production candidates. (PURIFICATION has since also been promoted — see its section below.)
 
 **Reference 01** (received 2026-08-12, clean character illustration, mood/style reference — not
 committed to the repo, not itself the final production file) is now **locked** as the primary
@@ -170,11 +171,31 @@ close to the very top edge of a tall 2:3 pose, it can be trimmed in the `CardDet
 echo-figures themselves are lower priority background reads and can safely bleed toward the left/right
 margins.
 
-## PURIFICATION — Стражи Белой Руны (Reference 02, LOCKED)
+## PURIFICATION — Стражи Белой Руны (FINAL APPROVED — Production Candidate 02b live)
+
+**Production status:** Candidate 02 was rejected for reading as SHADOW-drift — jagged/shattered
+crystalline fabric instead of clean pressed armor, a sword instead of the spear+shield pair, an
+actively-cast palm rune (SHADOW's own forbidden-for-PURIFICATION motif), and translucent/ghostly
+flanking figures (SHADOW's reserved echo-crowd device). Candidate 02b corrected all four and was
+owner-approved on 2026-08-12 after a real automated screenshot pass through `CardView`,
+`CardDetailDrawer`, `HandCardPreview`, the `CreatureSlot` Battlefield component, and
+`/admin/art-review` at desktop and 390px mobile widths — PASS on face readability, crown/tiara
+clearance, shield readability, spear+shield dual-weapon identity, solid-opaque ranked acolytes,
+PURIFICATION identity, and SHADOW differentiation. One accepted minor loss: the spearhead's extreme
+decorative apex is trimmed in all three shipped crops (verified against the real 1024×1536 file,
+~5.5–8.3% top trim depending on crop) — the wider body of the spearhead survives and the weapon
+still reads unambiguously as a spear/polearm, so this was accepted rather than sent back for a
+Candidate 02c. The approved file is live at
+`apps/web/public/art/cards/high-warden-of-the-white-rune.webp`, and
+`high-warden-of-the-white-rune`'s `artworkUrl`/`rightsStatus: 'owned'` are set directly in its
+`apps/game-server/prisma/seed.ts` entry via the same override mechanism used for SHADOW. **Two of
+six factions are now promoted to production art. Art Pack 01 as a whole is still not FINAL
+APPROVED** — BOND, VEIL, MYSTERY, and COSMIC remain reference-only, pending their own production
+candidates.
 
 **Reference 02** (received 2026-08-12, clean character illustration, mood/style reference — not
-committed to the repo, not itself the final production file) is now **locked** for PURIFICATION.
-Target card: **High Warden of the White Rune** (`high-warden-of-the-white-rune`, LEGENDARY, cost 6,
+committed to the repo, not itself the final production file) is **locked** for PURIFICATION. Target
+card: **High Warden of the White Rune** (`high-warden-of-the-white-rune`, LEGENDARY, cost 6,
 5/7 — its choose-one ability, "cleanse+shield an ally OR curse an enemy," fits a figure whose entire
 kit — raised rune-shield, ordered congregation, warding light — reads as protective/consecrating).
 

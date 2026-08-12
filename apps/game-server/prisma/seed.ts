@@ -873,6 +873,10 @@ const PURIFICATION_CARDS: SeedCard[] = [
     health: 7,
     abilityText:
       'Выберите: очистите и защитите союзника Щитом ИЛИ проклиньте врага - в зависимости от выбранной цели.',
+    // Art Pack 01 Production Candidate 02b - FINAL APPROVED (docs/art-bible-01.md). Spear-tip
+    // apex clipping in the shipped crops is an accepted minor loss - see the review report.
+    artworkUrl: '/art/cards/high-warden-of-the-white-rune.webp',
+    rightsStatus: 'owned',
     effectJson: [
       {
         trigger: 'ON_PLAY',
