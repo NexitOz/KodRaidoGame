@@ -4,12 +4,16 @@ Living brief for **Art Pack 01**: real commissioned/licensed key art for the six
 faction-flagship Legendaries, to eventually replace their `generatePlaceholderArt()` SVG. This doc
 is guidance and review tracking only.
 
-**Scope guardrail:** this pass is documentation only. No image file is committed to the repo, no
-card's `artworkUrl`/`coverUrl` or `rightsStatus` in `apps/game-server/prisma/seed.ts` changes, the
-six-card drop-in pipeline and placeholders are untouched, and nothing here touches gameplay,
-balance, Battlefield logic, card data, or economy. **A reference image never replaces a placeholder
-on its own** — that only happens when the project owner explicitly marks a specific file as final
-production artwork, a separate step from adding/locking a reference in this doc.
+**Scope guardrail:** most of this doc's history is documentation only — reference images are never
+committed, and a card's `artworkUrl`/`rightsStatus` never changes on their account. **One exception
+now exists:** SHADOW (`necromancer-of-the-twilight-order`) was promoted to real production art after
+explicit owner approval of Production Candidate 01b — see its section below and the Approval status
+table. That promotion touched only that one card's `artworkUrl`/`rightsStatus` in
+`apps/game-server/prisma/seed.ts` plus the new asset file itself; the other five factions'
+placeholders, gameplay, balance, Battlefield logic, and economy remain untouched. **A reference or
+candidate image never replaces a placeholder on its own** — that only happens when the project owner
+explicitly approves a specific file as final production artwork, a separate step from adding/locking
+a reference in this doc.
 
 ## Reference vs. production-format note
 
@@ -25,7 +29,7 @@ time, not art with a frame pre-composited into the file.
 
 | # | Faction | Flagship card | Slug | Status |
 | - | --- | --- | --- | --- |
-| 1 | SHADOW | Некромант Сумеречного Ордена (Necromancer of the Twilight Order) | `necromancer-of-the-twilight-order` | **Reference 01 LOCKED (baseline)** — see below |
+| 1 | SHADOW | Некромант Сумеречного Ордена (Necromancer of the Twilight Order) | `necromancer-of-the-twilight-order` | **FINAL APPROVED** — Production Candidate 01b, owner-approved; `artworkUrl`/`rightsStatus: owned` live — see below |
 | 2 | PURIFICATION | Верховная Хранительница Руны (High Warden of the White Rune) | `high-warden-of-the-white-rune` | **Reference 02 LOCKED** — see below |
 | 3 | BOND | Матриарх Дома Весеннего Света (Matriarch of the Spring Light) | `matriarch-of-the-spring-light` | **Reference 03 LOCKED** — see below |
 | 4 | VEIL | Владыка Безымянной Тени (Lord of the Nameless Shadow) | `lord-of-the-nameless-shadow` | **Reference 04 LOCKED** — see below |
@@ -105,7 +109,22 @@ Reference 01 (below) refines these pillars for the whole game, not just SHADOW:
   scaled down to hand/collection thumbnail size on a phone screen. Fine background detail can be
   lost at that scale; the character's read (pose, weapon, faction color) cannot.
 
-## SHADOW — Орден Сумеречного Эха (Reference 01, LOCKED baseline)
+## SHADOW — Орден Сумеречного Эха (FINAL APPROVED — Production Candidate 01b live)
+
+**Production status:** Candidate 01b (submitted after Candidate 01 was rejected for reading as VEIL
+— cold-violet-only palette, staff instead of blade, skull orb, solid skeletal army, floating halo —
+see the rejection report from that review) was owner-approved on 2026-08-12 after a real automated
+screenshot pass through `CardView`, `CardDetailDrawer`, `HandCardPreview`, the `CreatureSlot`
+Battlefield component, and `/admin/art-review` at both desktop and 390px mobile widths — PASS on
+every check (face readability, crimson palm sigil, curved rune blade, spectral echo visibility,
+SHADOW identity at thumbnail size, VEIL differentiation, crop safety across all three shipped
+ratios). The approved file is live at `apps/web/public/art/cards/necromancer-of-the-twilight-order.webp`
+(converted from the approved 1024×1536 PNG), and `necromancer-of-the-twilight-order`'s `artworkUrl`/
+`rightsStatus: 'owned'` are set directly in its `apps/game-server/prisma/seed.ts` entry — the only
+card in Content Pack 01 with real art; every other card still calls `generatePlaceholderArt()`
+unconditionally. **This is the only faction promoted to production art. Art Pack 01 as a whole is
+still not FINAL APPROVED** — PURIFICATION, BOND, VEIL, MYSTERY, and COSMIC remain reference-only,
+pending their own production candidates.
 
 **Reference 01** (received 2026-08-12, clean character illustration, mood/style reference — not
 committed to the repo, not itself the final production file) is now **locked** as the primary

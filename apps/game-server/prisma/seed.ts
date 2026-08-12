@@ -1,4 +1,4 @@
-import { PrismaClient, type CardType, type Rarity } from '@prisma/client';
+import { PrismaClient, type CardType, type Rarity, type RightsStatus } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { STARTER_DECK_PRESETS } from '../src/content/starter-decks';
 
@@ -84,6 +84,12 @@ interface SeedCard {
    * never deleted (rows persist, old match logs and admin visibility are unaffected - see
    * docs/content-pack-01.md). */
   active?: boolean;
+  /** Art Pack 01 production promotion (docs/art-bible-01.md): when set, overrides the default
+   * generatePlaceholderArt() output for this card only. Every other card keeps regenerating its
+   * placeholder on every seed run. */
+  artworkUrl?: string;
+  /** Paired with artworkUrl - defaults to 'placeholder' when unset. */
+  rightsStatus?: RightsStatus;
 }
 
 const TRACKS = [
@@ -776,6 +782,11 @@ const SHADOW_CARDS: SeedCard[] = [
     health: 5,
     abilityText:
       'При выходе: верните на поле первого подходящего Shadow-персонажа из вашего сброса (100% характеристик).',
+    // Art Pack 01 Production Candidate 01b - FINAL APPROVED (docs/art-bible-01.md). The only
+    // card in Content Pack 01 with real commissioned art as of this change; all others keep
+    // generatePlaceholderArt().
+    artworkUrl: '/art/cards/necromancer-of-the-twilight-order.webp',
+    rightsStatus: 'owned',
     effectJson: [
       {
         trigger: 'ON_PLAY',
@@ -1320,8 +1331,8 @@ async function main() {
         abilityText: card.abilityText,
         effectJson: (card.effectJson ?? []) as object[],
         linkedTrackIds,
-        artworkUrl: generatePlaceholderArt(card.name, card.rarity),
-        rightsStatus: 'placeholder',
+        artworkUrl: card.artworkUrl ?? generatePlaceholderArt(card.name, card.rarity),
+        rightsStatus: card.rightsStatus ?? 'placeholder',
         active: card.active ?? true,
         isPlayable: card.isPlayable ?? true,
         isToken: card.isToken ?? false,
@@ -1343,8 +1354,8 @@ async function main() {
         abilityText: card.abilityText,
         effectJson: (card.effectJson ?? []) as object[],
         linkedTrackIds,
-        artworkUrl: generatePlaceholderArt(card.name, card.rarity),
-        rightsStatus: 'placeholder',
+        artworkUrl: card.artworkUrl ?? generatePlaceholderArt(card.name, card.rarity),
+        rightsStatus: card.rightsStatus ?? 'placeholder',
         active: card.active ?? true,
         isPlayable: card.isPlayable ?? true,
         isToken: card.isToken ?? false,
