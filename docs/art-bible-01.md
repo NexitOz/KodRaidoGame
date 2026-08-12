@@ -5,17 +5,17 @@ faction-flagship Legendaries, to eventually replace their `generatePlaceholderAr
 is guidance and review tracking only.
 
 **Scope guardrail:** most of this doc's history is documentation only — reference images are never
-committed, and a card's `artworkUrl`/`rightsStatus` never changes on their account. **Four exceptions
+committed, and a card's `artworkUrl`/`rightsStatus` never changes on their account. **Five exceptions
 now exist:** SHADOW (`necromancer-of-the-twilight-order`), PURIFICATION
-(`high-warden-of-the-white-rune`), BOND (`matriarch-of-the-spring-light`), and VEIL
-(`lord-of-the-nameless-shadow`) were promoted to real production art after explicit owner approval of
-Production Candidates 01b, 02b, 03, and 04 respectively — see their sections below and the Approval
-status table. Each promotion touched only that one card's `artworkUrl`/`rightsStatus` in
-`apps/game-server/prisma/seed.ts` plus its own new asset file; the other two factions' placeholders,
-gameplay, balance, Battlefield logic, and economy remain untouched. **A reference or candidate image
-never replaces a placeholder on its own** — that only happens when the project owner explicitly
-approves a specific file as final production artwork, a separate step from adding/locking a reference
-in this doc.
+(`high-warden-of-the-white-rune`), BOND (`matriarch-of-the-spring-light`), VEIL
+(`lord-of-the-nameless-shadow`), and MYSTERY (`keeper-of-the-grey-mist`) were promoted to real
+production art after explicit owner approval of Production Candidates 01b, 02b, 03, 04, and 05
+respectively — see their sections below and the Approval status table. Each promotion touched only
+that one card's `artworkUrl`/`rightsStatus` in `apps/game-server/prisma/seed.ts` plus its own new
+asset file; COSMIC's placeholder, gameplay, balance, Battlefield logic, and economy remain untouched.
+**A reference or candidate image never replaces a placeholder on its own** — that only happens when
+the project owner explicitly approves a specific file as final production artwork, a separate step
+from adding/locking a reference in this doc.
 
 ## Reference vs. production-format note
 
@@ -35,7 +35,7 @@ time, not art with a frame pre-composited into the file.
 | 2 | PURIFICATION | Верховная Хранительница Руны (High Warden of the White Rune) | `high-warden-of-the-white-rune` | **FINAL APPROVED** — Production Candidate 02b, owner-approved; `artworkUrl`/`rightsStatus: owned` live — see below |
 | 3 | BOND | Матриарх Дома Весеннего Света (Matriarch of the Spring Light) | `matriarch-of-the-spring-light` | **FINAL APPROVED** — Production Candidate 03, owner-approved; `artworkUrl`/`rightsStatus: owned` live — see below |
 | 4 | VEIL | Владыка Безымянной Тени (Lord of the Nameless Shadow) | `lord-of-the-nameless-shadow` | **FINAL APPROVED** — Production Candidate 04, owner-approved; `artworkUrl`/`rightsStatus: owned` live — see below |
-| 5 | MYSTERY | Хранитель Серого Тумана (Keeper of the Grey Mist) | `keeper-of-the-grey-mist` | **Reference 05 LOCKED** — see below |
+| 5 | MYSTERY | Хранитель Серого Тумана (Keeper of the Grey Mist) | `keeper-of-the-grey-mist` | **FINAL APPROVED** — Production Candidate 05, owner-approved; `artworkUrl`/`rightsStatus: owned` live — see below |
 | 6 | COSMIC | Владыка Звёздного Потока (Lord of the Stellar Stream) | `lord-of-the-stellar-stream` | **Reference 06 LOCKED** — see below |
 
 Slugs for #2–6 confirmed directly against `apps/game-server/prisma/seed.ts`.
@@ -124,9 +124,9 @@ ratios). The approved file is live at `apps/web/public/art/cards/necromancer-of-
 (converted from the approved 1024×1536 PNG), and `necromancer-of-the-twilight-order`'s `artworkUrl`/
 `rightsStatus: 'owned'` are set directly in its `apps/game-server/prisma/seed.ts` entry — the only
 card in Content Pack 01 with real art; every other card still calls `generatePlaceholderArt()`
-unconditionally. **Art Pack 01 as a whole is still not FINAL APPROVED** — MYSTERY and COSMIC remain
-reference-only, pending their own production candidates. (PURIFICATION, BOND, and VEIL have since
-also been promoted — see their sections below.)
+unconditionally. **Art Pack 01 as a whole is still not FINAL APPROVED** — COSMIC remains
+reference-only, pending its own production candidate. (PURIFICATION, BOND, VEIL, and MYSTERY have
+since also been promoted — see their sections below.)
 
 **Reference 01** (received 2026-08-12, clean character illustration, mood/style reference — not
 committed to the repo, not itself the final production file) is now **locked** as the primary
@@ -190,8 +190,9 @@ Candidate 02c. The approved file is live at
 `apps/web/public/art/cards/high-warden-of-the-white-rune.webp`, and
 `high-warden-of-the-white-rune`'s `artworkUrl`/`rightsStatus: 'owned'` are set directly in its
 `apps/game-server/prisma/seed.ts` entry via the same override mechanism used for SHADOW. **Art Pack
-01 as a whole is still not FINAL APPROVED** — MYSTERY and COSMIC remain reference-only, pending their
-own production candidates. (BOND and VEIL have since also been promoted — see their sections below.)
+01 as a whole is still not FINAL APPROVED** — COSMIC remains reference-only, pending its own
+production candidate. (BOND, VEIL, and MYSTERY have since also been promoted — see their sections
+below.)
 
 **Reference 02** (received 2026-08-12, clean character illustration, mood/style reference — not
 committed to the repo, not itself the final production file) is **locked** for PURIFICATION. Target
@@ -273,9 +274,9 @@ consistent with SHADOW and PURIFICATION. No revision cycle was needed. The appro
 `apps/web/public/art/cards/matriarch-of-the-spring-light.webp` (converted from the approved
 1024×1536 PNG), and `matriarch-of-the-spring-light`'s `artworkUrl`/`rightsStatus: 'owned'` are set
 directly in its `apps/game-server/prisma/seed.ts` entry via the same override mechanism used for
-SHADOW and PURIFICATION. **Art Pack 01 as a whole is still not FINAL APPROVED** — MYSTERY and COSMIC
-remain reference-only, pending their own production candidates. (VEIL has since also been promoted —
-see its section below.)
+SHADOW and PURIFICATION. **Art Pack 01 as a whole is still not FINAL APPROVED** — COSMIC remains
+reference-only, pending its own production candidate. (VEIL and MYSTERY have since also been
+promoted — see their sections below.)
 
 **Reference 03** (received 2026-08-12, clean character illustration, mood/style reference — not
 committed to the repo, not itself the final production file) is **locked** for BOND. Target
@@ -365,8 +366,9 @@ by SHADOW, PURIFICATION, and BOND. The approved file is live at
 `apps/web/public/art/cards/lord-of-the-nameless-shadow.webp`, and
 `lord-of-the-nameless-shadow`'s `artworkUrl`/`rightsStatus: 'owned'` are set directly in its
 `apps/game-server/prisma/seed.ts` entry via the same override mechanism used for SHADOW,
-PURIFICATION, and BOND. **Art Pack 01 as a whole is still not FINAL APPROVED** — MYSTERY and COSMIC
-remain reference-only, pending their own production candidates.
+PURIFICATION, and BOND. **Art Pack 01 as a whole is still not FINAL APPROVED** — COSMIC remains
+reference-only, pending its own production candidate. (MYSTERY has since also been promoted — see
+its section below.)
 
 **Reference 04** (received 2026-08-12, clean character illustration, mood/style reference — not
 committed to the repo, not itself the final production file) is **locked** for VEIL. Target
@@ -433,10 +435,32 @@ rune-circle halo and the cloak's hem pooling in the water at the very bottom edg
 trimmed, but both are lower-priority background/environment reads and an acceptable loss, consistent
 with every other faction so far.
 
-## MYSTERY — Архив Серого Тумана (Reference 05, LOCKED)
+## MYSTERY — Архив Серого Тумана (FINAL APPROVED — Production Candidate 05 live)
+
+**Production status:** Candidate 05's first submission arrived as a 1448×1086 landscape file —
+fundamentally the wrong orientation versus the established vertical 2:3 master spec shared by
+SHADOW, PURIFICATION, BOND, and VEIL — and was flagged before any review pipeline work rather than
+force-cropped or stretched into shape. A corrected 1024×1536 portrait resubmission followed and was
+owner-approved on 2026-08-12 after a real automated screenshot pass through `CardView`,
+`CardDetailDrawer`, `HandCardPreview`, the `CreatureSlot` Battlefield component, and
+`/admin/art-review` — PASS on MYSTERY faction identity, elderly/scholarly character identity, face +
+grey beard readability, armillary sphere readability, astrological tome readability,
+observatory/library environment, cool grey-blue mist palette, brass/candle material accents, no
+combat-spell VFX, no humanoid crowd, differentiation from SHADOW/PURIFICATION/BOND/VEIL, and crop
+safety across all three shipped ratios. **Two owner-accepted visual variations from the locked
+Reference 05 brief:** the spectacles called out in the reference are not a strong/readable feature in
+the approved candidate, and the hood reads lowered/around the shoulders rather than prominently worn
+over the head. Both were explicitly accepted without a revision request — the defining MYSTERY
+identity (aged face, tome, armillary sphere, observatory instruments, grey-mist atmosphere) reads
+unambiguously regardless. The approved file is live at
+`apps/web/public/art/cards/keeper-of-the-grey-mist.webp` (converted from the approved 1024×1536 PNG),
+and `keeper-of-the-grey-mist`'s `artworkUrl`/`rightsStatus: 'owned'` are set directly in its
+`apps/game-server/prisma/seed.ts` entry via the same override mechanism used for SHADOW,
+PURIFICATION, BOND, and VEIL. **Art Pack 01 as a whole is still not FINAL APPROVED** — COSMIC remains
+reference-only, pending its own production candidate.
 
 **Reference 05** (received 2026-08-12, clean character illustration, mood/style reference — not
-committed to the repo, not itself the final production file) is now **locked** for MYSTERY. Target
+committed to the repo, not itself the final production file) is **locked** for MYSTERY. Target
 card: **Keeper of the Grey Mist** (`keeper-of-the-grey-mist`, LEGENDARY, cost 6, 5/6 — its ability,
 "on play: draw 2 cards," Resonance T3+ "additional reorder among the top 3," fits an
 astronomer-archivist reading celestial instruments to divine/reorder hidden knowledge — the

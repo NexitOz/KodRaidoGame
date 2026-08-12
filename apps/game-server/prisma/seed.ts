@@ -1177,6 +1177,9 @@ const MYSTERY_CARDS: SeedCard[] = [
     tags: ['Mystery'],
     attack: 5,
     health: 6,
+    // Art Pack 01 Production Candidate 05 - FINAL APPROVED (docs/art-bible-01.md).
+    artworkUrl: '/art/cards/keeper-of-the-grey-mist.webp',
+    rightsStatus: 'owned',
     abilityText:
       'При выходе: доберите 2 карты. При Резонансе 3+: поднимите наверх первую карту Mystery среди верхних 3.',
     effectJson: [
