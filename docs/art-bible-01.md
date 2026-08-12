@@ -5,16 +5,16 @@ faction-flagship Legendaries, to eventually replace their `generatePlaceholderAr
 is guidance and review tracking only.
 
 **Scope guardrail:** most of this doc's history is documentation only — reference images are never
-committed, and a card's `artworkUrl`/`rightsStatus` never changes on their account. **Two exceptions
-now exist:** SHADOW (`necromancer-of-the-twilight-order`) and PURIFICATION
-(`high-warden-of-the-white-rune`) were promoted to real production art after explicit owner approval
-of Production Candidates 01b and 02b respectively — see their sections below and the Approval status
-table. Each promotion touched only that one card's `artworkUrl`/`rightsStatus` in
-`apps/game-server/prisma/seed.ts` plus its own new asset file; the other four factions' placeholders,
-gameplay, balance, Battlefield logic, and economy remain untouched. **A reference or candidate image
-never replaces a placeholder on its own** — that only happens when the project owner explicitly
-approves a specific file as final production artwork, a separate step from adding/locking a reference
-in this doc.
+committed, and a card's `artworkUrl`/`rightsStatus` never changes on their account. **Three exceptions
+now exist:** SHADOW (`necromancer-of-the-twilight-order`), PURIFICATION
+(`high-warden-of-the-white-rune`), and BOND (`matriarch-of-the-spring-light`) were promoted to real
+production art after explicit owner approval of Production Candidates 01b, 02b, and 03 respectively —
+see their sections below and the Approval status table. Each promotion touched only that one card's
+`artworkUrl`/`rightsStatus` in `apps/game-server/prisma/seed.ts` plus its own new asset file; the
+other three factions' placeholders, gameplay, balance, Battlefield logic, and economy remain
+untouched. **A reference or candidate image never replaces a placeholder on its own** — that only
+happens when the project owner explicitly approves a specific file as final production artwork, a
+separate step from adding/locking a reference in this doc.
 
 ## Reference vs. production-format note
 
@@ -32,7 +32,7 @@ time, not art with a frame pre-composited into the file.
 | - | --- | --- | --- | --- |
 | 1 | SHADOW | Некромант Сумеречного Ордена (Necromancer of the Twilight Order) | `necromancer-of-the-twilight-order` | **FINAL APPROVED** — Production Candidate 01b, owner-approved; `artworkUrl`/`rightsStatus: owned` live — see below |
 | 2 | PURIFICATION | Верховная Хранительница Руны (High Warden of the White Rune) | `high-warden-of-the-white-rune` | **FINAL APPROVED** — Production Candidate 02b, owner-approved; `artworkUrl`/`rightsStatus: owned` live — see below |
-| 3 | BOND | Матриарх Дома Весеннего Света (Matriarch of the Spring Light) | `matriarch-of-the-spring-light` | **Reference 03 LOCKED** — see below |
+| 3 | BOND | Матриарх Дома Весеннего Света (Matriarch of the Spring Light) | `matriarch-of-the-spring-light` | **FINAL APPROVED** — Production Candidate 03, owner-approved; `artworkUrl`/`rightsStatus: owned` live — see below |
 | 4 | VEIL | Владыка Безымянной Тени (Lord of the Nameless Shadow) | `lord-of-the-nameless-shadow` | **Reference 04 LOCKED** — see below |
 | 5 | MYSTERY | Хранитель Серого Тумана (Keeper of the Grey Mist) | `keeper-of-the-grey-mist` | **Reference 05 LOCKED** — see below |
 | 6 | COSMIC | Владыка Звёздного Потока (Lord of the Stellar Stream) | `lord-of-the-stellar-stream` | **Reference 06 LOCKED** — see below |
@@ -123,9 +123,9 @@ ratios). The approved file is live at `apps/web/public/art/cards/necromancer-of-
 (converted from the approved 1024×1536 PNG), and `necromancer-of-the-twilight-order`'s `artworkUrl`/
 `rightsStatus: 'owned'` are set directly in its `apps/game-server/prisma/seed.ts` entry — the only
 card in Content Pack 01 with real art; every other card still calls `generatePlaceholderArt()`
-unconditionally. **This is the only faction promoted to production art. Art Pack 01 as a whole is
-still not FINAL APPROVED** — BOND, VEIL, MYSTERY, and COSMIC remain reference-only, pending their
-own production candidates. (PURIFICATION has since also been promoted — see its section below.)
+unconditionally. **Art Pack 01 as a whole is still not FINAL APPROVED** — VEIL, MYSTERY, and COSMIC
+remain reference-only, pending their own production candidates. (PURIFICATION and BOND have since
+also been promoted — see their sections below.)
 
 **Reference 01** (received 2026-08-12, clean character illustration, mood/style reference — not
 committed to the repo, not itself the final production file) is now **locked** as the primary
@@ -188,10 +188,9 @@ still reads unambiguously as a spear/polearm, so this was accepted rather than s
 Candidate 02c. The approved file is live at
 `apps/web/public/art/cards/high-warden-of-the-white-rune.webp`, and
 `high-warden-of-the-white-rune`'s `artworkUrl`/`rightsStatus: 'owned'` are set directly in its
-`apps/game-server/prisma/seed.ts` entry via the same override mechanism used for SHADOW. **Two of
-six factions are now promoted to production art. Art Pack 01 as a whole is still not FINAL
-APPROVED** — BOND, VEIL, MYSTERY, and COSMIC remain reference-only, pending their own production
-candidates.
+`apps/game-server/prisma/seed.ts` entry via the same override mechanism used for SHADOW. **Art Pack
+01 as a whole is still not FINAL APPROVED** — VEIL, MYSTERY, and COSMIC remain reference-only,
+pending their own production candidates. (BOND has since also been promoted — see its section below.)
 
 **Reference 02** (received 2026-08-12, clean character illustration, mood/style reference — not
 committed to the repo, not itself the final production file) is **locked** for PURIFICATION. Target
@@ -255,10 +254,29 @@ down with headroom so both survive the tighter 4:5 crop, not just the looser 3:4
 face sit comfortably mid-frame and are safe in both crops; the stair/hem detail at the very bottom
 edge is lower-priority background and an acceptable loss.
 
-## BOND — Дом Весеннего Света (Reference 03, LOCKED)
+## BOND — Дом Весеннего Света (FINAL APPROVED — Production Candidate 03 live)
+
+**Production status:** Candidate 03 was submitted directly against the locked Reference 03 brief
+below (no rejected prior submission — unlike SHADOW's 01→01b and PURIFICATION's 02→02b cycles) and
+was owner-approved on 2026-08-12 after a real automated screenshot pass through `CardView`,
+`CardDetailDrawer`, `HandCardPreview`, the `CreatureSlot` Battlefield component, and
+`/admin/art-review` — PASS on BOND faction identity, face readability, flower/vine crown readability,
+staff + blossom finial, warm light-orb readability, the domestic/asymmetric background group, garden
+architecture, golden-hour lighting, SHADOW differentiation, and PURIFICATION differentiation. Crop
+safety was verified against the real 1024×1536 file's exact pixel geometry across all three shipped
+crops (`CardView`/`CreatureSlot` 3:4, `CardDetailDrawer` 4:5, `HandCardPreview` 7:9): this brief had
+flagged the staff's flower finial as "at real risk of clipping" under the tightest `CardDetailDrawer`
+crop, but on the actual approved file the finial, face, and orb all sit with comfortable margin in
+every crop — only the outermost tree-canopy leaves are trimmed, an acceptable background loss
+consistent with SHADOW and PURIFICATION. No revision cycle was needed. The approved file is live at
+`apps/web/public/art/cards/matriarch-of-the-spring-light.webp` (converted from the approved
+1024×1536 PNG), and `matriarch-of-the-spring-light`'s `artworkUrl`/`rightsStatus: 'owned'` are set
+directly in its `apps/game-server/prisma/seed.ts` entry via the same override mechanism used for
+SHADOW and PURIFICATION. **Art Pack 01 as a whole is still not FINAL APPROVED** — VEIL, MYSTERY, and
+COSMIC remain reference-only, pending their own production candidates.
 
 **Reference 03** (received 2026-08-12, clean character illustration, mood/style reference — not
-committed to the repo, not itself the final production file) is now **locked** for BOND. Target
+committed to the repo, not itself the final production file) is **locked** for BOND. Target
 card: **Matriarch of the Spring Light** (`matriarch-of-the-spring-light`, LEGENDARY, cost 5, 4/7 —
 its ability, "on play: heal 2 to all allies," Resonance T5+: "shield all allies," fits a matriarch
 figure gathered with her House/sisterhood in a living garden, radiating warmth outward to everyone

@@ -979,6 +979,9 @@ const BOND_CARDS: SeedCard[] = [
     tags: ['Bond'],
     attack: 4,
     health: 7,
+    // Art Pack 01 Production Candidate 03 - FINAL APPROVED (docs/art-bible-01.md).
+    artworkUrl: '/art/cards/matriarch-of-the-spring-light.webp',
+    rightsStatus: 'owned',
     abilityText:
       'При выходе: восстановите 2 здоровья всем союзникам. При Резонансе 5+: все союзники получают Щит.',
     effectJson: [
