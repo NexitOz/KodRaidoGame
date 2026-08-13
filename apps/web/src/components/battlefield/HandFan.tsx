@@ -5,6 +5,7 @@ import type { Card } from '@kod-raido/shared';
 import { CardView } from '@kod-raido/ui';
 import { useDragToPlay } from '@/lib/use-drag-to-play';
 import { playSfx } from '@/lib/sfx';
+import styles from './HandFan.module.css';
 
 export interface HandCardEntry {
   instanceId: string;
@@ -147,6 +148,7 @@ function HandCardItem({
         size="xs"
         className={clsx(
           'animate-card-in sm:!max-w-[112px] lg:!max-w-[136px] xl:!max-w-[156px]',
+          styles.compactHandCard,
           previewed && 'ring-2 ring-raido-red',
           !affordable && 'opacity-40',
           disabled && 'pointer-events-none',
