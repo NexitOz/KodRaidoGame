@@ -47,7 +47,11 @@ export function EndTurnArtifact({ onClick, disabled, pending, isMyTurn, classNam
           'lg:flex lg:h-[78%] lg:w-[78%] lg:flex-col lg:whitespace-normal lg:rounded-full lg:border-2 lg:text-[11px] lg:font-black lg:uppercase lg:leading-tight lg:tracking-wide lg:shadow-[inset_0_2px_6px_rgba(0,0,0,0.5)]',
           ready && 'shadow-glow lg:border-raido-gold/50',
           !ready && !pending && 'lg:!bg-[#1c1830] lg:border-[#8a6fe0]/30 lg:!text-[#c9bdf0]',
-          pending && 'lg:!bg-amber-900/40 lg:border-amber-400/40',
+          // Pending is still disabled (blocks double-submits), but the base disabled:opacity-40
+          // was washing "Обработка…" out against the amber housing - this state means "actively
+          // processing", not "inactive", so it keeps more of its natural contrast than a plain
+          // disabled button would.
+          pending && 'lg:!bg-amber-900/60 lg:border-amber-400/50 lg:!text-amber-50 lg:disabled:!opacity-80',
         )}
       >
         {pending ? 'Обработка…' : 'Завершить ход'}

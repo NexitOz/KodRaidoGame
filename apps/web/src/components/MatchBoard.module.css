@@ -87,14 +87,15 @@
     transform: translate(-50%, -50%);
     z-index: 6;
   }
-  /* Housed in the small illustrated red-lens mechanism at the top-right, not floating loose. */
+  /* Housed in the small illustrated red-lens mechanism at the top-right, not floating loose.
+     Sized to its own content (label + fan + counter) rather than a fixed box, and pulled right of
+     the opponent creature lane's own right edge (lane ends at left:20% + width:60% = 80%) so the
+     housing never overlaps a creature slot. */
   .oppHandBacksSlot {
     position: absolute;
-    left: 82%;
-    top: 8.5%;
-    width: 16%;
-    transform: translate(-50%, -50%) scale(0.82);
-    transform-origin: center;
+    left: 89%;
+    top: 8%;
+    transform: translate(-50%, -50%);
     z-index: 6;
   }
   .oppLane {

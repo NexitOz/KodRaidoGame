@@ -231,7 +231,7 @@ export function MatchBoard({
             </div>
             <div
               className={clsx(
-                'flex w-20 flex-col items-end gap-1 sm:w-32 lg:w-auto lg:items-center lg:gap-0.5 lg:rounded-full lg:border lg:border-raido-red/25 lg:bg-black/45 lg:px-2 lg:py-1.5 lg:[box-shadow:inset_0_2px_6px_rgba(0,0,0,0.6)]',
+                'flex w-20 flex-col items-end gap-1 sm:w-32 lg:w-auto lg:items-center lg:gap-1 lg:rounded-xl lg:border lg:border-raido-red/30 lg:bg-black/50 lg:px-2.5 lg:py-1.5 lg:[box-shadow:inset_0_2px_6px_rgba(0,0,0,0.65)]',
                 styles.oppHandBacksSlot,
               )}
             >
