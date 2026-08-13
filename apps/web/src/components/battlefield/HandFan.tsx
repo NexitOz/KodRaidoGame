@@ -65,7 +65,7 @@ export function HandFan({
 
   return (
     <div
-      className="flex justify-center overflow-x-auto px-2 pb-1 pt-2"
+      className="flex justify-center overflow-x-auto px-2 pb-1 pt-2 lg:overflow-visible lg:px-0 lg:pb-0 lg:pt-0"
       role="list"
       aria-label={`Рука, ${cards.length} карт`}
     >
@@ -131,6 +131,7 @@ function HandCardItem({
         'relative shrink-0 touch-none transition-transform duration-150 ease-out',
         previewed && '[filter:drop-shadow(0_0_10px_rgba(255,45,85,0.5))]',
         dragging && 'opacity-30',
+        !previewed && !dragging && styles.desktopHoverLift,
       )}
       style={{
         marginLeft,
@@ -150,7 +151,7 @@ function HandCardItem({
         card={card}
         size="xs"
         className={clsx(
-          'animate-card-in sm:!max-w-[112px] lg:!max-w-[136px] xl:!max-w-[156px]',
+          'animate-card-in sm:!max-w-[112px] lg:!max-w-[78px] xl:!max-w-[86px]',
           styles.compactHandCard,
           previewed && 'ring-2 ring-raido-red',
           !affordable && 'opacity-40',

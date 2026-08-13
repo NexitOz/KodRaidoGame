@@ -1,16 +1,17 @@
-/* Hand-card size on desktop is driven by Tailwind's width-only breakpoints (sm/lg/xl), which
-   can't distinguish a tall 1920x1080 viewport from a shorter 1440x900 one - both hit `xl` and get
-   the same (largest) card size, even though 1440x900 has much less vertical room below the
-   arena stage. That mismatch pushed the hand fan low enough that card names sat below the fold.
-   This is the one deliberately height-aware override: only viewports that are simultaneously wide
-   enough to be "desktop" (matches the same `lg:` breakpoint the rest of the arena uses) AND short
-   enough to have that clearance problem get smaller cards - 1920x1080 (height 1080 > 960) and
-   mobile (width < 1024) are untouched by this rule. The class selector is doubled purely to boost
-   specificity above Tailwind's `xl:!max-w-[156px]` utility (equal-specificity `!important` rules
-   fall back to source order, which isn't guaranteed between a CSS Module and Tailwind's generated
-   utilities bundle - doubling the selector wins outright regardless of order). */
-@media (max-height: 960px) and (min-width: 1024px) {
-  .compactHandCard.compactHandCard {
-    max-width: 118px !important;
+/* Desktop Viewport-Fit UX Pass: the hand is now a small always-compact overlay fan (78-86px
+   cards) rather than a full-width tray, so the old height-aware "shrink on short viewports" rule
+   that used to live here is gone - it existed only to rescue a much larger (136-156px) card size
+   that no longer applies. */
+
+/* Hover elevation: `HandCardItem`'s own inline `transform` (arc position) has to be beaten by an
+   `!important` rule here, since inline styles otherwise always win over a class. Only active on
+   pointer-fine desktop and never while a card is being dragged or already previewed (both states
+   already set their own `transform`, and `HandFan.tsx` withholds this class in both cases too, but
+   the `:hover` boost stays scoped here to `lg:` regardless, since the compact overlay fan itself
+   is desktop-only). */
+@media (min-width: 1024px) and (hover: hover) {
+  .desktopHoverLift:hover {
+    transform: translateY(-22px) scale(1.18) !important;
+    z-index: 45 !important;
   }
 }
