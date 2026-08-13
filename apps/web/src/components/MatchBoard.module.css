@@ -66,17 +66,19 @@
   }
 
   /* --- Opponent band --- */
+  /* Left-column deck/discard panel coordinates measured directly off the source artwork's own
+     pixel grid (1672x941 master) rather than estimated from a rendered screenshot. */
   .oppDeckSlot {
     position: absolute;
-    left: 4%;
-    top: 7%;
-    width: 13%;
+    left: 2.5%;
+    top: 3.5%;
+    width: 12.5%;
   }
   .oppDiscardSlot {
     position: absolute;
-    left: 4%;
-    top: 28%;
-    width: 13%;
+    left: 2.5%;
+    top: 30%;
+    width: 12.5%;
   }
   .oppCommanderSlot {
     position: absolute;
@@ -85,11 +87,15 @@
     transform: translate(-50%, -50%);
     z-index: 6;
   }
+  /* Housed in the small illustrated red-lens mechanism at the top-right, not floating loose. */
   .oppHandBacksSlot {
     position: absolute;
-    right: 5%;
-    top: 5%;
-    width: 13%;
+    left: 82%;
+    top: 8.5%;
+    width: 16%;
+    transform: translate(-50%, -50%) scale(0.82);
+    transform-origin: center;
+    z-index: 6;
   }
   .oppLane {
     position: absolute;
@@ -124,28 +130,31 @@
   }
   .plyDeckSlot {
     position: absolute;
-    left: 4%;
-    top: 50%;
-    width: 13%;
+    left: 2.5%;
+    top: 49.5%;
+    width: 12.5%;
   }
   .plyDiscardSlot {
     position: absolute;
-    left: 4%;
-    top: 70%;
-    width: 13%;
+    left: 2.5%;
+    top: 73%;
+    width: 12.5%;
   }
+  /* Pulled up from the stage's very bottom edge (was top:95%) so the HP badge doesn't hang far
+     enough below the stage to collide with the hand section that starts right after it - the
+     collision was worst at 1440x900, where the stage itself is shorter in absolute pixels. */
   .plyCommanderSlot {
     position: absolute;
     left: 50%;
-    top: 95%;
+    top: 90%;
     transform: translate(-50%, -50%);
     z-index: 6;
   }
   .resonanceSlot {
     position: absolute;
     left: 65%;
-    top: 87%;
-    width: 22%;
+    top: 83%;
+    width: 20%;
   }
 
   /* --- Right-side arena machinery: End Turn --- */
@@ -160,12 +169,14 @@
   }
 
   /* Hand section sits immediately below the illustrated stage, not inside it - absolute so it
-     doesn't force the stage's own aspect-ratio-locked height to grow to accommodate it. */
+     doesn't force the stage's own aspect-ratio-locked height to grow to accommodate it. Margin
+     is generous enough to clear .plyCommanderSlot/.resonanceSlot's overhang below the stage at
+     every desktop viewport, not just 1920x1080. */
   .handSection {
     position: absolute;
     left: 0;
     right: 0;
     top: 100%;
-    margin-top: 1rem;
+    margin-top: 2.5rem;
   }
 }

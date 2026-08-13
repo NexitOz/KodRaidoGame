@@ -130,7 +130,7 @@ export function CreatureSlot({
           className="pointer-events-none absolute inset-0 z-10 rounded-lg ring-2 ring-emerald-400/80 animate-ring-expand"
         />
       ) : null}
-      <div className="relative flex-1 bg-raido-black">
+      <div className="relative min-h-0 flex-1 bg-raido-black">
         <img
           src={unit.card.artworkUrl}
           alt=""

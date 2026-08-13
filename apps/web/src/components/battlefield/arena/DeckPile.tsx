@@ -21,14 +21,16 @@ export function DeckPile({ count, align = 'left', label, className }: DeckPilePr
   const stackDepth = count <= 0 ? 0 : count < 8 ? 1 : count < 20 ? 2 : 3;
 
   return (
-    <div className={clsx('flex flex-col items-center gap-1.5', align === 'right' && 'items-end', className)}>
+    <div className={clsx('flex flex-col items-center gap-1.5 lg:gap-1', align === 'right' && 'items-end', className)}>
       {label ? (
-        <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-raido-gold/70 lg:text-xs">{label}</span>
+        <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-raido-gold/70 lg:text-[11px]">{label}</span>
       ) : null}
-      <div className={clsx('relative flex items-center gap-2', align === 'right' && 'flex-row-reverse')}>
+      {/* Row layout at mobile (compact, next to the discard pile); column at lg, where this needs
+          to fit inside a tall narrow illustrated housing panel rather than a wide horizontal one. */}
+      <div className={clsx('relative flex items-center gap-2 lg:flex-col lg:gap-1', align === 'right' && 'flex-row-reverse')}>
         {/* Carved socket the stack physically sits in - desktop gets this from the illustrated asset. */}
-        <div className="relative flex h-12 w-9 items-center justify-center rounded-md border border-raido-gold/20 bg-black/40 [box-shadow:inset_0_3px_10px_rgba(0,0,0,0.7)] lg:h-20 lg:w-14 lg:border-transparent lg:bg-transparent lg:shadow-none">
-          <div className="relative h-9 w-7 lg:h-[3.75rem] lg:w-11" aria-hidden="true">
+        <div className="relative flex h-12 w-9 items-center justify-center rounded-md border border-raido-gold/20 bg-black/40 [box-shadow:inset_0_3px_10px_rgba(0,0,0,0.7)] lg:h-16 lg:w-12 lg:border-transparent lg:bg-transparent lg:shadow-none">
+          <div className="relative h-9 w-7 lg:h-12 lg:w-9" aria-hidden="true">
             {Array.from({ length: stackDepth }).map((_, i) => (
               <span
                 key={i}
@@ -45,7 +47,7 @@ export function DeckPile({ count, align = 'left', label, className }: DeckPilePr
             )}
           </div>
         </div>
-        <span className="text-sm font-bold tabular-nums text-raido-white lg:text-base">{count}</span>
+        <span className="text-sm font-bold tabular-nums text-raido-white lg:text-sm">{count}</span>
       </div>
     </div>
   );
