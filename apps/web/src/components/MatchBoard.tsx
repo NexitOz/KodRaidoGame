@@ -204,10 +204,14 @@ export function MatchBoard({
           below individually escapes to `position:absolute` (percentage-anchored to that asset's
           geometry) via its own CSS-module class - see MatchBoard.module.css for the coordinates. */}
       <div className={styles.stage} data-drop-zone="board">
-        {/* Opponent band: deck/discard (left) - hero medallion (center) - hand backs + board below. */}
-        <section className={clsx('flex flex-col gap-1 lg:gap-1.5 lg:contents', styles.oppBand)} data-drop-zone="board">
-          <div className="flex items-start justify-between gap-2 lg:contents lg:gap-3">
-            <div className={clsx('flex gap-2 lg:contents lg:gap-3')}>
+        {/* Opponent band: deck/discard (left) - hero medallion (center) - hand backs + board below.
+            Both mobile and desktop now render on top of a real illustrated `.stage` asset, so these
+            wrappers always collapse via `contents` - every slot below resolves its own
+            `position:absolute` percentages against `.stage` itself, not against an intermediate
+            flex box. */}
+        <section className="contents" data-drop-zone="board">
+          <div className="contents">
+            <div className="contents">
               <div className={styles.oppDeckSlot}>
                 <DeckPile count={opponent.deckCount} label="Колода" />
               </div>
@@ -231,7 +235,7 @@ export function MatchBoard({
             </div>
             <div
               className={clsx(
-                'flex w-20 flex-col items-end gap-1 sm:w-32 lg:w-auto lg:items-center lg:gap-1 lg:rounded-xl lg:border lg:border-raido-red/30 lg:bg-black/50 lg:px-2.5 lg:py-1.5 lg:[box-shadow:inset_0_2px_6px_rgba(0,0,0,0.65)]',
+                'flex flex-col items-center gap-1 rounded-xl border border-raido-red/30 bg-black/50 px-2.5 py-1.5 [box-shadow:inset_0_2px_6px_rgba(0,0,0,0.65)]',
                 styles.oppHandBacksSlot,
               )}
             >
@@ -265,7 +269,7 @@ export function MatchBoard({
 
         {/* Player band: board - hero medallion flanked by deck/discard (left) and Resonance (right,
             the only side we ever have real Resonance data for - see ResonanceMeter). */}
-        <section className={clsx('flex flex-col gap-1 lg:gap-1.5 lg:contents', styles.plyBand)} data-drop-zone="board">
+        <section className="contents" data-drop-zone="board">
           <div className={styles.plyLane}>
             <CreatureRow
               units={you.board}
@@ -285,8 +289,8 @@ export function MatchBoard({
               <RuneZone runeCardIds={you.runeCardIds} cardsById={cardsById} pulseKey={ownRunePulse} />
             </div>
           ) : null}
-          <div className="flex items-end justify-between gap-2 lg:contents lg:gap-3">
-            <div className="flex gap-2 lg:contents lg:gap-3">
+          <div className="contents">
+            <div className="contents">
               <div className={styles.plyDeckSlot}>
                 <DeckPile count={you.deckCount} label="Колода" />
               </div>

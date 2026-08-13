@@ -9,6 +9,19 @@
 html,
 body {
   @apply bg-raido-black text-raido-white antialiased;
+  /* The mobile Battlefield Art Asset stage grows tall (aspect-ratio locked, well past one screen)
+     the instant match data finishes loading - browser scroll anchoring otherwise "helpfully" jumps
+     the whole page down to compensate for that late reflow, landing the player mid-arena instead
+     of at the top. Disabled on the actual scrolling container (the document), not just the board -
+     an `overflow-anchor:none` set only on a descendant doesn't stop the browser from anchoring to
+     content inside it. */
+  overflow-anchor: none;
+  /* Pre-existing narrow-viewport quirk (independent of the Battlefield Art Asset pass): the hand
+     fan's own `overflow-x-auto` carousel can leak a few px of horizontal scroll to the document at
+     some sub-360px-class widths despite being a self-contained scrollable region. The hand row
+     keeps its own scrollability; this just stops that from ever becoming a page-level horizontal
+     scrollbar. */
+  overflow-x: hidden;
 }
 
 body {

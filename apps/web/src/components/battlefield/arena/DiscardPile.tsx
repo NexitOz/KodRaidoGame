@@ -10,20 +10,21 @@ export interface DiscardPileProps {
 }
 
 /**
- * The discard as a physical, dimmed/tilted card-back stack in its own carved socket —
- * visually distinct from `DeckPile` (spent/cold vs. ready/warm) using only the already-available
- * `discardCount`. No hidden information exposed.
+ * The discard as a physical, dimmed/tilted card-back stack — sits inside the illustrated housing
+ * painted into the arena asset (both mobile and desktop), visually distinct from `DeckPile`
+ * (spent/cold vs. ready/warm) using only the already-available `discardCount`. No hidden
+ * information exposed.
  */
 export function DiscardPile({ count, align = 'left', label, className }: DiscardPileProps) {
   const stackDepth = count <= 0 ? 0 : count < 8 ? 1 : count < 20 ? 2 : 3;
 
   return (
-    <div className={clsx('flex flex-col items-center gap-1.5 lg:gap-1', align === 'right' && 'items-end', className)}>
+    <div className={clsx('flex flex-col items-center gap-1', align === 'right' && 'items-end', className)}>
       {label ? (
         <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-raido-mist lg:text-[11px]">{label}</span>
       ) : null}
-      <div className={clsx('relative flex items-center gap-2 lg:flex-col lg:gap-1', align === 'right' && 'flex-row-reverse')}>
-        <div className="relative flex h-12 w-9 items-center justify-center rounded-md border border-white/10 bg-black/50 [box-shadow:inset_0_3px_10px_rgba(0,0,0,0.75)] lg:h-16 lg:w-12 lg:border-transparent lg:bg-transparent lg:shadow-none">
+      <div className={clsx('relative flex flex-col items-center gap-1', align === 'right' && 'flex-row-reverse')}>
+        <div className="relative flex h-12 w-9 items-center justify-center lg:h-16 lg:w-12">
           <div className="relative h-9 w-7 lg:h-12 lg:w-9" aria-hidden="true">
             {Array.from({ length: stackDepth }).map((_, i) => (
               <span

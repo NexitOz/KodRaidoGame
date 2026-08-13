@@ -134,7 +134,10 @@ function HandCardItem({
       )}
       style={{
         marginLeft,
-        zIndex: previewed ? 100 : zIndex,
+        // Must stay below HandCardPreview's modal (z-50, and a stacking-context sibling here via
+        // ArenaSurface's `isolate`) - 100 used to outrank it, letting the previewed card itself
+        // intercept clicks on its own preview dialog's Close/Play buttons.
+        zIndex: previewed ? 40 : zIndex,
         transform: previewed
           ? 'translateY(-18px) scale(1.06) rotate(0deg)'
           : `translateY(${Math.abs(offsetFromCenter) * ARC_STEP_PX}px) rotate(${offsetFromCenter * ANGLE_STEP_DEG}deg)`,

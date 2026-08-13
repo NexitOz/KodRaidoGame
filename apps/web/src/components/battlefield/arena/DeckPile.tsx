@@ -9,27 +9,25 @@ export interface DeckPileProps {
 }
 
 /**
- * The deck as a physical layered card-back stack. On desktop this now sits inside the illustrated
- * housing panel painted into `kod-raido-arena-base.webp` (left-edge machinery), so the carved-socket
- * frame below is desktop-hidden — the art already provides that physical housing, this component
- * only renders the real dynamic bits (the stack + count) on top of it. Mobile (no illustrated
- * housing) keeps the carved-socket frame. Purely presentational over the already-available
- * `deckCount` — no hidden information is exposed, nothing about draw order or contents. Static
- * only in Phase A (no draw-trigger animation yet).
+ * The deck as a physical layered card-back stack. Both mobile and desktop now sit inside the
+ * illustrated housing panel painted into the arena asset (left-edge machinery), so the
+ * carved-socket frame this used to draw for itself is gone universally — the art already provides
+ * that physical housing, this component only renders the real dynamic bits (the stack + count) on
+ * top of it. Purely presentational over the already-available `deckCount` — no hidden information
+ * is exposed, nothing about draw order or contents. Static only in Phase A (no draw-trigger
+ * animation yet).
  */
 export function DeckPile({ count, align = 'left', label, className }: DeckPileProps) {
   const stackDepth = count <= 0 ? 0 : count < 8 ? 1 : count < 20 ? 2 : 3;
 
   return (
-    <div className={clsx('flex flex-col items-center gap-1.5 lg:gap-1', align === 'right' && 'items-end', className)}>
+    <div className={clsx('flex flex-col items-center gap-1', align === 'right' && 'items-end', className)}>
       {label ? (
         <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-raido-gold/70 lg:text-[11px]">{label}</span>
       ) : null}
-      {/* Row layout at mobile (compact, next to the discard pile); column at lg, where this needs
-          to fit inside a tall narrow illustrated housing panel rather than a wide horizontal one. */}
-      <div className={clsx('relative flex items-center gap-2 lg:flex-col lg:gap-1', align === 'right' && 'flex-row-reverse')}>
-        {/* Carved socket the stack physically sits in - desktop gets this from the illustrated asset. */}
-        <div className="relative flex h-12 w-9 items-center justify-center rounded-md border border-raido-gold/20 bg-black/40 [box-shadow:inset_0_3px_10px_rgba(0,0,0,0.7)] lg:h-16 lg:w-12 lg:border-transparent lg:bg-transparent lg:shadow-none">
+      {/* Column layout - fits inside a tall narrow illustrated housing panel. */}
+      <div className={clsx('relative flex flex-col items-center gap-1', align === 'right' && 'flex-row-reverse')}>
+        <div className="relative flex h-12 w-9 items-center justify-center lg:h-16 lg:w-12">
           <div className="relative h-9 w-7 lg:h-12 lg:w-9" aria-hidden="true">
             {Array.from({ length: stackDepth }).map((_, i) => (
               <span
