@@ -23,7 +23,7 @@ export function DiscardPile({ count, align = 'left', label, className }: Discard
         <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-raido-mist lg:text-xs">{label}</span>
       ) : null}
       <div className={clsx('relative flex items-center gap-2', align === 'right' && 'flex-row-reverse')}>
-        <div className="relative flex h-12 w-9 items-center justify-center rounded-md border border-white/10 bg-black/50 [box-shadow:inset_0_3px_10px_rgba(0,0,0,0.75)] lg:h-20 lg:w-14">
+        <div className="relative flex h-12 w-9 items-center justify-center rounded-md border border-white/10 bg-black/50 [box-shadow:inset_0_3px_10px_rgba(0,0,0,0.75)] lg:h-20 lg:w-14 lg:border-transparent lg:bg-transparent lg:shadow-none">
           <div className="relative h-9 w-7 lg:h-[3.75rem] lg:w-11" aria-hidden="true">
             {Array.from({ length: stackDepth }).map((_, i) => (
               <span

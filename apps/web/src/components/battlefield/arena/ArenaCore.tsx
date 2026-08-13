@@ -11,15 +11,17 @@ export interface ArenaCoreProps {
 }
 
 /**
- * The arena's central medallion — the single strongest object in the whole composition, anchoring
- * the seam between the two halves. A decorative Rune Raido frame that houses the existing
- * Resonance presentation: an arena artifact first, Resonance display second — it does not redefine
- * or duplicate Resonance mechanics, it only gives `ResonancePulse` a premium home. Idle/turn-state
- * lighting only, no per-node energy travel yet (that's Phase B).
+ * The arena's central medallion. On desktop this now sits directly on top of the illustrated
+ * physical mechanism painted into `kod-raido-arena-base.webp` (concentric gold rings, compass/rune
+ * geometry, arcane star) — that artwork provides the housing, so this component only renders the
+ * *dynamic* portions the art can't: turn-state illumination, the Raido rune, and the real
+ * `ResonancePulse` state. No competing CSS rings/housing here (Battlefield Art Asset integration) -
+ * on mobile, where the illustrated mechanism isn't used, the soft glow still reads as a plausible
+ * ambient light source on its own.
  */
 export function ArenaCore({ tier, triggerKey, isMyTurn }: ArenaCoreProps) {
   return (
-    <div className="relative flex h-24 w-24 items-center justify-center sm:h-32 sm:w-32 lg:h-40 lg:w-40">
+    <div className="relative flex h-24 w-24 items-center justify-center sm:h-32 sm:w-32 lg:h-full lg:w-full">
       {/* Breathing glow backdrop, warm/cool by whose turn it is. */}
       <div
         aria-hidden
@@ -28,14 +30,16 @@ export function ArenaCore({ tier, triggerKey, isMyTurn }: ArenaCoreProps) {
           isMyTurn ? 'bg-raido-red/25' : 'bg-[#8a6fe0]/20',
         )}
       />
-      <div aria-hidden className="pointer-events-none absolute inset-4 rounded-full blur-lg bg-raido-gold/10" />
+      <div aria-hidden className="pointer-events-none absolute inset-4 rounded-full blur-lg bg-raido-gold/10 lg:hidden" />
 
-      {/* Outermost engraved ring - large rune ticks, idle rotation. */}
+      {/* Idle-rotating rune ring - kept as the one dynamic motion cue; hidden on desktop where the
+          illustrated mechanism's own engraved rings already read as static "premium artifact"
+          detail and a spinning CSS ring on top would compete with it. */}
       <svg
         aria-hidden
         viewBox="0 0 100 100"
         className={clsx(
-          'pointer-events-none absolute inset-0 h-full w-full animate-spin-slow',
+          'pointer-events-none absolute inset-0 h-full w-full animate-spin-slow lg:hidden',
           isMyTurn ? 'text-raido-red/55' : 'text-[#a894f0]/45',
         )}
       >
@@ -50,43 +54,14 @@ export function ArenaCore({ tier, triggerKey, isMyTurn }: ArenaCoreProps) {
         })}
       </svg>
 
-      {/* Second ring - gold, counter-rotating, dashed arcane geometry. */}
-      <svg
-        aria-hidden
-        viewBox="0 0 100 100"
-        className="pointer-events-none absolute inset-3 h-[calc(100%-1.5rem)] w-[calc(100%-1.5rem)] animate-spin-slow-reverse text-raido-gold/45"
-      >
-        <circle cx="50" cy="50" r="46" stroke="currentColor" strokeWidth="0.75" fill="none" strokeDasharray="3 6" />
-        <circle cx="50" cy="50" r="38" stroke="currentColor" strokeWidth="0.5" fill="none" opacity="0.5" />
-      </svg>
-
-      {/* Third ring - fine engraved detail, static, closest to the housing. */}
-      <svg
-        aria-hidden
-        viewBox="0 0 100 100"
-        className="pointer-events-none absolute inset-6 h-[calc(100%-3rem)] w-[calc(100%-3rem)] text-raido-gold/25"
-      >
-        <circle cx="50" cy="50" r="47" stroke="currentColor" strokeWidth="0.5" fill="none" />
-        {Array.from({ length: 8 }).map((_, i) => {
-          const angle = (i / 8) * 2 * Math.PI;
-          const x1 = 50 + Math.cos(angle) * 30;
-          const y1 = 50 + Math.sin(angle) * 30;
-          const x2 = 50 + Math.cos(angle) * 46;
-          const y2 = 50 + Math.sin(angle) * 46;
-          return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="currentColor" strokeWidth="0.4" />;
-        })}
-      </svg>
-
-      {/* Engraved medallion housing - a solid dark-metal + brass frame the Resonance ring sits
-          inside, with a large watermark Raido rune behind it for scale/presence even before any
-          Resonance tier is lit. */}
+      {/* Mobile-only engraved medallion housing - desktop gets this from the illustrated asset. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-8 rounded-full border-2 border-raido-gold/35 bg-gradient-to-b from-raido-black/70 to-raido-black/90 [box-shadow:inset_0_0_18px_rgba(0,0,0,0.85),inset_0_0_0_1px_rgba(217,180,106,0.15)]"
+        className="pointer-events-none absolute inset-8 rounded-full border-2 border-raido-gold/35 bg-gradient-to-b from-raido-black/70 to-raido-black/90 [box-shadow:inset_0_0_18px_rgba(0,0,0,0.85),inset_0_0_0_1px_rgba(217,180,106,0.15)] lg:hidden"
       />
       <span
         aria-hidden
-        className="pointer-events-none absolute select-none font-serif text-4xl text-raido-gold/15 sm:text-5xl lg:text-6xl"
+        className="pointer-events-none absolute select-none font-serif text-4xl text-raido-gold/15 sm:text-5xl lg:text-3xl lg:text-raido-gold/40"
       >
         ᚱ
       </span>

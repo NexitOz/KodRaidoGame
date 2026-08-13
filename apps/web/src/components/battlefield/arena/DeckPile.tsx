@@ -9,8 +9,11 @@ export interface DeckPileProps {
 }
 
 /**
- * The deck as a physical layered card-back stack sitting in a carved socket in the arena,
- * echoing `CardBack`'s rune-glyph language. Purely presentational over the already-available
+ * The deck as a physical layered card-back stack. On desktop this now sits inside the illustrated
+ * housing panel painted into `kod-raido-arena-base.webp` (left-edge machinery), so the carved-socket
+ * frame below is desktop-hidden — the art already provides that physical housing, this component
+ * only renders the real dynamic bits (the stack + count) on top of it. Mobile (no illustrated
+ * housing) keeps the carved-socket frame. Purely presentational over the already-available
  * `deckCount` — no hidden information is exposed, nothing about draw order or contents. Static
  * only in Phase A (no draw-trigger animation yet).
  */
@@ -23,8 +26,8 @@ export function DeckPile({ count, align = 'left', label, className }: DeckPilePr
         <span className="text-[10px] font-bold uppercase tracking-[0.15em] text-raido-gold/70 lg:text-xs">{label}</span>
       ) : null}
       <div className={clsx('relative flex items-center gap-2', align === 'right' && 'flex-row-reverse')}>
-        {/* Carved socket the stack physically sits in. */}
-        <div className="relative flex h-12 w-9 items-center justify-center rounded-md border border-raido-gold/20 bg-black/40 [box-shadow:inset_0_3px_10px_rgba(0,0,0,0.7)] lg:h-20 lg:w-14">
+        {/* Carved socket the stack physically sits in - desktop gets this from the illustrated asset. */}
+        <div className="relative flex h-12 w-9 items-center justify-center rounded-md border border-raido-gold/20 bg-black/40 [box-shadow:inset_0_3px_10px_rgba(0,0,0,0.7)] lg:h-20 lg:w-14 lg:border-transparent lg:bg-transparent lg:shadow-none">
           <div className="relative h-9 w-7 lg:h-[3.75rem] lg:w-11" aria-hidden="true">
             {Array.from({ length: stackDepth }).map((_, i) => (
               <span

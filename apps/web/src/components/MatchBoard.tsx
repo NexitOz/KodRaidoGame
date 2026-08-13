@@ -198,127 +198,157 @@ export function MatchBoard({
 
       <div className={styles.banner}>{banner}</div>
 
-      {/* Opponent band: deck/discard (left) - hero medallion (center) - hand backs + board below. */}
-      <section className={clsx('flex flex-col gap-1 lg:gap-1.5', styles.oppBand)} data-drop-zone="board">
-        <div className="flex items-start justify-between gap-2 lg:gap-3">
-          <div className="flex gap-2 lg:gap-3">
-            <DeckPile count={opponent.deckCount} label="Колода" />
-            <DiscardPile count={opponent.discardCount} label="Сброс" />
+      {/* Battlefield Art Asset pass: everything below lives inside `.stage`. At mobile it's a plain
+          wrapper (same flow as before, unchanged visual result). At lg it becomes the aspect-ratio-
+          locked box carrying the illustrated `kod-raido-arena-base.webp` asset, and every section
+          below individually escapes to `position:absolute` (percentage-anchored to that asset's
+          geometry) via its own CSS-module class - see MatchBoard.module.css for the coordinates. */}
+      <div className={styles.stage} data-drop-zone="board">
+        {/* Opponent band: deck/discard (left) - hero medallion (center) - hand backs + board below. */}
+        <section className={clsx('flex flex-col gap-1 lg:gap-1.5 lg:contents', styles.oppBand)} data-drop-zone="board">
+          <div className="flex items-start justify-between gap-2 lg:contents lg:gap-3">
+            <div className={clsx('flex gap-2 lg:contents lg:gap-3')}>
+              <div className={styles.oppDeckSlot}>
+                <DeckPile count={opponent.deckCount} label="Колода" />
+              </div>
+              <div className={styles.oppDiscardSlot}>
+                <DiscardPile count={opponent.discardCount} label="Сброс" />
+              </div>
+            </div>
+            <div className={styles.oppCommanderSlot}>
+              <ConductorPanel
+                player={opponent}
+                name={opponentName}
+                icon={opponentIcon}
+                align="left"
+                targetable={targetingEnemy}
+                onTap={onTapEnemyConductor}
+                feedback={feedbackByTarget.get(`conductor:${opponent.playerId}`) ?? []}
+                active={!isMyTurn}
+                dropZone="enemy-conductor"
+                side="opponent"
+              />
+            </div>
+            <div className={clsx('flex w-20 flex-col items-end gap-1 sm:w-32 lg:w-auto', styles.oppHandBacksSlot)}>
+              <OpponentHandBacks count={opponent.handCount} />
+              <RuneZone runeCardIds={opponent.runeCardIds} cardsById={cardsById} pulseKey={opponentRunePulse} />
+            </div>
           </div>
-          <ConductorPanel
-            player={opponent}
-            name={opponentName}
-            icon={opponentIcon}
-            align="left"
-            targetable={targetingEnemy}
-            onTap={onTapEnemyConductor}
-            feedback={feedbackByTarget.get(`conductor:${opponent.playerId}`) ?? []}
-            active={!isMyTurn}
-            dropZone="enemy-conductor"
-            side="opponent"
+          <div className={styles.oppLane}>
+            <CreatureRow
+              units={opponent.board}
+              targetableIds={opponentTargetable}
+              hasActiveSelection={targetingEnemy}
+              interactiveIds={opponentTargetable}
+              onSelect={onTapEnemyUnit}
+              feedbackByTarget={feedbackByTarget}
+              deathToasts={opponentDeathToasts}
+              dropZonePrefix="enemy"
+            />
+          </div>
+        </section>
+
+        <section
+          className={clsx('relative flex items-center justify-center py-0 lg:py-0', styles.core, styles.coreSlot)}
+          data-tutorial-target="resonance"
+          data-drop-zone="board"
+        >
+          <ArenaCore tier={resonanceHeat} triggerKey={resonanceTriggerKey} isMyTurn={isMyTurn} />
+          <TrackZone trigger={cardPlayTrigger} cardsById={cardsById} />
+          <CardPlayReveal trigger={cardPlayTrigger} cardsById={cardsById} />
+        </section>
+
+        {/* Player band: board - hero medallion flanked by deck/discard (left) and Resonance (right,
+            the only side we ever have real Resonance data for - see ResonanceMeter). */}
+        <section className={clsx('flex flex-col gap-1 lg:gap-1.5 lg:contents', styles.plyBand)} data-drop-zone="board">
+          <div className={styles.plyLane}>
+            <CreatureRow
+              units={you.board}
+              selectedInstanceId={selection?.kind === 'unit' ? selection.instanceId : null}
+              readyAttackerIds={readyAttackers}
+              targetableIds={ownTargetable ? new Set(you.board.map((u) => u.instanceId)) : undefined}
+              hasActiveSelection={ownTargetable}
+              interactiveIds={ownInteractive}
+              onSelect={onSelectOwnUnit}
+              feedbackByTarget={feedbackByTarget}
+              deathToasts={ownDeathToasts}
+              dropZonePrefix="own"
+            />
+          </div>
+          {you.runeCardIds.length > 0 ? (
+            <div className={clsx('flex items-center justify-between', styles.plyRuneSlot)}>
+              <RuneZone runeCardIds={you.runeCardIds} cardsById={cardsById} pulseKey={ownRunePulse} />
+            </div>
+          ) : null}
+          <div className="flex items-end justify-between gap-2 lg:contents lg:gap-3">
+            <div className="flex gap-2 lg:contents lg:gap-3">
+              <div className={styles.plyDeckSlot}>
+                <DeckPile count={you.deckCount} label="Колода" />
+              </div>
+              <div className={styles.plyDiscardSlot}>
+                <DiscardPile count={you.discardCount} label="Сброс" />
+              </div>
+            </div>
+            <div className={styles.plyCommanderSlot}>
+              <ConductorPanel
+                player={you}
+                name="Ты"
+                icon="player"
+                align="right"
+                targetable={ownTargetable}
+                onTap={onTapOwnConductor}
+                feedback={feedbackByTarget.get(`conductor:${you.playerId}`) ?? []}
+                rank={viewerRank}
+                tutorialTarget="own-conductor"
+                active={isMyTurn}
+                dropZone="own-conductor"
+                side="player"
+              />
+            </div>
+            <div className={styles.resonanceSlot}>
+              <ResonanceMeter
+                tier={resonanceHeat}
+                triggerKey={resonanceTriggerKey}
+                align="right"
+                className="w-20 sm:w-32 lg:w-full"
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className={clsx('flex flex-col gap-1.5', styles.handSection)}>
+          <HandFan
+            cards={you.hand}
+            energy={you.energy}
+            previewedInstanceId={previewedInstanceId}
+            disabled={!isMyTurn || pending}
+            onTogglePreview={togglePreview}
+            onPlayByDrag={playByDrag}
           />
-          <div className="flex w-20 flex-col items-end gap-1 sm:w-32 lg:w-48">
-            <OpponentHandBacks count={opponent.handCount} />
-            <RuneZone runeCardIds={opponent.runeCardIds} cardsById={cardsById} pulseKey={opponentRunePulse} />
-          </div>
-        </div>
-        <CreatureRow
-          units={opponent.board}
-          targetableIds={opponentTargetable}
-          hasActiveSelection={targetingEnemy}
-          interactiveIds={opponentTargetable}
-          onSelect={onTapEnemyUnit}
-          feedbackByTarget={feedbackByTarget}
-          deathToasts={opponentDeathToasts}
-          dropZonePrefix="enemy"
-        />
-      </section>
 
-      <section className={clsx('relative flex items-center justify-center py-0 lg:py-0', styles.core)} data-tutorial-target="resonance" data-drop-zone="board">
-        <ArenaCore tier={resonanceHeat} triggerKey={resonanceTriggerKey} isMyTurn={isMyTurn} />
-        <TrackZone trigger={cardPlayTrigger} cardsById={cardsById} />
-        <CardPlayReveal trigger={cardPlayTrigger} cardsById={cardsById} />
-      </section>
+          {actionError ? (
+            <p className="text-center text-xs text-raido-redGlow" role="alert">
+              {actionError}
+            </p>
+          ) : null}
 
-      {/* Player band: board - hero medallion flanked by deck/discard (left) and Resonance (right,
-          the only side we ever have real Resonance data for - see ResonanceMeter). */}
-      <section className={clsx('flex flex-col gap-1 lg:gap-1.5', styles.plyBand)} data-drop-zone="board">
-        <CreatureRow
-          units={you.board}
-          selectedInstanceId={selection?.kind === 'unit' ? selection.instanceId : null}
-          readyAttackerIds={readyAttackers}
-          targetableIds={ownTargetable ? new Set(you.board.map((u) => u.instanceId)) : undefined}
-          hasActiveSelection={ownTargetable}
-          interactiveIds={ownInteractive}
-          onSelect={onSelectOwnUnit}
-          feedbackByTarget={feedbackByTarget}
-          deathToasts={ownDeathToasts}
-          dropZonePrefix="own"
-        />
-        {you.runeCardIds.length > 0 ? (
-          <div className="flex items-center justify-between">
-            <RuneZone runeCardIds={you.runeCardIds} cardsById={cardsById} pulseKey={ownRunePulse} />
-          </div>
-        ) : null}
-        <div className="flex items-end justify-between gap-2 lg:gap-3">
-          <div className="flex gap-2 lg:gap-3">
-            <DeckPile count={you.deckCount} label="Колода" />
-            <DiscardPile count={you.discardCount} label="Сброс" />
-          </div>
-          <ConductorPanel
-            player={you}
-            name="Ты"
-            icon="player"
-            align="right"
-            targetable={ownTargetable}
-            onTap={onTapOwnConductor}
-            feedback={feedbackByTarget.get(`conductor:${you.playerId}`) ?? []}
-            rank={viewerRank}
-            tutorialTarget="own-conductor"
-            active={isMyTurn}
-            dropZone="own-conductor"
-            side="player"
-          />
-          <ResonanceMeter
-            tier={resonanceHeat}
-            triggerKey={resonanceTriggerKey}
-            align="right"
-            className="w-20 sm:w-32 lg:w-48"
-          />
-        </div>
-      </section>
-
-      <section className={clsx('flex flex-col gap-1.5', styles.handSection)}>
-        <HandFan
-          cards={you.hand}
-          energy={you.energy}
-          previewedInstanceId={previewedInstanceId}
-          disabled={!isMyTurn || pending}
-          onTogglePreview={togglePreview}
-          onPlayByDrag={playByDrag}
-        />
-
-        {actionError ? (
-          <p className="text-center text-xs text-raido-redGlow" role="alert">
-            {actionError}
-          </p>
-        ) : null}
-
-        <div className="flex gap-2">
           {selection?.kind === 'hand' ? (
-            <Button variant="secondary" onClick={onConfirmPlayNoTarget} disabled={pending} className="flex-1">
+            <Button variant="secondary" onClick={onConfirmPlayNoTarget} disabled={pending} className="w-full">
               Сыграть без цели
             </Button>
           ) : null}
-          <EndTurnArtifact
-            onClick={onEndTurn}
-            disabled={!isMyTurn || pending}
-            pending={pending}
-            isMyTurn={isMyTurn}
-            className="flex-1"
-          />
+        </section>
+
+        {/* Kept as its own `.stage` child (not nested in `.handSection`, which is itself
+            `position:absolute` at lg) specifically so its `.endTurnSlot` percentages resolve
+            against `.stage` - the illustrated asset's own coordinate system - rather than against
+            handSection's much smaller box. Mobile: a plain full-width block right below the hand
+            controls (same visual neighborhood as before, just its own row instead of sharing one
+            with "Сыграть без цели"). Desktop: anchored over the illustrated right-side machinery. */}
+        <div className={styles.endTurnSlot}>
+          <EndTurnArtifact onClick={onEndTurn} disabled={!isMyTurn || pending} pending={pending} isMyTurn={isMyTurn} />
         </div>
-      </section>
+      </div>
 
       <HandCardPreview
         card={previewCard}
