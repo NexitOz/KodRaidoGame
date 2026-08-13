@@ -75,12 +75,18 @@
   transform: translate(-50%, -50%);
   z-index: 6;
 }
+/* The painted lane housing is taller than a real creature card (aspect-[3/4] at this width) - flex
+   + center keeps cards sitting mid-housing instead of pinned to its top edge, without touching
+   card width, the 5-column grid, or any drop-zone geometry (CreatureRow's own markup is unchanged,
+   this only centers it within the box it was already given). */
 .oppLane {
   position: absolute;
   left: 5%;
   top: 22%;
   width: 90%;
   height: 18%;
+  display: flex;
+  align-items: center;
 }
 
 .coreSlot {
@@ -99,6 +105,8 @@
   top: 55%;
   width: 90%;
   height: 17%;
+  display: flex;
+  align-items: center;
 }
 .plyRuneSlot {
   position: absolute;
@@ -135,12 +143,15 @@
   z-index: 4;
 }
 
+/* Re-measured directly against the source artwork's real pixels (not the earlier percentage
+   grid-read, which overestimated height and put the button's text past both the painted ring and
+   the viewport edge) - the mechanism is a ~170px circle centered near (760, 860) of 852x1846. */
 .endTurnSlot {
   position: absolute;
   left: 87%;
   top: 47%;
-  width: 20%;
-  height: 14%;
+  width: 19%;
+  height: 9%;
   transform: translate(-50%, -50%);
   z-index: 7;
 }
