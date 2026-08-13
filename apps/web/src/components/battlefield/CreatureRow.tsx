@@ -15,6 +15,9 @@ export interface CreatureRowProps {
   onSelect?: (unit: UnitInstanceView) => void;
   feedbackByTarget: Map<string, FeedbackItem[]>;
   deathToasts: DeathToast[];
+  /** Marks each slot as a drag-and-drop target for playing a hand card ("own"/"enemy" board) -
+   * omit to leave the row out of the drop-zone map entirely (not currently needed anywhere). */
+  dropZonePrefix?: 'own' | 'enemy';
 }
 
 export function CreatureRow({
@@ -27,6 +30,7 @@ export function CreatureRow({
   onSelect,
   feedbackByTarget,
   deathToasts,
+  dropZonePrefix,
 }: CreatureRowProps) {
   const slots = Array.from({ length: MAX_BOARD_UNITS }, (_, i) => units[i] ?? null);
 
@@ -45,17 +49,29 @@ export function CreatureRow({
         </div>
       ) : null}
       {slots.map((unit, i) => (
-        <CreatureSlot
+        <div
           key={unit?.instanceId ?? `empty-${i}`}
-          unit={unit}
-          interactive={unit ? interactiveIds?.has(unit.instanceId) : false}
-          selected={unit ? selectedInstanceId === unit.instanceId : false}
-          readyToAttack={unit ? readyAttackerIds?.has(unit.instanceId) : false}
-          targetable={unit ? targetableIds?.has(unit.instanceId) : false}
-          dimmed={hasActiveSelection}
-          onSelect={onSelect}
-          feedback={unit ? (feedbackByTarget.get(`unit:${unit.instanceId}`) ?? []) : []}
-        />
+          data-drop-zone={
+            dropZonePrefix
+              ? unit
+                ? `${dropZonePrefix}-unit:${unit.instanceId}`
+                : dropZonePrefix === 'own'
+                  ? 'own-empty'
+                  : undefined
+              : undefined
+          }
+        >
+          <CreatureSlot
+            unit={unit}
+            interactive={unit ? interactiveIds?.has(unit.instanceId) : false}
+            selected={unit ? selectedInstanceId === unit.instanceId : false}
+            readyToAttack={unit ? readyAttackerIds?.has(unit.instanceId) : false}
+            targetable={unit ? targetableIds?.has(unit.instanceId) : false}
+            dimmed={hasActiveSelection}
+            onSelect={onSelect}
+            feedback={unit ? (feedbackByTarget.get(`unit:${unit.instanceId}`) ?? []) : []}
+          />
+        </div>
       ))}
     </div>
   );

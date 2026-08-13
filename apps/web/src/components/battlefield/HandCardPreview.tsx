@@ -14,7 +14,17 @@ const TYPE_LABEL: Record<Card['type'], string> = {
   EDIT: 'Эдит',
 };
 
-export function HandCardPreview({ card, onClose }: { card: Card | null; onClose: () => void }) {
+export interface HandCardPreviewProps {
+  card: Card | null;
+  onClose: () => void;
+  /** Arms the previewed card via the existing PLAY_CARD selection flow (same as press-hold +
+   * drag + release from the hand) and closes the preview - the keyboard/no-drag fallback path,
+   * since a tap on the hand card itself now only opens/closes this preview. Undefined when there
+   * is nothing to play (`card` is null). */
+  onPlay?: () => void;
+}
+
+export function HandCardPreview({ card, onClose, onPlay }: HandCardPreviewProps) {
   useEffect(() => {
     if (!card) return undefined;
     function onKey(e: KeyboardEvent) {
@@ -40,11 +50,18 @@ export function HandCardPreview({ card, onClose }: { card: Card | null; onClose:
         className="max-h-[80dvh] w-full max-w-sm overflow-y-auto rounded-t-3xl border border-white/10 bg-raido-graphite p-5 md:rounded-3xl"
       >
         <div className="mb-4 flex items-start gap-4">
-          <img
-            src={card.artworkUrl}
-            alt=""
-            className={clsx('h-36 w-28 flex-shrink-0 rounded-xl border object-cover', RARITY_FRAME_CLASS[card.rarity])}
-          />
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Закрыть просмотр карты"
+            className="flex-shrink-0 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-raido-red"
+          >
+            <img
+              src={card.artworkUrl}
+              alt=""
+              className={clsx('h-36 w-28 rounded-xl border object-cover', RARITY_FRAME_CLASS[card.rarity])}
+            />
+          </button>
           <div className="flex flex-1 flex-col gap-1.5">
             <h2 className="font-display text-lg font-bold">{card.name}</h2>
             <p className="text-xs uppercase tracking-wide text-raido-mist">
@@ -83,13 +100,27 @@ export function HandCardPreview({ card, onClose }: { card: Card | null; onClose:
           </p>
         ) : null}
 
-        <button
-          type="button"
-          onClick={onClose}
-          className="w-full rounded-full bg-raido-steel py-2.5 text-sm text-raido-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-raido-red"
-        >
-          Закрыть
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex-1 rounded-full bg-raido-steel py-2.5 text-sm text-raido-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-raido-red"
+          >
+            Закрыть
+          </button>
+          {onPlay ? (
+            <button
+              type="button"
+              onClick={onPlay}
+              className="flex-1 rounded-full bg-raido-red py-2.5 text-sm font-semibold text-raido-white shadow-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-raido-red"
+            >
+              Сыграть
+            </button>
+          ) : null}
+        </div>
+        <p className="mt-2 text-center text-[11px] text-raido-mist">
+          Зажмите карту в руке и перетащите на поле, чтобы сыграть напрямую
+        </p>
       </div>
     </div>
   );

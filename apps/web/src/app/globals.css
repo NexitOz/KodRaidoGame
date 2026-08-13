@@ -25,6 +25,16 @@ body {
   @apply bg-raido-red/40 text-raido-white;
 }
 
+/* Drag-to-play hover cue: applied imperatively (not via React state/props) to whichever
+   `[data-drop-zone]` element is under the pointer while a hand card is being dragged - see
+   apps/web/src/lib/use-drag-to-play.ts. Outline rather than a box-shadow/ring class so it never
+   fights each drop target's own border-radius/selected-state styling. */
+.drag-hover-target {
+  outline: 3px solid rgba(52, 211, 153, 0.85);
+  outline-offset: 2px;
+  filter: brightness(1.15);
+}
+
 /* Low Data Mode turns off continuous decorative glow/particle loops to save battery/CPU on
    low-end devices. Short one-shot combat feedback (damage numbers, turn banner, hit flash) stays
    on even in Low Data Mode — it's the primary way a player reads match state, not decoration. */

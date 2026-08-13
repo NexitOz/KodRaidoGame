@@ -3,7 +3,7 @@
 import clsx from 'clsx';
 import type { Card } from '@kod-raido/shared';
 import { CardView } from '@kod-raido/ui';
-import { useLongPress } from '@/lib/use-long-press';
+import { useDragToPlay } from '@/lib/use-drag-to-play';
 import { playSfx } from '@/lib/sfx';
 
 export interface HandCardEntry {
@@ -14,10 +14,17 @@ export interface HandCardEntry {
 export interface HandFanProps {
   cards: HandCardEntry[];
   energy: number;
-  selectedInstanceId?: string | null;
+  /** Which card (if any) currently has its enlarged preview open - a second tap on this same
+   * card closes it. */
+  previewedInstanceId?: string | null;
   disabled?: boolean;
-  onSelect: (instanceId: string, cost: number) => void;
-  onPreview: (card: Card) => void;
+  /** Plain tap: opens/closes the enlarged preview. Never plays the card by itself anymore -
+   * playing is press-hold + drag + release onto the battlefield (see `onPlayByDrag`). */
+  onTogglePreview: (card: Card, instanceId: string) => void;
+  /** Drop resolution from a completed drag: `zone` is the `data-drop-zone` value under the
+   * release point (an empty/occupied board slot, a conductor, the general board area), or null
+   * if released somewhere that isn't a valid target - callers should treat null as "cancelled". */
+  onPlayByDrag: (instanceId: string, cost: number, zone: string | null) => void;
 }
 
 const ANGLE_STEP_DEG = 5;
@@ -33,8 +40,27 @@ const HAND_TUTORIAL_TARGET: Partial<Record<Card['type'], string>> = {
   EVENT: 'hand-event',
 };
 
-export function HandFan({ cards, energy, selectedInstanceId, disabled, onSelect, onPreview }: HandFanProps) {
+export function HandFan({
+  cards,
+  energy,
+  previewedInstanceId,
+  disabled,
+  onTogglePreview,
+  onPlayByDrag,
+}: HandFanProps) {
   const center = (cards.length - 1) / 2;
+
+  const { dragCard, ghostRef, bind } = useDragToPlay({
+    disabled,
+    onTap: (card, instanceId) => {
+      playSfx('card-select');
+      onTogglePreview(card, instanceId);
+    },
+    onDrop: (instanceId, cost, zone) => {
+      if (zone) playSfx('card-select');
+      onPlayByDrag(instanceId, cost, zone);
+    },
+  });
 
   return (
     <div
@@ -50,17 +76,24 @@ export function HandFan({ cards, energy, selectedInstanceId, disabled, onSelect,
             offsetFromCenter={i - center}
             marginLeft={i === 0 ? 0 : -OVERLAP_PX}
             zIndex={i}
-            selected={selectedInstanceId === instanceId}
+            previewed={previewedInstanceId === instanceId}
+            dragging={dragCard?.instanceId === instanceId}
             affordable={card.cost <= energy}
             disabled={disabled}
-            onSelect={() => {
-              playSfx('card-select');
-              onSelect(instanceId, card.cost);
-            }}
-            onPreview={() => onPreview(card)}
+            bind={bind(card, instanceId, card.cost)}
           />
         ))}
       </div>
+
+      {dragCard ? (
+        <div
+          ref={ghostRef}
+          aria-hidden
+          className="pointer-events-none fixed left-0 top-0 z-[70] w-24 -translate-x-1/2 -translate-y-[65%] scale-110 opacity-95 drop-shadow-[0_12px_24px_rgba(0,0,0,0.6)]"
+        >
+          <CardView card={dragCard.card} size="xs" />
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -70,11 +103,13 @@ interface HandCardItemProps {
   offsetFromCenter: number;
   marginLeft: number;
   zIndex: number;
-  selected: boolean;
+  previewed: boolean;
+  dragging: boolean;
   affordable: boolean;
   disabled?: boolean;
-  onSelect: () => void;
-  onPreview: () => void;
+  bind: {
+    onPointerDown: (e: React.PointerEvent) => void;
+  };
 }
 
 function HandCardItem({
@@ -82,57 +117,41 @@ function HandCardItem({
   offsetFromCenter,
   marginLeft,
   zIndex,
-  selected,
+  previewed,
+  dragging,
   affordable,
   disabled,
-  onSelect,
-  onPreview,
+  bind,
 }: HandCardItemProps) {
-  const longPress = useLongPress(onPreview);
-
   return (
     <div
       role="listitem"
       className={clsx(
-        'relative shrink-0 transition-transform duration-150 ease-out',
-        selected && '[filter:drop-shadow(0_0_10px_rgba(255,45,85,0.5))]',
+        'relative shrink-0 touch-none transition-transform duration-150 ease-out',
+        previewed && '[filter:drop-shadow(0_0_10px_rgba(255,45,85,0.5))]',
+        dragging && 'opacity-30',
       )}
       style={{
         marginLeft,
-        zIndex: selected ? 100 : zIndex,
-        transform: selected
+        zIndex: previewed ? 100 : zIndex,
+        transform: previewed
           ? 'translateY(-18px) scale(1.06) rotate(0deg)'
           : `translateY(${Math.abs(offsetFromCenter) * ARC_STEP_PX}px) rotate(${offsetFromCenter * ANGLE_STEP_DEG}deg)`,
       }}
-      onPointerDown={longPress.onPointerDown}
-      onPointerUp={longPress.onPointerUp}
-      onPointerLeave={longPress.onPointerLeave}
-      onPointerCancel={longPress.onPointerCancel}
-      onClickCapture={longPress.onClickCapture}
+      {...bind}
+      aria-label={`${card.name}: нажмите для просмотра, зажмите и перетащите на поле чтобы сыграть`}
       data-tutorial-target={HAND_TUTORIAL_TARGET[card.type]}
     >
       <CardView
         card={card}
         size="xs"
-        onSelect={disabled ? undefined : onSelect}
         className={clsx(
           'animate-card-in',
-          selected && 'ring-2 ring-raido-red',
+          previewed && 'ring-2 ring-raido-red',
           !affordable && 'opacity-40',
           disabled && 'pointer-events-none',
         )}
       />
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onPreview();
-        }}
-        aria-label={`Просмотреть карту: ${card.name}`}
-        className="absolute right-0.5 top-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-xs text-raido-white ring-1 ring-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-raido-red"
-      >
-        ℹ
-      </button>
     </div>
   );
 }

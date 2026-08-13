@@ -59,8 +59,9 @@ export function CardView({ card, size = 'md', trending, onSelect, className }: C
         <img
           src={card.artworkUrl}
           alt={card.name}
-          className="h-full w-full object-cover opacity-90 transition-transform duration-300 group-hover:scale-[1.04] group-hover:opacity-100"
+          className="h-full w-full select-none object-cover opacity-90 transition-transform duration-300 group-hover:scale-[1.04] group-hover:opacity-100"
           loading="lazy"
+          draggable={false}
         />
         <div className={clsx('absolute inset-x-0 top-0 flex items-center justify-between', size === 'xs' ? 'p-1' : 'p-2')}>
           <span

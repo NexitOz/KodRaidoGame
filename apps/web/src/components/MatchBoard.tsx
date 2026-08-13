@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
 import type {
@@ -32,6 +32,7 @@ import { ArenaCore } from './battlefield/arena/ArenaCore';
 import { DeckPile } from './battlefield/arena/DeckPile';
 import { DiscardPile } from './battlefield/arena/DiscardPile';
 import { EndTurnArtifact } from './battlefield/arena/EndTurnArtifact';
+import { ResonanceMeter } from './battlefield/arena/ResonanceMeter';
 import styles from './MatchBoard.module.css';
 
 export type MatchSelection =
@@ -110,7 +111,68 @@ export function MatchBoard({
     feedbackByTarget.set(item.target, list);
   }
 
+  // Enlarged card preview: a plain tap on a hand card opens it, tapping it again (or the artwork
+  // inside the modal) closes it. Independent from `selection` - previewing never arms a card.
   const [previewCard, setPreviewCard] = useState<Card | null>(null);
+  const [previewedInstanceId, setPreviewedInstanceId] = useState<string | null>(null);
+
+  function togglePreview(card: Card, instanceId: string) {
+    if (previewedInstanceId === instanceId) {
+      setPreviewCard(null);
+      setPreviewedInstanceId(null);
+    } else {
+      setPreviewCard(card);
+      setPreviewedInstanceId(instanceId);
+    }
+  }
+
+  function closePreview() {
+    setPreviewCard(null);
+    setPreviewedInstanceId(null);
+  }
+
+  /** Maps a completed drag's `data-drop-zone` string to the existing (unchanged) targeting
+   * handlers - a drag never introduces a new gameplay action, it only chooses which of the
+   * already-existing handlers a single gesture ends up calling. */
+  function resolveDropZone(zone: string) {
+    if (zone === 'own-conductor') return onTapOwnConductor();
+    if (zone === 'enemy-conductor') return onTapEnemyConductor();
+    if (zone.startsWith('own-unit:')) {
+      const unit = you.board.find((u) => u.instanceId === zone.slice('own-unit:'.length));
+      return unit ? onSelectOwnUnit(unit) : onConfirmPlayNoTarget();
+    }
+    if (zone.startsWith('enemy-unit:')) {
+      const unit = opponent.board.find((u) => u.instanceId === zone.slice('enemy-unit:'.length));
+      return unit ? onTapEnemyUnit(unit) : onConfirmPlayNoTarget();
+    }
+    // 'own-empty' (character summon) or the generic 'board' catch-all (no explicit target).
+    return onConfirmPlayNoTarget();
+  }
+
+  // `onSelectHand` (arm) and the target handlers both read `selection` from the parent page's own
+  // state, one render apart - a drag's "arm, then resolve" has to be sequenced across that render
+  // boundary too, via this ref + effect, rather than calling both in the same tick.
+  const pendingDropZoneRef = useRef<string | null>(null);
+
+  function playByDrag(instanceId: string, cost: number, zone: string | null) {
+    if (!zone) return; // released somewhere that isn't a valid target - cancel, arm nothing
+    if (selection?.kind === 'hand' && selection.instanceId === instanceId) {
+      // Already armed (e.g. a previous drag's play attempt errored out) - resolve immediately,
+      // re-arming would toggle it off instead.
+      resolveDropZone(zone);
+      return;
+    }
+    pendingDropZoneRef.current = zone;
+    onSelectHand(instanceId, cost);
+  }
+
+  useEffect(() => {
+    const zone = pendingDropZoneRef.current;
+    if (!zone || selection?.kind !== 'hand') return;
+    pendingDropZoneRef.current = null;
+    resolveDropZone(zone);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selection]);
 
   const resonanceHeat = computeViewerResonanceHeat(view);
   const opponentDeathToasts = deathToasts.filter((d) => d.ownerId === opponent.playerId);
@@ -119,7 +181,7 @@ export function MatchBoard({
   const ownRunePulse = runeTriggerKey?.playerId === you.playerId ? runeTriggerKey.key : 0;
 
   return (
-    <ArenaSurface isMyTurn={isMyTurn} className={clsx('mx-auto w-full pb-20', styles.board)}>
+    <ArenaSurface isMyTurn={isMyTurn} className={clsx('mx-auto w-full pb-24', styles.board)}>
       <TurnOverlay activePlayerId={view.activePlayerId} isMyTurn={isMyTurn} />
 
       <header className={clsx('flex items-center justify-between text-xs text-raido-mist', styles.header)}>
@@ -136,20 +198,26 @@ export function MatchBoard({
 
       <div className={styles.banner}>{banner}</div>
 
-      <section className={clsx('flex flex-col gap-1.5', styles.oppStatus)}>
-        <ConductorPanel
-          player={opponent}
-          name={opponentName}
-          icon={opponentIcon}
-          align="left"
-          targetable={targetingEnemy}
-          onTap={onTapEnemyConductor}
-          feedback={feedbackByTarget.get(`conductor:${opponent.playerId}`) ?? []}
-          active={!isMyTurn}
-        />
-      </section>
-
-      <section className={clsx('flex flex-col gap-1.5', styles.oppContent)}>
+      {/* Opponent band: deck/discard (left) - hero medallion (center) - hand backs + board below. */}
+      <section className={clsx('flex flex-col gap-2', styles.oppBand)} data-drop-zone="board">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex gap-2">
+            <DeckPile count={opponent.deckCount} label="Колода" />
+            <DiscardPile count={opponent.discardCount} label="Сброс" />
+          </div>
+          <ConductorPanel
+            player={opponent}
+            name={opponentName}
+            icon={opponentIcon}
+            align="left"
+            targetable={targetingEnemy}
+            onTap={onTapEnemyConductor}
+            feedback={feedbackByTarget.get(`conductor:${opponent.playerId}`) ?? []}
+            active={!isMyTurn}
+            dropZone="enemy-conductor"
+          />
+          <div className="w-16 lg:w-24" aria-hidden />
+        </div>
         <div className="flex items-center justify-between">
           <OpponentHandBacks count={opponent.handCount} />
           <RuneZone runeCardIds={opponent.runeCardIds} cardsById={cardsById} pulseKey={opponentRunePulse} />
@@ -162,20 +230,19 @@ export function MatchBoard({
           onSelect={onTapEnemyUnit}
           feedbackByTarget={feedbackByTarget}
           deathToasts={opponentDeathToasts}
+          dropZonePrefix="enemy"
         />
-        <div className="flex items-center gap-3">
-          <DeckPile count={opponent.deckCount} />
-          <DiscardPile count={opponent.discardCount} />
-        </div>
       </section>
 
-      <section className={clsx('relative flex items-center justify-center py-1', styles.core)} data-tutorial-target="resonance">
+      <section className={clsx('relative flex items-center justify-center py-1', styles.core)} data-tutorial-target="resonance" data-drop-zone="board">
         <ArenaCore tier={resonanceHeat} triggerKey={resonanceTriggerKey} isMyTurn={isMyTurn} />
         <TrackZone trigger={cardPlayTrigger} cardsById={cardsById} />
         <CardPlayReveal trigger={cardPlayTrigger} cardsById={cardsById} />
       </section>
 
-      <section className={clsx('flex flex-col gap-1.5', styles.plyContent)}>
+      {/* Player band: board - hero medallion flanked by deck/discard (left) and Resonance (right,
+          the only side we ever have real Resonance data for - see ResonanceMeter). */}
+      <section className={clsx('flex flex-col gap-2', styles.plyBand)} data-drop-zone="board">
         <CreatureRow
           units={you.board}
           selectedInstanceId={selection?.kind === 'unit' ? selection.instanceId : null}
@@ -186,39 +253,46 @@ export function MatchBoard({
           onSelect={onSelectOwnUnit}
           feedbackByTarget={feedbackByTarget}
           deathToasts={ownDeathToasts}
+          dropZonePrefix="own"
         />
         <div className="flex items-center justify-between">
           <RuneZone runeCardIds={you.runeCardIds} cardsById={cardsById} pulseKey={ownRunePulse} />
-          <div className="flex items-center gap-3">
-            <DeckPile count={you.deckCount} align="right" />
-            <DiscardPile count={you.discardCount} align="right" />
-          </div>
         </div>
-      </section>
-
-      <section className={clsx('flex flex-col gap-1.5', styles.plyStatus)}>
-        <ConductorPanel
-          player={you}
-          name="Ты"
-          icon="player"
-          align="right"
-          targetable={ownTargetable}
-          onTap={onTapOwnConductor}
-          feedback={feedbackByTarget.get(`conductor:${you.playerId}`) ?? []}
-          rank={viewerRank}
-          tutorialTarget="own-conductor"
-          active={isMyTurn}
-        />
+        <div className="flex items-end justify-between gap-2">
+          <div className="flex gap-2">
+            <DeckPile count={you.deckCount} label="Колода" />
+            <DiscardPile count={you.discardCount} label="Сброс" />
+          </div>
+          <ConductorPanel
+            player={you}
+            name="Ты"
+            icon="player"
+            align="right"
+            targetable={ownTargetable}
+            onTap={onTapOwnConductor}
+            feedback={feedbackByTarget.get(`conductor:${you.playerId}`) ?? []}
+            rank={viewerRank}
+            tutorialTarget="own-conductor"
+            active={isMyTurn}
+            dropZone="own-conductor"
+          />
+          <ResonanceMeter
+            tier={resonanceHeat}
+            triggerKey={resonanceTriggerKey}
+            align="right"
+            className="w-16 lg:w-24"
+          />
+        </div>
       </section>
 
       <section className={clsx('flex flex-col gap-1.5', styles.handSection)}>
         <HandFan
           cards={you.hand}
           energy={you.energy}
-          selectedInstanceId={selection?.kind === 'hand' ? selection.instanceId : null}
+          previewedInstanceId={previewedInstanceId}
           disabled={!isMyTurn || pending}
-          onSelect={onSelectHand}
-          onPreview={setPreviewCard}
+          onTogglePreview={togglePreview}
+          onPlayByDrag={playByDrag}
         />
 
         {actionError ? (
@@ -243,7 +317,18 @@ export function MatchBoard({
         </div>
       </section>
 
-      <HandCardPreview card={previewCard} onClose={() => setPreviewCard(null)} />
+      <HandCardPreview
+        card={previewCard}
+        onClose={closePreview}
+        onPlay={
+          previewCard && previewedInstanceId
+            ? () => {
+                onSelectHand(previewedInstanceId, previewCard.cost);
+                closePreview();
+              }
+            : undefined
+        }
+      />
 
       {view.finished ? (
         <ResultModal won={view.winnerId === you.playerId} rewards={rewards} rematchHref={rematchHref} />

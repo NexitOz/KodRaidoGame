@@ -1,20 +1,25 @@
-/* Battlefield Visual Foundation (Phase A) — responsive grid restructure of the SAME component
-   tree (no duplicate gameplay components). Mobile keeps the exact visual order the board already
-   had; the desktop breakpoint reorders the same DOM into a wider layout with hero portraits
-   flanking the board, closer to the reference art direction, without inventing new UI. */
+/* Battlefield Visual Upgrade (desktop reference pass) — the board stays a single flowing column
+   at every breakpoint (matching the reference's own composition: opponent band on top, a shared
+   Arena Core on the seam, player band on the bottom, hand at the base) with each band's own
+   internal layout (deck/discard - hero - resonance) doing the real reference-matching work.
+   Desktop just widens the same column and grows the internal spacing/medallion sizes - it never
+   duplicates the gameplay component tree. */
 
 .board {
   display: grid;
   gap: 0.5rem;
-  grid-template-columns: 1fr;
+  /* minmax(0, 1fr), not plain 1fr - a bare 1fr track still respects its content's min-content
+     width, so a band row packed with fixed-size children (hero medallion, deck/discard, the
+     Resonance meter) could force the whole board wider than the viewport on narrow phones
+     instead of letting those rows shrink/wrap. */
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   grid-template-areas:
     'header'
     'banner'
-    'opp-status'
-    'opp-content'
+    'opp-band'
     'core'
-    'ply-content'
-    'ply-status'
+    'ply-band'
     'hand-section';
 }
 
@@ -24,20 +29,14 @@
 .banner {
   grid-area: banner;
 }
-.oppStatus {
-  grid-area: opp-status;
-}
-.oppContent {
-  grid-area: opp-content;
+.oppBand {
+  grid-area: opp-band;
 }
 .core {
   grid-area: core;
 }
-.plyContent {
-  grid-area: ply-content;
-}
-.plyStatus {
-  grid-area: ply-status;
+.plyBand {
+  grid-area: ply-band;
 }
 .handSection {
   grid-area: hand-section;
@@ -45,15 +44,15 @@
 
 @media (min-width: 1024px) {
   .board {
-    max-width: 64rem;
+    max-width: 60rem;
     gap: 1rem;
-    grid-template-columns: 1fr 15rem;
-    grid-template-areas:
-      'header header'
-      'banner banner'
-      'opp-content opp-status'
-      'core core'
-      'ply-content ply-status'
-      'hand-section hand-section';
+    padding-left: 0.5rem;
+    padding-right: 4.5rem; /* keeps content clear of the floating circular End Turn artifact */
+  }
+}
+
+@media (min-width: 1440px) {
+  .board {
+    max-width: 68rem;
   }
 }
