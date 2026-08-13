@@ -35,7 +35,7 @@ export function CreatureRow({
   const slots = Array.from({ length: MAX_BOARD_UNITS }, (_, i) => units[i] ?? null);
 
   return (
-    <div className="relative grid grid-cols-5 gap-1.5">
+    <div className="relative mx-auto grid w-full max-w-md grid-cols-5 gap-1 sm:gap-2 lg:max-w-lg lg:gap-2">
       {deathToasts.length > 0 ? (
         <div
           className="pointer-events-none absolute -top-3 left-1/2 z-10 flex -translate-x-1/2 items-center gap-1 rounded-full bg-black/80 px-2 py-1"

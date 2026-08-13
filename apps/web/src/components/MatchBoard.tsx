@@ -181,7 +181,7 @@ export function MatchBoard({
   const ownRunePulse = runeTriggerKey?.playerId === you.playerId ? runeTriggerKey.key : 0;
 
   return (
-    <ArenaSurface isMyTurn={isMyTurn} className={clsx('mx-auto w-full pb-24', styles.board)}>
+    <ArenaSurface isMyTurn={isMyTurn} className={clsx('mx-auto w-full pb-24 lg:pb-2', styles.board)}>
       <TurnOverlay activePlayerId={view.activePlayerId} isMyTurn={isMyTurn} />
 
       <header className={clsx('flex items-center justify-between text-xs text-raido-mist', styles.header)}>
@@ -199,9 +199,9 @@ export function MatchBoard({
       <div className={styles.banner}>{banner}</div>
 
       {/* Opponent band: deck/discard (left) - hero medallion (center) - hand backs + board below. */}
-      <section className={clsx('flex flex-col gap-2', styles.oppBand)} data-drop-zone="board">
-        <div className="flex items-start justify-between gap-2">
-          <div className="flex gap-2">
+      <section className={clsx('flex flex-col gap-1 lg:gap-1.5', styles.oppBand)} data-drop-zone="board">
+        <div className="flex items-start justify-between gap-2 lg:gap-3">
+          <div className="flex gap-2 lg:gap-3">
             <DeckPile count={opponent.deckCount} label="Колода" />
             <DiscardPile count={opponent.discardCount} label="Сброс" />
           </div>
@@ -215,12 +215,12 @@ export function MatchBoard({
             feedback={feedbackByTarget.get(`conductor:${opponent.playerId}`) ?? []}
             active={!isMyTurn}
             dropZone="enemy-conductor"
+            side="opponent"
           />
-          <div className="w-16 lg:w-24" aria-hidden />
-        </div>
-        <div className="flex items-center justify-between">
-          <OpponentHandBacks count={opponent.handCount} />
-          <RuneZone runeCardIds={opponent.runeCardIds} cardsById={cardsById} pulseKey={opponentRunePulse} />
+          <div className="flex w-20 flex-col items-end gap-1 sm:w-32 lg:w-48">
+            <OpponentHandBacks count={opponent.handCount} />
+            <RuneZone runeCardIds={opponent.runeCardIds} cardsById={cardsById} pulseKey={opponentRunePulse} />
+          </div>
         </div>
         <CreatureRow
           units={opponent.board}
@@ -234,7 +234,7 @@ export function MatchBoard({
         />
       </section>
 
-      <section className={clsx('relative flex items-center justify-center py-1', styles.core)} data-tutorial-target="resonance" data-drop-zone="board">
+      <section className={clsx('relative flex items-center justify-center py-0 lg:py-0', styles.core)} data-tutorial-target="resonance" data-drop-zone="board">
         <ArenaCore tier={resonanceHeat} triggerKey={resonanceTriggerKey} isMyTurn={isMyTurn} />
         <TrackZone trigger={cardPlayTrigger} cardsById={cardsById} />
         <CardPlayReveal trigger={cardPlayTrigger} cardsById={cardsById} />
@@ -242,7 +242,7 @@ export function MatchBoard({
 
       {/* Player band: board - hero medallion flanked by deck/discard (left) and Resonance (right,
           the only side we ever have real Resonance data for - see ResonanceMeter). */}
-      <section className={clsx('flex flex-col gap-2', styles.plyBand)} data-drop-zone="board">
+      <section className={clsx('flex flex-col gap-1 lg:gap-1.5', styles.plyBand)} data-drop-zone="board">
         <CreatureRow
           units={you.board}
           selectedInstanceId={selection?.kind === 'unit' ? selection.instanceId : null}
@@ -255,11 +255,13 @@ export function MatchBoard({
           deathToasts={ownDeathToasts}
           dropZonePrefix="own"
         />
-        <div className="flex items-center justify-between">
-          <RuneZone runeCardIds={you.runeCardIds} cardsById={cardsById} pulseKey={ownRunePulse} />
-        </div>
-        <div className="flex items-end justify-between gap-2">
-          <div className="flex gap-2">
+        {you.runeCardIds.length > 0 ? (
+          <div className="flex items-center justify-between">
+            <RuneZone runeCardIds={you.runeCardIds} cardsById={cardsById} pulseKey={ownRunePulse} />
+          </div>
+        ) : null}
+        <div className="flex items-end justify-between gap-2 lg:gap-3">
+          <div className="flex gap-2 lg:gap-3">
             <DeckPile count={you.deckCount} label="Колода" />
             <DiscardPile count={you.discardCount} label="Сброс" />
           </div>
@@ -275,12 +277,13 @@ export function MatchBoard({
             tutorialTarget="own-conductor"
             active={isMyTurn}
             dropZone="own-conductor"
+            side="player"
           />
           <ResonanceMeter
             tier={resonanceHeat}
             triggerKey={resonanceTriggerKey}
             align="right"
-            className="w-16 lg:w-24"
+            className="w-20 sm:w-32 lg:w-48"
           />
         </div>
       </section>

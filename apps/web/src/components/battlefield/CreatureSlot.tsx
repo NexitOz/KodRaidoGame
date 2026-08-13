@@ -60,14 +60,36 @@ export function CreatureSlot({
     return (
       <div
         aria-hidden="true"
-        className="relative flex aspect-[3/4] w-full flex-col items-center justify-center overflow-hidden rounded-lg border border-dashed border-white/10 bg-white/[0.02] [box-shadow:inset_0_2px_10px_rgba(0,0,0,0.55)]"
+        className="relative flex aspect-[3/4] w-full flex-col items-center justify-center overflow-hidden rounded-lg border border-raido-gold/10 bg-gradient-to-b from-black/60 to-raido-black [box-shadow:inset_0_4px_14px_rgba(0,0,0,0.75),inset_0_-2px_8px_rgba(0,0,0,0.5)]"
       >
-        {/* Empty slots read as a carved-out cavity in the arena stone, not a floating box. */}
-        <span
+        {/* Recessed stone plate look - a physical socket carved into the arena, not a dashed
+            placeholder box. */}
+        <div
           aria-hidden
-          className="pointer-events-none absolute inset-1.5 rounded-md border border-white/[0.04]"
+          className="pointer-events-none absolute inset-1.5 rounded-md border border-raido-gold/10"
+          style={{ backgroundImage: 'radial-gradient(circle at 50% 42%, rgba(217,180,106,0.05), transparent 65%)' }}
         />
-        <span className="text-lg text-white/[0.08]">ᚱ</span>
+        {/* Engraved rune-circle sigil - idle, faction-neutral, low glow. */}
+        <svg aria-hidden viewBox="0 0 100 100" className="pointer-events-none absolute h-3/5 w-3/5 text-raido-gold/15">
+          <circle cx="50" cy="50" r="42" stroke="currentColor" strokeWidth="1" fill="none" />
+          <circle cx="50" cy="50" r="30" stroke="currentColor" strokeWidth="0.5" fill="none" strokeDasharray="2 4" />
+          {Array.from({ length: 6 }).map((_, i) => {
+            const angle = (i / 6) * 2 * Math.PI;
+            const x1 = 50 + Math.cos(angle) * 30;
+            const y1 = 50 + Math.sin(angle) * 30;
+            const x2 = 50 + Math.cos(angle) * 42;
+            const y2 = 50 + Math.sin(angle) * 42;
+            return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="currentColor" strokeWidth="0.5" />;
+          })}
+        </svg>
+        <span className="relative text-2xl text-raido-gold/20" style={{ fontFamily: 'serif' }}>
+          ᚱ
+        </span>
+        {/* Ornamental corners, matching the arena's brass filigree language. */}
+        <span aria-hidden className="pointer-events-none absolute left-1 top-1 h-2.5 w-2.5 border-l border-t border-raido-gold/25" />
+        <span aria-hidden className="pointer-events-none absolute right-1 top-1 h-2.5 w-2.5 border-r border-t border-raido-gold/25" />
+        <span aria-hidden className="pointer-events-none absolute bottom-1 left-1 h-2.5 w-2.5 border-b border-l border-raido-gold/25" />
+        <span aria-hidden className="pointer-events-none absolute bottom-1 right-1 h-2.5 w-2.5 border-b border-r border-raido-gold/25" />
       </div>
     );
   }
@@ -86,7 +108,7 @@ export function CreatureSlot({
       className={clsx(
         'relative flex aspect-[3/4] w-full flex-col overflow-hidden rounded-lg border bg-raido-graphite text-left shadow-[0_6px_10px_-6px_rgba(0,0,0,0.7)] [box-shadow:inset_0_1px_6px_rgba(0,0,0,0.5),0_6px_10px_-6px_rgba(0,0,0,0.7)] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-raido-red',
         canInteract && 'active:scale-95',
-        selected ? '-translate-y-1 border-raido-red ring-2 ring-raido-red' : 'border-white/10',
+        selected ? '-translate-y-1 border-raido-red ring-2 ring-raido-red' : 'border-raido-gold/25',
         dimmed && !targetable && !selected && 'opacity-40',
         // Plays once on mount only (stable instanceId key => no remount on later re-renders),
         // giving a freshly-summoned CHARACTER a short "landed on the battlefield" impact pulse.
@@ -94,11 +116,11 @@ export function CreatureSlot({
       )}
     >
       {/* Metallic corner trim - a quiet reminder the slot is a carved arena fixture, not a plain
-          card frame. Static in Phase A. */}
-      <span aria-hidden className="pointer-events-none absolute left-0.5 top-0.5 z-10 h-2 w-2 border-l border-t border-raido-gold/20" />
-      <span aria-hidden className="pointer-events-none absolute right-0.5 top-0.5 z-10 h-2 w-2 border-r border-t border-raido-gold/20" />
-      <span aria-hidden className="pointer-events-none absolute bottom-0.5 left-0.5 z-10 h-2 w-2 border-b border-l border-raido-gold/20" />
-      <span aria-hidden className="pointer-events-none absolute bottom-0.5 right-0.5 z-10 h-2 w-2 border-b border-r border-raido-gold/20" />
+          card frame. */}
+      <span aria-hidden className="pointer-events-none absolute left-0.5 top-0.5 z-10 h-3 w-3 border-l-2 border-t-2 border-raido-gold/35" />
+      <span aria-hidden className="pointer-events-none absolute right-0.5 top-0.5 z-10 h-3 w-3 border-r-2 border-t-2 border-raido-gold/35" />
+      <span aria-hidden className="pointer-events-none absolute bottom-0.5 left-0.5 z-10 h-3 w-3 border-b-2 border-l-2 border-raido-gold/35" />
+      <span aria-hidden className="pointer-events-none absolute bottom-0.5 right-0.5 z-10 h-3 w-3 border-b-2 border-r-2 border-raido-gold/35" />
 
       {/* Targetable = an expanding ring pulse, not a bright warning color - legality reads as an
           invitation, not an error. */}

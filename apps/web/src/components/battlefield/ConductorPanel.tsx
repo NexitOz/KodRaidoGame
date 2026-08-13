@@ -29,6 +29,9 @@ export interface ConductorPanelProps {
   /** `data-drop-zone` value for drag-to-play (e.g. "own-conductor"/"enemy-conductor") - omit to
    * leave this panel out of the drop-zone map. */
   dropZone?: string;
+  /** Permanent side identity for the hero medallion's frame color (crimson opponent / blue-violet
+   * player) - independent of whose turn it is. */
+  side: 'opponent' | 'player';
 }
 
 export function ConductorPanel({
@@ -42,6 +45,7 @@ export function ConductorPanel({
   tutorialTarget,
   active = false,
   dropZone,
+  side,
 }: ConductorPanelProps) {
   const hpPercent = Math.max(0, Math.min(100, (player.conductorHp / STARTING_CONDUCTOR_HP) * 100));
   const low = hpPercent <= 30;
@@ -81,6 +85,7 @@ export function ConductorPanel({
         healed={healed}
         active={active}
         hp={player.conductorHp}
+        side={side}
       />
 
       <span className="relative z-10 mt-2 truncate text-xs font-bold uppercase tracking-wide text-raido-white">

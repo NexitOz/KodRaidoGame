@@ -146,7 +146,7 @@ function HandCardItem({
         card={card}
         size="xs"
         className={clsx(
-          'animate-card-in',
+          'animate-card-in sm:!max-w-[112px] lg:!max-w-[136px] xl:!max-w-[156px]',
           previewed && 'ring-2 ring-raido-red',
           !affordable && 'opacity-40',
           disabled && 'pointer-events-none',
