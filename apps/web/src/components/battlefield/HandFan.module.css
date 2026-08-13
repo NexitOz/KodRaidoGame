@@ -1,17 +1,20 @@
-/* Desktop Viewport-Fit UX Pass: the hand is now a small always-compact overlay fan (78-86px
-   cards) rather than a full-width tray, so the old height-aware "shrink on short viewports" rule
-   that used to live here is gone - it existed only to rescue a much larger (136-156px) card size
-   that no longer applies. */
+/* Desktop Viewport-Fit UX Pass: the hand is a bottom-anchored dock, not a full-width tray - at
+   rest only each card's top `--hand-reveal-h` slice is inside the viewport (see `.handSection` in
+   MatchBoard.module.css), so the old height-aware "shrink on short viewports" rule that used to
+   live here is gone along with the tray it was rescuing. */
 
-/* Hover elevation: `HandCardItem`'s own inline `transform` (arc position) has to be beaten by an
-   `!important` rule here, since inline styles otherwise always win over a class. Only active on
-   pointer-fine desktop and never while a card is being dragged or already previewed (both states
-   already set their own `transform`, and `HandFan.tsx` withholds this class in both cases too, but
-   the `:hover` boost stays scoped here to `lg:` regardless, since the compact overlay fan itself
-   is desktop-only). */
+/* Hover feedback in the dock itself is deliberately subtle now - a small brightness lift that
+   never leaves the dock's own clipped reveal strip. The *readable* full-size view of a hovered
+   card is a separate `createPortal` straight into `document.body` (see `hoveredEntry` in
+   HandFan.tsx), not this element: a real full-height lift here used to need `translateY()` far
+   enough to clear the dock line, which (a) got clipped again by the viewport the moment it
+   exceeded the dock's own fixed height/position (the card's *bottom* - name, stats - stayed cut
+   off), and (b) still couldn't paint above `.plyCommanderSlot`/`.resonanceSlot` regardless of how
+   far it moved, since a child can never out-stack content above its own fixed-position ancestor's
+   stacking context. Both problems are about the ancestor, not the transform, so no transform fixes
+   them - only escaping the ancestor via a portal does. */
 @media (min-width: 1024px) and (hover: hover) {
   .desktopHoverLift:hover {
-    transform: translateY(-22px) scale(1.18) !important;
-    z-index: 45 !important;
+    filter: brightness(1.15) !important;
   }
 }

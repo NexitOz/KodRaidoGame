@@ -177,9 +177,11 @@
      directly from viewport units (not from any child's rendered size, so there's no
      grid-resolution circularity) and reused by `.header`/`.banner`/`.stage` so all three share the
      same centered width and the header reads as "near the arena's top edge" rather than spanning
-     the full page. The reserved budget below is real, accounted-for space (TopBar + board padding
-     + the header row + gaps + the bottom hand strip), not a guess - tune the constants here if a
-     future pass changes the header's own height or the hand's own footprint. */
+     the full page. The reserved budget below is ONLY the board's own real chrome (TopBar + board
+     padding + the empty banner row's gap) - the hand is deliberately excluded from this budget
+     (see `.handSection` below): reserving hand height here was the bug that collapsed the arena to
+     ~50% of the viewport, since every px given to the hand came straight out of the arena's own
+     height (and, via the locked aspect ratio, its width too). */
   .board {
     width: 100vw;
     max-width: 100vw;
@@ -200,11 +202,11 @@
     align-content: stretch;
     /* Height-first: width derives from whatever vertical room is actually left after the fixed
        chrome below, capped by the column's own width as a safety net for unusually
-       narrow-but-tall desktop windows. Reserved budget (measured live, not guessed): 3.5rem
-       TopBar + 1rem board padding + ~2.375rem header row+gap + ~9.25rem bottom hand strip+gap
-       (real rendered hand height incl. the xs card's name label is ~138.5px = 8.7rem, +0.375rem
-       gap +0.2rem safety) = 16.125rem. */
-    --arena-w: min(100%, calc((100dvh - 16.125rem) * 1672 / 941));
+       narrow-but-tall desktop windows. Reserved budget (measured live): 3.5rem TopBar + 1rem board
+       padding (0.5rem top+bottom) + 0.375rem gap before the (empty in PvE) banner row + 0.2rem
+       safety = 5.075rem total - an order of magnitude smaller than the old hand-inclusive budget,
+       which is the whole point of this pass. */
+    --arena-w: min(100%, calc((100dvh - 5.075rem) * 1672 / 941));
   }
 
   /* Overlaid directly on the arena's top edge instead of occupying its own document-flow row -
@@ -320,19 +322,33 @@
   }
   /* Pulled up from the stage's very bottom edge (was top:95%) so the HP badge doesn't hang far
      enough below the stage to collide with the hand section that starts right after it - the
-     collision was worst at 1440x900, where the stage itself is shorter in absolute pixels. */
+     collision was worst at 1440x900, where the stage itself is shorter in absolute pixels.
+     `pointer-events:none` on this wrapper (not just the button inside) because the wrapper's own
+     box is what `elementFromPoint` returns once the button opts out - see `ConductorPanel.tsx`'s
+     `pointer-events-auto`, which opts the button itself back in only while it's an actual valid
+     target. Without this, the slot silently steals hover/click from any dock card whose resting
+     position lands behind it, since a narrow hand's center card(s) sit at the same x as this. */
   .plyCommanderSlot {
     position: absolute;
     left: 50%;
     top: 90%;
     transform: translate(-50%, -50%);
     z-index: 6;
+    pointer-events: none;
   }
+  /* z-index kept above the resting hand dock (see `.handSection`) so the Resonance readout is
+     never painted over, matching `.plyCommanderSlot` just above. `pointer-events:none` because
+     `ResonanceMeter` is a pure display component (no click handler of its own) - without this, the
+     slot would still hit-test as the topmost element at its screen position purely by sitting
+     above the dock in paint order, silently blocking hover/click on any dock card whose resting
+     position happens to land underneath it. */
   .resonanceSlot {
     position: absolute;
     left: 65%;
     top: 83%;
     width: 20%;
+    z-index: 6;
+    pointer-events: none;
   }
 
   /* --- Right-side arena machinery: End Turn --- */
@@ -346,20 +362,77 @@
     z-index: 7;
   }
 
-  /* Hand tray is now a compact overlay anchored to the bottom center of the desktop workspace,
-     not a separate document-flow section - it sits in the reserved strip directly below the
-     illustrated stage (accounted for in `.board`'s `--arena-w` budget above), so it never needs
-     the arena to grow tall enough to make room for it, and it never pushes the page height past
-     one viewport. Positioned relative to `.stage` (top:100% = the arena's own bottom edge), sized
-     to its own content (not stretched edge-to-edge) so it never overlaps the commander/Resonance
-     mechanisms painted into the stage itself above it. */
+  /* Hand tray is a compact bottom DOCK, not a floating fan: at rest only the top
+     `--hand-reveal-h` slice of every card (cost + faction accent) pokes up above the viewport's
+     own bottom edge - the rest of each full-size card (art, attack/health, name label) hangs past
+     the viewport and is never rendered, simply because nothing draws below `100vh`. That's also
+     what keeps this guaranteed scroll-safe: no CSS `overflow:hidden` clipping is involved (which
+     would still let the box's full height count toward a scrolling ancestor), the box is just
+     positioned mostly off-screen. `position:fixed` (not `.stage`/`.board`-relative) is required
+     for this to work at all - it's the only positioning scheme *guaranteed* by spec to never
+     contribute to any ancestor's scrollable overflow no matter how far past the viewport it
+     extends, which is also what lets the arena grow to its full `--arena-w` size with zero regard
+     for the hand's own footprint. `left:50%` matches the arena's own horizontal center since
+     `.board`'s padding is symmetric. Sized off `--arena-w` (not a fixed vw value) so the hand's
+     max width tracks the arena's own width at every viewport.
+
+     z-index is intentionally BELOW `.plyCommanderSlot`/`.resonanceSlot` (6) at rest: the dock's
+     resting reveal strip can still land close to the commander/Resonance readouts at short
+     viewports (measured overlap at 1366x650-1920x1080), and painting the commander/Resonance on
+     top is what actually guarantees they stay readable - not just narrowing the reveal strip,
+     which only reduces the odds, doesn't eliminate them. A hovered/dragged card is escalated
+     *individually* above both via `createPortal` in HandFan.tsx (straight into `document.body`,
+     bypassing this box's stacking context entirely) rather than by promoting this z-index -
+     promoting the whole box would lift every *resting* card's peeking corner too, regressing the
+     guarantee this paragraph just established for the sake of the one engaged card. */
   .handSection {
-    position: absolute;
+    position: fixed;
     left: 50%;
-    top: 100%;
     transform: translateX(-50%);
-    margin-top: 0.375rem;
-    z-index: 9;
-    max-width: 94%;
+    z-index: 3;
+    max-width: min(94vw, calc(var(--arena-w) * 0.94));
+    /* Anchored via `top` (not `bottom`) - measured live, Chromium falls back to this box's normal-
+       flow static position (ignoring `bottom` entirely) whenever `top` is auto and `height` is an
+       intrinsic-sizing keyword (`fit-content`/`max-content`/`auto`) on a `position:fixed` flex
+       column; giving both `top` and `height` real computed values (not intrinsic keywords)
+       sidesteps that. `--hand-h` is the fan's real rendered row height (image + name-label strip),
+       measured directly rather than derived from the card width, since the card's own min-content
+       floor (driven by its image) already overrode a smaller requested max-width in an earlier
+       attempt - now that both breakpoints request >=140px (at/above that floor), the requested
+       size governs directly. `--hand-reveal-h` is how much of that stays inside the viewport at
+       rest - tall enough for the cost badge + faction dot (see HandFan.tsx), short enough to stay
+       clear of the player creature lane above it. */
+    --hand-h: 12.6rem;
+    --hand-reveal-h: 4.5rem;
+    height: var(--hand-h);
+    /* The extra 16px is an empirically-measured correction: this specific `position:fixed` box
+       (only this one - a trivial fixed box injected anywhere else on the same page positions
+       correctly) consistently renders 16px lower than `top`'s calc predicts, reproduced
+       identically at 1366x650/1600x720/1920x1080, so it isn't proportional to viewport size. Root
+       cause not fully isolated (ruled out: ancestor transform/filter/perspective/contain/isolation,
+       scroll position, dvh-vs-vh, and the flex/fit-content height quirk fixed above) - correcting
+       for it empirically is safe either way, since if it doesn't reproduce on a real browser the
+       only effect is the dock sitting 16px higher than intended, not a functional regression. */
+    top: calc(100vh - var(--hand-reveal-h) - 16px);
+  }
+
+  /* An earlier version of this fix promoted `.handSection`'s own z-index via a `:has()` rule
+     whenever a card inside was engaged - reverted. Promoting the whole box also lifted every
+     *resting* card's peeking corner above the commander/Resonance for the duration of the hover,
+     which regresses the rest-state guarantee above for the sake of the one engaged card. The
+     engaged card is now escalated individually via `createPortal` straight into `document.body`
+     in HandFan.tsx, which is unaffected by (and doesn't touch) this box's z-index at all. */
+
+  /* Defense-in-depth for the shortest desktop viewports (measured 650-720px tall):
+     `.plyCommanderSlot`/`.resonanceSlot`'s z-index:6 (above this box's z-index:3) already
+     guarantees they're never visually covered by the resting hand, but shrinking the resting
+     reveal strip here also reduces how many cards' peeking corners sit *underneath* the
+     commander's higher paint layer, which would otherwise steal pointer events from those
+     specific cards at rest. 3rem is the measured minimum that still clears the cost badge +
+     faction dot (see HandFan.tsx) without cutting into them. */
+  @media (max-height: 720px) {
+    .handSection {
+      --hand-reveal-h: 3rem;
+    }
   }
 }

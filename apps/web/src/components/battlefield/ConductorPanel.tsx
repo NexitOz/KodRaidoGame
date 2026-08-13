@@ -69,6 +69,13 @@ export function ConductorPanel({
       className={clsx(
         'group relative flex flex-col items-center gap-1.5 rounded-2xl px-2 pb-2 pt-3 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-raido-red',
         targetable && 'ring-2 ring-emerald-400/60 ring-offset-2 ring-offset-raido-black',
+        // `disabled` already makes this a no-op when not targetable, but the *wrapper*
+        // (`.plyCommanderSlot` in MatchBoard.module.css) is set `pointer-events:none` so it never
+        // steals hover/click from whatever's rendered underneath at the same screen point (the
+        // desktop hand dock's resting cards can land directly behind it for narrow hands) -
+        // `pointer-events-auto` here opts this button itself back in, but only while it's actually
+        // a valid target, matching `disabled`'s own condition.
+        targetable ? 'pointer-events-auto' : 'pointer-events-none',
       )}
     >
       {damaged && impactKey > 0 ? (
