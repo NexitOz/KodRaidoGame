@@ -95,9 +95,6 @@ test('fresh user: skip -> win a deterministic PvE match -> result shows XP/Echo 
   test.setTimeout(1_200_000);
   await registerFreshUser(page, 'progression-first-win');
   await page.waitForTimeout(500);
-  await page.getByRole('button', { name: 'Пропустить' }).click();
-  await expect(page.getByText('Ты сможешь пройти обучение позже в настройках.')).toBeVisible();
-  await page.getByRole('button', { name: 'Понятно' }).click();
 
   const currencyBefore = await readProfileCurrency(page);
 
@@ -119,9 +116,6 @@ test('a second win the same day grants reward again but never repeats the first-
   test.setTimeout(1_200_000);
   await registerFreshUser(page, 'progression-second-win');
   await page.waitForTimeout(500);
-  await page.getByRole('button', { name: 'Пропустить' }).click();
-  await page.waitForTimeout(300);
-  await page.getByRole('button', { name: 'Понятно' }).click();
 
   await winPracticeMatch(page);
   await expect(page.getByRole('dialog', { name: 'Победа' })).toBeVisible();
@@ -141,9 +135,6 @@ test('refreshing the finished match result page does not grant a duplicate rewar
   test.setTimeout(1_200_000);
   await registerFreshUser(page, 'progression-refresh');
   await page.waitForTimeout(500);
-  await page.getByRole('button', { name: 'Пропустить' }).click();
-  await page.waitForTimeout(300);
-  await page.getByRole('button', { name: 'Понятно' }).click();
 
   await winPracticeMatch(page);
   await expect(page.getByRole('dialog', { name: 'Победа' })).toBeVisible();
@@ -164,9 +155,6 @@ test('the first win that crosses a level threshold shows the level-up presentati
   test.setTimeout(1_200_000);
   await registerFreshUser(page, 'progression-level-up');
   await page.waitForTimeout(500);
-  await page.getByRole('button', { name: 'Пропустить' }).click();
-  await page.waitForTimeout(300);
-  await page.getByRole('button', { name: 'Понятно' }).click();
 
   // A fresh account's very first WIN always carries the first-win-of-day bonus, and
   // PVE.WIN.xp + FIRST_WIN_OF_DAY_BONUS.xp already crosses the level-2 threshold (computed from

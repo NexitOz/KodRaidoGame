@@ -341,12 +341,16 @@
      `ResonanceMeter` is a pure display component (no click handler of its own) - without this, the
      slot would still hit-test as the topmost element at its screen position purely by sitting
      above the dock in paint order, silently blocking hover/click on any dock card whose resting
-     position happens to land underneath it. */
+     position happens to land underneath it.
+     Shrunk ~17% and shifted right+down from the original (left:65%/top:83%/width:20%) into the
+     free lower-right corner of the player half - clear of the commander frame (centered at 50%),
+     the player creature lane (ends ~top:75%), and the rune slot just above it, without touching
+     arena/card geometry or the mobile rule above this media query. */
   .resonanceSlot {
     position: absolute;
-    left: 65%;
-    top: 83%;
-    width: 20%;
+    left: 74%;
+    top: 88%;
+    width: 16.5%;
     z-index: 6;
     pointer-events: none;
   }

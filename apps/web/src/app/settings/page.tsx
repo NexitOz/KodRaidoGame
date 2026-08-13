@@ -1,12 +1,16 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button, Icon } from '@kod-raido/ui';
-import { api } from '@/lib/api';
-import { useAuthStore } from '@/lib/auth-store';
 import { useSettingsStore } from '@/lib/settings-store';
+import { useTutorialCta } from '@/lib/use-tutorial-cta';
 import { playSfx } from '@/lib/sfx';
+
+const TUTORIAL_SETTINGS_HINT: Record<'not-started' | 'in-progress' | 'completed', string> = {
+  'not-started': 'Учебный бой не влияет на рейтинг и статистику обычных матчей.',
+  'in-progress': 'У тебя есть незавершённый учебный бой — продолжи с сохранённого шага.',
+  completed:
+    'Ты уже прошёл обучение, награда за первое прохождение начислена. Повторное прохождение наград не даёт.',
+};
 
 function VolumeSlider({
   label,
@@ -50,19 +54,7 @@ export default function SettingsPage() {
     setLowDataMode,
   } = useSettingsStore();
 
-  const router = useRouter();
-  const queryClient = useQueryClient();
-  const accessToken = useAuthStore((s) => s.accessToken);
-  const replayTutorialMutation = useMutation({
-    mutationFn: () => api.startTutorial(accessToken as string),
-    onSuccess: (result) => {
-      // Keeps OnboardingGate's cached progress in sync immediately - without this, its resume
-      // banner would only pick up this new active match on the next full page load/refetch
-      // trigger, not right after an in-app navigation away from here.
-      queryClient.setQueryData(['tutorial-progress', accessToken], result);
-      router.push(`/tutorial/${result.matchId}`);
-    },
-  });
+  const tutorialCta = useTutorialCta();
 
   return (
     <div className="mx-auto flex max-w-md flex-col gap-6">
@@ -114,21 +106,20 @@ export default function SettingsPage() {
         </label>
       </section>
 
-      <section className="rounded-2xl border border-white/10 bg-raido-graphite p-5">
-        <p className="font-medium text-raido-white">Обучение</p>
-        <p className="mt-1 text-xs text-raido-mist">
-          Учебный бой не влияет на рейтинг и статистику обычных матчей. Награда за первое
-          прохождение начисляется только один раз.
-        </p>
-        <Button
-          variant="secondary"
-          onClick={() => replayTutorialMutation.mutate()}
-          disabled={replayTutorialMutation.isPending || !accessToken}
-          className="mt-3"
-        >
-          {replayTutorialMutation.isPending ? 'Начинаем…' : 'Пройти обучение снова'}
-        </Button>
-      </section>
+      {tutorialCta ? (
+        <section className="rounded-2xl border border-white/10 bg-raido-graphite p-5">
+          <p className="font-medium text-raido-white">Обучение</p>
+          <p className="mt-1 text-xs text-raido-mist">{TUTORIAL_SETTINGS_HINT[tutorialCta.state]}</p>
+          <Button
+            variant="secondary"
+            onClick={tutorialCta.activate}
+            disabled={tutorialCta.isPending}
+            className="mt-3"
+          >
+            {tutorialCta.label}
+          </Button>
+        </section>
+      ) : null}
     </div>
   );
 }

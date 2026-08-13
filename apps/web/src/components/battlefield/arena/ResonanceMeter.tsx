@@ -23,16 +23,16 @@ export function ResonanceMeter({ tier, triggerKey = 0, align = 'left', className
   return (
     <div
       className={clsx(
-        'relative flex flex-col items-center gap-1 rounded-xl border-2 border-raido-gold/25 bg-gradient-to-b from-black/50 to-black/30 px-2 py-1.5 shadow-[inset_0_2px_10px_rgba(0,0,0,0.6)] backdrop-blur-sm sm:gap-2 sm:rounded-2xl sm:px-4 sm:py-3 lg:px-5 lg:py-4',
+        'relative flex flex-col items-center gap-1 rounded-xl border-2 border-raido-gold/25 bg-gradient-to-b from-black/50 to-black/30 px-2 py-1.5 shadow-[inset_0_2px_10px_rgba(0,0,0,0.6)] backdrop-blur-sm sm:gap-2 sm:rounded-2xl sm:px-4 sm:py-3 lg:px-4 lg:py-3',
         align === 'right' && 'items-end',
         className,
       )}
     >
       <span aria-hidden className="pointer-events-none absolute inset-1 rounded-xl border border-raido-gold/10" />
-      <span className="relative text-[8px] font-bold uppercase tracking-[0.15em] text-raido-gold/80 sm:text-[11px] sm:tracking-[0.25em] lg:text-xs">
+      <span className="relative text-[8px] font-bold uppercase tracking-[0.15em] text-raido-gold/80 sm:text-[11px] sm:tracking-[0.25em] lg:text-[11px]">
         Резонанс
       </span>
-      <div className="relative flex items-center gap-1 sm:gap-2 lg:gap-2.5">
+      <div className="relative flex items-center gap-1 sm:gap-2 lg:gap-2">
         {Array.from({ length: MAX_TIER }).map((_, i) => {
           const lit = i < tier;
           return (
@@ -40,7 +40,7 @@ export function ResonanceMeter({ tier, triggerKey = 0, align = 'left', className
               key={i}
               aria-hidden
               className={clsx(
-                'relative h-2.5 w-2.5 rounded-full ring-2 transition-all duration-300 sm:h-4 sm:w-4 lg:h-5 lg:w-5',
+                'relative h-2.5 w-2.5 rounded-full ring-2 transition-all duration-300 sm:h-4 sm:w-4 lg:h-4 lg:w-4',
                 lit
                   ? 'bg-raido-red ring-raido-redGlow/80 shadow-[0_0_10px_rgba(227,18,62,0.85)]'
                   : 'bg-white/5 ring-white/15',
@@ -52,7 +52,7 @@ export function ResonanceMeter({ tier, triggerKey = 0, align = 'left', className
           );
         })}
       </div>
-      <span className="relative text-[10px] font-black tabular-nums text-raido-white sm:text-sm lg:text-base">
+      <span className="relative text-[10px] font-black tabular-nums text-raido-white sm:text-sm lg:text-sm">
         {tier}<span className="text-raido-mist">/{MAX_TIER}</span>
       </span>
     </div>

@@ -28,16 +28,14 @@ async function startEasyPveFromPlayPage(page: import('@playwright/test').Page) {
   });
 }
 
-test('register -> skip tutorial -> /play already has a ready starter deck -> PvE starts', async ({
+test('register -> never touch the tutorial -> /play already has a ready starter deck -> PvE starts', async ({
   page,
 }) => {
   await registerFreshUser(page, 'starter-skip');
   await page.waitForTimeout(500);
 
-  await page.getByRole('button', { name: 'Пропустить' }).click();
-  await expect(page.getByText('Ты сможешь пройти обучение позже в настройках.')).toBeVisible();
-  await page.getByRole('button', { name: 'Понятно' }).click();
-
+  // The tutorial has no automatic first-run prompt - a fresh account that never visits the Home
+  // CTA or Settings' Обучение section should still reach normal PvE with a ready starter deck.
   await startEasyPveFromPlayPage(page);
 });
 
@@ -48,7 +46,9 @@ test('register -> complete tutorial -> archetypes -> /play already has a ready s
   await registerFreshUser(page, 'starter-tutorial');
   await page.waitForTimeout(500);
 
-  await page.getByRole('button', { name: /Начать обучение/ }).click();
+  // Tutorial start is only reachable via the explicit Home CTA now (no automatic modal).
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Пройти обучение' }).click();
   await page.waitForURL('**/tutorial/**', { timeout: 15_000 });
 
   const result = await driveTutorialToVictory(page);
