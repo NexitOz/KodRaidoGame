@@ -213,10 +213,10 @@ export function MatchBoard({
           <div className="contents">
             <div className="contents">
               <div className={styles.oppDeckSlot}>
-                <DeckPile count={opponent.deckCount} label="Колода" />
+                <DeckPile count={opponent.deckCount} label="Колода" side="opponent" />
               </div>
               <div className={styles.oppDiscardSlot}>
-                <DiscardPile count={opponent.discardCount} label="Сброс" />
+                <DiscardPile count={opponent.discardCount} label="Сброс" side="opponent" />
               </div>
             </div>
             <div className={styles.oppCommanderSlot}>
@@ -292,10 +292,10 @@ export function MatchBoard({
           <div className="contents">
             <div className="contents">
               <div className={styles.plyDeckSlot}>
-                <DeckPile count={you.deckCount} label="Колода" />
+                <DeckPile count={you.deckCount} label="Колода" side="player" />
               </div>
               <div className={styles.plyDiscardSlot}>
-                <DiscardPile count={you.discardCount} label="Сброс" />
+                <DiscardPile count={you.discardCount} label="Сброс" side="player" />
               </div>
             </div>
             <div className={styles.plyCommanderSlot}>
