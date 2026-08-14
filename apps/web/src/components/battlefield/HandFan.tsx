@@ -20,9 +20,13 @@ export interface HandFanProps {
   onPreview: (card: Card) => void;
 }
 
-const ANGLE_STEP_DEG = 5;
-const ARC_STEP_PX = 3;
-const OVERLAP_PX = 22;
+const ANGLE_STEP_DEG = 6;
+const ARC_STEP_PX = 5;
+// Battlefield 3.1: hand cards moved from CardView's 'xs' to 'sm' size (92px -> 140px) so they
+// read as valuable collectible pieces instead of thumbnails - the trade-off is a wider overlap
+// to keep a typical hand from overrunning mobile width; the wrapper below already scrolls
+// horizontally for the rare very-large hand.
+const OVERLAP_PX = 62;
 
 /** Keyed by card TYPE, never by cardId - the tutorial overlay spotlights whichever hand card
  * happens to satisfy the current step's objective, regardless of which specific card it is. */
@@ -33,7 +37,14 @@ const HAND_TUTORIAL_TARGET: Partial<Record<Card['type'], string>> = {
   EVENT: 'hand-event',
 };
 
-export function HandFan({ cards, energy, selectedInstanceId, disabled, onSelect, onPreview }: HandFanProps) {
+export function HandFan({
+  cards,
+  energy,
+  selectedInstanceId,
+  disabled,
+  onSelect,
+  onPreview,
+}: HandFanProps) {
   const center = (cards.length - 1) / 2;
 
   return (
@@ -113,15 +124,17 @@ function HandCardItem({
     >
       <CardView
         card={card}
-        size="xs"
+        size="sm"
         onSelect={disabled ? undefined : onSelect}
         className={clsx(
           'animate-card-in',
-          selected && 'ring-2 ring-raido-red',
+          selected && 'ring-2 ring-raido-red shadow-[0_0_22px_rgba(227,18,62,0.45)]',
           !affordable && 'opacity-40',
           disabled && 'pointer-events-none',
         )}
       />
+      {/* Battlefield 3.1: sits below the cost/Resonance row (which now spans the card's full top
+          edge at the larger 'sm' CardView size) instead of on top of it. */}
       <button
         type="button"
         onClick={(e) => {
@@ -129,7 +142,7 @@ function HandCardItem({
           onPreview();
         }}
         aria-label={`Просмотреть карту: ${card.name}`}
-        className="absolute right-0.5 top-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-xs text-raido-white ring-1 ring-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-raido-red"
+        className="absolute right-0.5 top-9 flex h-6 w-6 items-center justify-center rounded-full bg-black/60 text-xs text-raido-white ring-1 ring-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-raido-red"
       >
         ℹ
       </button>

@@ -41,7 +41,8 @@ module.exports = {
       boxShadow: {
         rune: '0 0 24px rgba(227, 18, 62, 0.35)',
         glow: '0 0 18px rgba(255, 45, 85, 0.45)',
-        raido: '0 0 0 1px rgba(227,18,62,0.55), 0 0 30px rgba(227,18,62,0.3), inset 0 0 20px rgba(227,18,62,0.12)',
+        raido:
+          '0 0 0 1px rgba(227,18,62,0.55), 0 0 30px rgba(227,18,62,0.3), inset 0 0 20px rgba(227,18,62,0.12)',
         epic: '0 0 16px rgba(169,120,240,0.35)',
         legendary: '0 0 20px rgba(217,180,106,0.4)',
         panel: '0 8px 30px rgba(0,0,0,0.45)',
@@ -76,6 +77,10 @@ module.exports = {
         'rune-reveal': 'rune-reveal 0.4s ease-out',
         'event-flash': 'event-flash 0.38s ease-out forwards',
         'level-up-ring': 'level-up-ring 0.8s ease-out forwards',
+        'rune-rotate': 'rune-rotate 18s linear infinite',
+        'arena-pulse': 'arena-pulse 1.1s ease-out',
+        'arena-breathe': 'arena-breathe 6s ease-in-out infinite',
+        'ember-drift': 'ember-drift 9s ease-in-out infinite',
       },
       keyframes: {
         'pulse-rune': {
@@ -152,7 +157,11 @@ module.exports = {
         },
         'dying-collapse': {
           '0%': { transform: 'scale(1)', opacity: '1', filter: 'brightness(1)' },
-          '60%': { transform: 'scale(0.92)', opacity: '0.6', filter: 'brightness(1.4) saturate(0)' },
+          '60%': {
+            transform: 'scale(0.92)',
+            opacity: '0.6',
+            filter: 'brightness(1.4) saturate(0)',
+          },
           '100%': { transform: 'scale(0.7)', opacity: '0', filter: 'brightness(0.6) saturate(0)' },
         },
         'raido-sweep': {
@@ -187,9 +196,46 @@ module.exports = {
          * critical game info (the "УРОВЕНЬ N" text says that on its own), so it's disabled in
          * both Low Data Mode and prefers-reduced-motion like rune-reveal/event-flash below. */
         'level-up-ring': {
-          '0%': { transform: 'scale(0.55)', opacity: '0', boxShadow: '0 0 0 0 rgba(227,18,62,0.65)' },
+          '0%': {
+            transform: 'scale(0.55)',
+            opacity: '0',
+            boxShadow: '0 0 0 0 rgba(227,18,62,0.65)',
+          },
           '35%': { opacity: '1' },
-          '100%': { transform: 'scale(1.7)', opacity: '0', boxShadow: '0 0 45px 14px rgba(227,18,62,0)' },
+          '100%': {
+            transform: 'scale(1.7)',
+            opacity: '0',
+            boxShadow: '0 0 45px 14px rgba(227,18,62,0)',
+          },
+        },
+        /* Battlefield Visual Target 3.0: slow continuous rotation for an active Rune socket's
+         * engraved ring - a "living ritual mechanism", not a spinner (18s/rotation is far below
+         * any perceptible-spin threshold). */
+        'rune-rotate': {
+          '0%': { transform: 'rotate(0deg)' },
+          '100%': { transform: 'rotate(360deg)' },
+        },
+        /* Battlefield Visual Target 3.0: one-shot ring expanding from the arena center outward,
+         * used by Resonance/Track activation so the whole arena feels like it reacts, not just a
+         * badge in one corner. */
+        'arena-pulse': {
+          '0%': { transform: 'scale(0.3)', opacity: '0.65', borderWidth: '2px' },
+          '100%': { transform: 'scale(1)', opacity: '0', borderWidth: '1px' },
+        },
+        /* Battlefield 3.2: a very slow key-light flicker (like a distant torch/enchantment, not a
+         * strobe) - the arena's ambient light source breathing rather than a flat static glow. */
+        'arena-breathe': {
+          '0%, 100%': { opacity: '0.55' },
+          '50%': { opacity: '0.85' },
+        },
+        /* Battlefield 3.2: a single ember/magic mote drifting up and fading - looped per-element
+         * with a staggered delay/left offset so several read as independent, not one repeating
+         * sprite. */
+        'ember-drift': {
+          '0%': { transform: 'translateY(0) scale(0.5)', opacity: '0' },
+          '15%': { opacity: '0.75' },
+          '80%': { opacity: '0.4' },
+          '100%': { transform: 'translateY(-130px) scale(1)', opacity: '0' },
         },
       },
     },
