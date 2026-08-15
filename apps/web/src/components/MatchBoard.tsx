@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
 import type {
@@ -9,6 +10,7 @@ import type {
   MatchRewards,
   MatchStateView,
   RankTierDefinition,
+  ResonanceTier,
   UnitInstanceView,
 } from '@kod-raido/shared';
 import { Button, type IconName } from '@kod-raido/ui';
@@ -39,6 +41,20 @@ export type MatchSelection =
   | { kind: 'hand'; instanceId: string; cost: number }
   | { kind: 'unit'; instanceId: string }
   | null;
+
+function parseResonancePreview(value: string | null): ResonanceTier | undefined {
+  switch (value) {
+    case '0':
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+      return Number(value) as ResonanceTier;
+    default:
+      return undefined;
+  }
+}
 
 export interface MatchBoardProps {
   view: MatchStateView;
@@ -88,6 +104,7 @@ export function MatchBoard({
   banner,
   viewerRank,
 }: MatchBoardProps) {
+  const searchParams = useSearchParams();
   const { you, opponent } = view;
   const targetingEnemy = Boolean(selection);
   const readyAttackers = new Set(
@@ -175,6 +192,7 @@ export function MatchBoard({
   }, [selection]);
 
   const resonanceHeat = computeViewerResonanceHeat(view);
+  const resonancePreviewTier = parseResonancePreview(searchParams.get('resonancePreview'));
   const opponentDeathToasts = deathToasts.filter((d) => d.ownerId === opponent.playerId);
   const ownDeathToasts = deathToasts.filter((d) => d.ownerId === you.playerId);
   const opponentRunePulse = runeTriggerKey?.playerId === opponent.playerId ? runeTriggerKey.key : 0;
@@ -316,7 +334,7 @@ export function MatchBoard({
             </div>
             <div className={styles.resonanceSlot}>
               <ResonanceMeter
-                tier={resonanceHeat}
+                tier={resonancePreviewTier ?? resonanceHeat}
                 triggerKey={resonanceTriggerKey}
                 align="right"
                 className="w-20 sm:w-32 lg:w-full"
