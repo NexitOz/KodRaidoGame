@@ -32,18 +32,20 @@
 @media (min-width: 1024px) {
   .pileLabel { font-size: 9px; line-height: 1; }
   .deckControl { position: relative; display: block; width: 67%; height: auto; aspect-ratio: 1086 / 1448; pointer-events: none; }
-  .discardControl { position: relative; display: block; width: 100%; height: 102px; pointer-events: none; }
+  .discardControl { position: relative; display: block; width: 58%; height: auto; aspect-ratio: 1; pointer-events: none; }
   .deckArtwork, .discardArtwork, .deckCounter, .discardCounter, .resonanceFrame, .gem { position: absolute; display: block; pointer-events: none; }
   .deckArtwork { left: 4%; top: 0; width: 92%; aspect-ratio: 1086 / 1448; }
-  .discardArtwork { left: 5%; top: 0; width: 43%; aspect-ratio: 1086 / 1448; }
+  .discardArtwork { left: 0; top: 0; width: 60%; aspect-ratio: 1086 / 1448; }
   .deckArtwork img, .discardArtwork img, .deckCounter img, .discardCounter img, .resonanceFrame img, .gem img { display: block; width: 100%; height: 100%; object-fit: contain; }
   .deckCounter { left: 0; top: 76%; width: 100%; aspect-ratio: 1387 / 333; }
-  .discardCounter { left: 51%; top: 18%; width: 18%; aspect-ratio: 347 / 753; }
+  .discardCounter { left: 51%; top: 16%; width: 28%; aspect-ratio: 347 / 753; }
   .deckCount, .discardCount { position: absolute; z-index: 2; display: flex; align-items: center; justify-content: center; font-weight: 800; font-variant-numeric: tabular-nums; color: #f6edda; text-shadow: 0 1px 3px #000, 0 0 5px #000; transition: opacity 120ms ease; }
   .deckCount { left: 10%; top: 77%; width: 80%; aspect-ratio: 1387 / 333; font-size: clamp(10px, .85vw, 15px); }
-  .discardCount { left: 51%; top: 27%; width: 18%; height: 45%; font-size: clamp(10px, .75vw, 14px); }
+  .discardCount { left: 51%; top: 25%; width: 28%; height: 46%; font-size: clamp(10px, .75vw, 14px); }
   :global([class*='oppDeckSlot']) .deckControl { transform: translate(50%, 14%); }
   :global([class*='plyDeckSlot']) .deckControl { transform: translate(-15%, -9%); }
+  :global([class*='oppDiscardSlot']) .discardControl { transform: translate(35%, 12%); }
+  :global([class*='plyDiscardSlot']) .discardControl { transform: translate(-33%, 5%); }
   .mobileResonance { display: none; }
   .desktopResonance { position: relative; display: block; width: 100%; aspect-ratio: 1671 / 330; pointer-events: none; }
   .resonanceFrame { inset: 0; }
