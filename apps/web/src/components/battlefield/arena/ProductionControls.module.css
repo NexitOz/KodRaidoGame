@@ -47,12 +47,12 @@
   :global([class*='oppDiscardSlot']) .discardControl { transform: translate(35%, 12%); }
   :global([class*='plyDiscardSlot']) .discardControl { transform: translate(-33%, 5%); }
   .mobileResonance { display: none; }
-  .desktopResonance { position: relative; display: block; width: 100%; aspect-ratio: 1671 / 330; pointer-events: none; }
+  .desktopResonance { position: relative; display: block; width: 127%; aspect-ratio: 1671 / 330; pointer-events: none; transform: translate(-62%, -67%); }
   .resonanceFrame { inset: 0; }
-  .resonanceTitle { position: absolute; left: 6%; top: 10%; z-index: 2; font-size: clamp(7px, .58vw, 11px); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #dbc99c; text-shadow: 0 1px 3px #000; }
-  .gems { position: absolute; left: 7.2%; top: 35.5%; width: 65.5%; height: 52%; }
-  .gem { top: 0; width: 18%; aspect-ratio: 1; transform: translateX(calc(var(--gem-index, 0) * 100%)); }
-  .gem:nth-child(1) { left: 0; } .gem:nth-child(2) { left: 20%; } .gem:nth-child(3) { left: 40%; } .gem:nth-child(4) { left: 60%; } .gem:nth-child(5) { left: 80%; }
+  .resonanceTitle { position: absolute; left: 12%; top: 5%; width: 60%; z-index: 2; text-align: center; font-size: clamp(8px, .65vw, 12px); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #dbc99c; text-shadow: 0 1px 3px #000; }
+  .gems { position: absolute; inset: 0; }
+  .gem { top: 9%; width: 16%; aspect-ratio: 1; }
+  .gem:nth-child(1) { left: 8.5%; } .gem:nth-child(2) { left: 21.7%; } .gem:nth-child(3) { left: 34.9%; } .gem:nth-child(4) { left: 48%; } .gem:nth-child(5) { left: 60.8%; }
   .resonanceValue { position: absolute; right: 4.7%; top: 22%; width: 17%; height: 58%; z-index: 2; display: flex; align-items: center; justify-content: center; font-size: clamp(9px, .9vw, 16px); font-weight: 900; font-variant-numeric: tabular-nums; color: #f6edda; text-shadow: 0 1px 4px #000; transition: opacity 120ms ease; }
   .gemChanged { animation: production-control-pulse 260ms ease-out; }
 }
