@@ -154,3 +154,41 @@ transform-цепочка, применённая идентично и к decora
 
 Deck, Discard и Resonance **не реализованы** в этом проходе — production-ассетов с прозрачностью
 нет; владелец подготовит их отдельно.
+
+## 10. Утверждённый production-пакет Deck / Discard / Resonance
+
+> Этот раздел заменяет статус «ассетов нет» из исторического описания разделов 4–6 и 9.
+
+Владелец передал и утвердил отдельные PNG с полноценным alpha-каналом. Они являются источником
+истины и используются без перерисовки, CSS-подложек, рамок, градиентов или SVG-замен. Интеграция
+действует только при `min-width: 1024px`; на меньшей ширине сохраняется существующая mobile-
+композиция, а production PNG не монтируются и не запрашиваются.
+
+| Production-файл | Назначение | Runtime-данные |
+|---|---|---|
+| `kod-raido-deck-red-stacked-v1.png` | Deck верхнего/opponent игрока при `count > 0` | Число колоды остаётся HTML |
+| `kod-raido-deck-blue-stacked-v1.png` | Deck нижнего/player игрока при `count > 0` | Число колоды остаётся HTML |
+| `kod-raido-discard-red-filled-v1.png` | Discard верхнего/opponent игрока при `count > 0` | Число сброса остаётся HTML |
+| `kod-raido-discard-blue-filled-v1.png` | Discard нижнего/player игрока при `count > 0` | Число сброса остаётся HTML |
+| `kod-raido-counter-deck-horizontal-v1.png` | Горизонтальный корпус deck-counter | Число оптически центрируется HTML-текстом |
+| `kod-raido-counter-discard-vertical-v1.png` | Вертикальный корпус discard-counter | Число оптически центрируется HTML-текстом |
+| `kod-raido-resonance-frame-empty-v1.png` | Каноническая горизонтальная панель с 5 гнёздами | `РЕЗОНАНС` и `N/5` остаются HTML |
+| `kod-raido-resonance-gem-ruby-v1.png` | Активное гнездо 1 | Монтируется при tier ≥ 1 |
+| `kod-raido-resonance-gem-topaz-v1.png` | Активное гнездо 2 | Монтируется при tier ≥ 2 |
+| `kod-raido-resonance-gem-amethyst-v1.png` | Активное гнездо 3 | Монтируется при tier ≥ 3 |
+| `kod-raido-resonance-gem-cyan-v1.png` | Активное гнездо 4 | Монтируется при tier ≥ 4 |
+| `kod-raido-resonance-gem-sapphire-v1.png` | Активное гнездо 5 | Монтируется при tier ≥ 5 |
+
+### Зафиксированное поведение
+
+- При нулевом Deck/Discard foreground-арт не монтируется: остаются painted-slot арены, label и
+  живой счётчик `0`. Отдельная пустая карта не создаётся.
+- Верхняя сторона всегда красная, нижняя всегда синяя. Изображения сохраняют собственное
+  соотношение сторон и являются некликабельным декоративным слоем.
+- Resonance нормализуется в диапазон `0..5`; камни появляются строго слева направо в порядке
+  ruby → topaz → amethyst → cyan → sapphire. Неактивные камни не монтируются.
+- Канонический Resonance — горизонтальная панель. Старые круглые линзы относятся к состояниям
+  End Turn и не используются как Resonance.
+- Частые обновления получают только короткий restrained transition без layout shift; при
+  `prefers-reduced-motion: reduce` движение отключается.
+- Утверждённая геометрия, состояния, шрифт и mobile-поведение End Turn не изменяются этим проходом.
