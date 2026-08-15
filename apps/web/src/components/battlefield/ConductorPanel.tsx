@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { STARTING_CONDUCTOR_HP, type PlayerStateView, type RankTierDefinition } from '@kod-raido/shared';
-import { Icon, type IconName } from '@kod-raido/ui';
+import type { IconName } from '@kod-raido/ui';
 import { EnergyPips } from './EnergyPips';
 import { FloatingFeedback } from './FloatingFeedback';
+import { HeroFrame } from './arena/HeroFrame';
 import type { FeedbackItem } from '@/lib/use-combat-feedback';
 
 export interface ConductorPanelProps {
@@ -14,6 +15,8 @@ export interface ConductorPanelProps {
   /** Original SVG glyph standing in for a portrait/emblem placeholder (section 20) - 'player' for
    * a human (you or a PvP opponent), 'bot' for the PvE bot. No emoji. */
   icon: IconName;
+  /** Kept for API compatibility with existing callers - the vertical hero-medallion layout reads
+   * the same centered either way, so this no longer changes text alignment/row direction. */
   align: 'left' | 'right';
   targetable: boolean;
   onTap: () => void;
@@ -21,18 +24,28 @@ export interface ConductorPanelProps {
   rank?: RankTierDefinition;
   /** data-tutorial-target value for the tutorial overlay to spotlight, if any. */
   tutorialTarget?: string;
+  /** Whether it is currently this Conductor's turn - a quiet hero-frame lighting cue only. */
+  active?: boolean;
+  /** `data-drop-zone` value for drag-to-play (e.g. "own-conductor"/"enemy-conductor") - omit to
+   * leave this panel out of the drop-zone map. */
+  dropZone?: string;
+  /** Permanent side identity for the hero medallion's frame color (crimson opponent / blue-violet
+   * player) - independent of whose turn it is. */
+  side: 'opponent' | 'player';
 }
 
 export function ConductorPanel({
   player,
   name,
   icon,
-  align,
   targetable,
   onTap,
   feedback,
   rank,
   tutorialTarget,
+  active = false,
+  dropZone,
+  side,
 }: ConductorPanelProps) {
   const hpPercent = Math.max(0, Math.min(100, (player.conductorHp / STARTING_CONDUCTOR_HP) * 100));
   const low = hpPercent <= 30;
@@ -45,67 +58,47 @@ export function ConductorPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [feedback.length]);
 
-  const reversed = align === 'right';
-
   return (
     <button
       type="button"
       onClick={onTap}
       disabled={!targetable}
       data-tutorial-target={tutorialTarget}
+      data-drop-zone={dropZone}
       aria-label={`${name}: ${player.conductorHp} здоровья, ${player.energy} из ${player.maxEnergy} энергии${targetable ? ' — доступная цель' : ''}`}
       className={clsx(
-        'group relative flex items-center gap-2.5 rounded-panel border bg-gradient-to-b from-raido-graphite to-raido-graphite/60 px-2.5 py-2 text-left shadow-panel transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-raido-red',
-        reversed && 'flex-row-reverse text-right',
-        targetable
-          ? 'border-emerald-400/70 ring-1 ring-emerald-400/50'
-          : 'border-white/10',
-        low && 'border-raido-red/40',
+        'group relative flex flex-col items-center gap-1.5 rounded-2xl px-2 pb-2 pt-3 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-raido-red',
+        targetable && 'ring-2 ring-emerald-400/60 ring-offset-2 ring-offset-raido-black',
+        // `disabled` already makes this a no-op when not targetable, but the *wrapper*
+        // (`.plyCommanderSlot` in MatchBoard.module.css) is set `pointer-events:none` so it never
+        // steals hover/click from whatever's rendered underneath at the same screen point (the
+        // desktop hand dock's resting cards can land directly behind it for narrow hands) -
+        // `pointer-events-auto` here opts this button itself back in, but only while it's actually
+        // a valid target, matching `disabled`'s own condition.
+        targetable ? 'pointer-events-auto' : 'pointer-events-none',
       )}
     >
       {damaged && impactKey > 0 ? (
-        <span aria-hidden className="pointer-events-none absolute inset-0 z-0 rounded-panel ring-2 ring-raido-red/70 animate-ring-expand" />
+        <span aria-hidden className="pointer-events-none absolute inset-0 z-0 rounded-2xl ring-2 ring-raido-red/70 animate-ring-expand" />
       ) : null}
-      <span
-        key={impactKey}
-        aria-hidden
-        className={clsx(
-          'relative z-10 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-raido-black text-raido-white ring-1',
-          low ? 'ring-raido-red/50' : 'ring-white/10',
-          impactKey > 0 && (damaged ? 'animate-shake-hit' : healed ? 'animate-flash-hit' : ''),
-        )}
-      >
-        <Icon name={icon} size={20} />
-        {rank ? (
-          <span
-            className="absolute -bottom-1 -right-1 rounded-full border border-raido-black bg-raido-steel px-1 text-[9px] font-bold uppercase text-raido-gold"
-            title={rank.label}
-          >
-            {rank.tier.slice(0, 2)}
-          </span>
-        ) : null}
-      </span>
 
-      <span className="relative z-10 flex min-w-0 flex-1 flex-col gap-1">
-        <span className="flex items-baseline gap-1.5">
-          <span className="truncate text-sm font-semibold text-raido-white">{name}</span>
-        </span>
-        <span className={clsx('flex items-center gap-1.5', reversed && 'flex-row-reverse')}>
-          <span className="h-1.5 w-16 overflow-hidden rounded-full bg-black/50">
-            <span
-              className={clsx(
-                'block h-full rounded-full transition-[width] duration-500 ease-out',
-                low ? 'bg-raido-redGlow' : 'bg-emerald-400',
-              )}
-              style={{ width: `${hpPercent}%` }}
-            />
-          </span>
-          <span className="flex items-center gap-0.5 text-[11px] font-bold tabular-nums text-raido-white">
-            <Icon name="heart" size={11} /> {player.conductorHp}
-          </span>
-        </span>
-        <EnergyPips energy={player.energy} maxEnergy={player.maxEnergy} className={reversed ? 'flex-row-reverse' : ''} />
+      <HeroFrame
+        icon={icon}
+        low={low}
+        targetable={targetable}
+        rank={rank ? { tier: rank.tier, label: rank.label } : undefined}
+        impactKey={impactKey}
+        damaged={damaged}
+        healed={healed}
+        active={active}
+        hp={player.conductorHp}
+        side={side}
+      />
+
+      <span className="relative z-10 mt-2 truncate text-xs font-bold uppercase tracking-wide text-raido-white">
+        {name}
       </span>
+      <EnergyPips energy={player.energy} maxEnergy={player.maxEnergy} className="relative z-10 justify-center" />
 
       <FloatingFeedback items={feedback} />
     </button>

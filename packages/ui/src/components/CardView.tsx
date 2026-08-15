@@ -11,6 +11,11 @@ export interface CardViewProps {
   trending?: boolean;
   onSelect?: (card: Card) => void;
   className?: string;
+  /** Default (`false`/unset) truncates the name to one line with an ellipsis, as every existing
+   * caller (collection grid, hand fan, deck builder, ...) expects at their fixed card widths. Opt
+   * in when a caller has room to spare and truncation would hide real information instead of just
+   * saving space - e.g. a free-floating "read the whole card" overlay, not a dense grid. */
+  allowNameWrap?: boolean;
 }
 
 const TYPE_LABEL: Record<Card['type'], string> = {
@@ -21,7 +26,7 @@ const TYPE_LABEL: Record<Card['type'], string> = {
   EDIT: 'Эдит',
 };
 
-export function CardView({ card, size = 'md', trending, onSelect, className }: CardViewProps) {
+export function CardView({ card, size = 'md', trending, onSelect, className, allowNameWrap }: CardViewProps) {
   const isCharacter = card.type === 'CHARACTER';
   const accent = factionAccent(card.faction);
   const glowClass = RARITY_GLOW_CLASS[card.rarity];
@@ -59,8 +64,9 @@ export function CardView({ card, size = 'md', trending, onSelect, className }: C
         <img
           src={card.artworkUrl}
           alt={card.name}
-          className="h-full w-full object-cover opacity-90 transition-transform duration-300 group-hover:scale-[1.04] group-hover:opacity-100"
+          className="h-full w-full select-none object-cover opacity-90 transition-transform duration-300 group-hover:scale-[1.04] group-hover:opacity-100"
           loading="lazy"
+          draggable={false}
         />
         <div className={clsx('absolute inset-x-0 top-0 flex items-center justify-between', size === 'xs' ? 'p-1' : 'p-2')}>
           <span
@@ -102,10 +108,24 @@ export function CardView({ card, size = 'md', trending, onSelect, className }: C
         ) : null}
       </div>
       {size === 'xs' ? (
-        <p className="truncate px-1.5 py-1 text-[11px] font-semibold text-raido-white">{card.name}</p>
+        <p
+          className={clsx(
+            allowNameWrap ? 'line-clamp-2' : 'truncate',
+            'px-1.5 py-1 text-[11px] font-semibold text-raido-white',
+          )}
+        >
+          {card.name}
+        </p>
       ) : (
         <div className="relative z-10 flex flex-1 flex-col gap-1 bg-raido-graphite/95 p-2.5">
-          <p className="truncate text-sm font-semibold text-raido-white">{card.name}</p>
+          <p
+            className={clsx(
+              allowNameWrap ? 'line-clamp-2' : 'truncate',
+              'text-sm font-semibold text-raido-white',
+            )}
+          >
+            {card.name}
+          </p>
           <p className={clsx('text-[11px] uppercase tracking-wide', accent.textClass)}>
             {TYPE_LABEL[card.type]} · {RARITY_LABEL[card.rarity]}
           </p>

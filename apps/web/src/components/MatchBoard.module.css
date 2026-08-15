@@ -1,0 +1,442 @@
+/* Battlefield Art Asset pass — `.stage` renders an owner-supplied illustrated arena asset as the
+   real physical arena surface (aspect-ratio locked to the asset's own geometry so it is never
+   cropped or stretched), and every gameplay section below escapes to `position:absolute` with
+   percentage coordinates matched to that artwork's own painted housings (deck/discard on the
+   left, creature lanes either side of the seam, the central Raido mechanism, commander frames on
+   the top/bottom center axis, the circular machinery for End Turn/Resonance). Desktop
+   (`kod-raido-arena-base.webp`, 1672:941) is the original accepted pass — untouched below. Mobile
+   (`kod-raido-arena-mobile.webp`, 852:1846) is a separate, independently-calibrated asset and
+   coordinate set using the exact same architecture, added as the BASE (unprefixed) rules so it
+   applies below the existing `min-width:1024px` breakpoint. */
+
+.board {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  grid-template-areas:
+    'header'
+    'banner'
+    'stage';
+}
+
+.header {
+  grid-area: header;
+}
+.banner {
+  grid-area: banner;
+}
+
+/* --- Mobile stage: full-bleed illustrated arena surface --- */
+.stage {
+  grid-area: stage;
+  position: relative;
+  /* Full-bleed breakout from `<main>`'s own `px-4` (see app/layout.tsx) - only the illustrated
+     surface itself escapes that padding (to maximize creature-slot card width toward the
+     ~65-70px target measured against real viewports), not the header/banner/hand controls, which
+     stay inside the app's normal safe padding via their own layout. */
+  width: 100vw;
+  max-width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  aspect-ratio: 852 / 1846;
+  background-image: url('/art/battlefield/kod-raido-arena-mobile.webp');
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+/* Coordinates measured directly off the source artwork's own 852x1846 pixel grid. */
+.oppDeckSlot {
+  position: absolute;
+  left: 4%;
+  top: 11%;
+  width: 12%;
+}
+.oppDiscardSlot {
+  position: absolute;
+  left: 18%;
+  top: 12.5%;
+  width: 10%;
+}
+.oppCommanderSlot {
+  position: absolute;
+  left: 50%;
+  top: 14.5%;
+  width: 24%;
+  transform: translate(-50%, -50%);
+  z-index: 6;
+}
+.oppHandBacksSlot {
+  position: absolute;
+  left: 86.5%;
+  top: 15%;
+  width: 16%;
+  transform: translate(-50%, -50%);
+  z-index: 6;
+}
+/* The painted lane housing is taller than a real creature card (aspect-[3/4] at this width) - flex
+   + center keeps cards sitting mid-housing instead of pinned to its top edge, without touching
+   card width, the 5-column grid, or any drop-zone geometry (CreatureRow's own markup is unchanged,
+   this only centers it within the box it was already given). */
+.oppLane {
+  position: absolute;
+  left: 5%;
+  top: 22%;
+  width: 90%;
+  height: 18%;
+  display: flex;
+  align-items: center;
+}
+
+.coreSlot {
+  position: absolute;
+  left: 50%;
+  top: 47%;
+  width: 32%;
+  height: 13%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+}
+
+.plyLane {
+  position: absolute;
+  left: 5%;
+  top: 55%;
+  width: 90%;
+  height: 17%;
+  display: flex;
+  align-items: center;
+}
+.plyRuneSlot {
+  position: absolute;
+  left: 65%;
+  top: 76%;
+  width: 18%;
+}
+.plyDeckSlot {
+  position: absolute;
+  left: 4%;
+  top: 74%;
+  width: 12%;
+}
+.plyDiscardSlot {
+  position: absolute;
+  left: 18%;
+  top: 76.5%;
+  width: 10%;
+}
+.plyCommanderSlot {
+  position: absolute;
+  left: 50%;
+  top: 79.5%;
+  width: 24%;
+  transform: translate(-50%, -50%);
+  z-index: 6;
+}
+.resonanceSlot {
+  position: absolute;
+  left: 87%;
+  top: 79%;
+  width: 22%;
+  transform: translate(-50%, -50%);
+  z-index: 4;
+}
+
+/* Re-measured directly against the source artwork's real pixels (not the earlier percentage
+   grid-read, which overestimated height and put the button's text past both the painted ring and
+   the viewport edge) - the mechanism is a ~170px circle centered near (760, 860) of 852x1846. */
+.endTurnSlot {
+  position: absolute;
+  left: 87%;
+  top: 47%;
+  width: 19%;
+  height: 9%;
+  transform: translate(-50%, -50%);
+  z-index: 7;
+}
+
+/* Hand tray sits right below the illustrated stage (which reserves its own aspect-ratio height in
+   flow), insetting back to the app's normal `px-4` safe padding — the artwork bleeds edge to
+   edge, the interactive hand controls don't. */
+.handSection {
+  position: absolute;
+  left: 1rem;
+  right: 1rem;
+  top: 100%;
+  margin-top: 1rem;
+}
+
+@media (min-width: 1024px) {
+  /* Desktop Viewport-Fit UX Pass — the match is a viewport-fitted game table, not a document page
+     containing an image. `.board` is sized directly from `100dvh` (not the page's normal flow):
+     `margin-top`/`margin-bottom` cancel out `<main>`'s own `pt-6 pb-10` (app/layout.tsx) exactly
+     the way the existing horizontal breakout already cancels its `max-w-5xl` centering, so this
+     workspace gets the *entire* space below the sticky TopBar (3.5rem) instead of losing 4rem of
+     it to page padding never meant for a fixed-height workspace. `--arena-w` is computed once,
+     directly from viewport units (not from any child's rendered size, so there's no
+     grid-resolution circularity) and reused by `.header`/`.banner`/`.stage` so all three share the
+     same centered width and the header reads as "near the arena's top edge" rather than spanning
+     the full page. The reserved budget below is ONLY the board's own real chrome (TopBar + board
+     padding + the empty banner row's gap) - the hand is deliberately excluded from this budget
+     (see `.handSection` below): reserving hand height here was the bug that collapsed the arena to
+     ~50% of the viewport, since every px given to the hand came straight out of the arena's own
+     height (and, via the locked aspect ratio, its width too). */
+  .board {
+    width: 100vw;
+    max-width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    margin-top: -1.5rem;
+    margin-bottom: -2.5rem;
+    box-sizing: border-box;
+    padding: 0.5rem 1.5rem;
+    height: calc(100dvh - 3.5rem);
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas:
+      'banner'
+      'stage';
+    gap: 0.375rem;
+    align-content: stretch;
+    /* Height-first: width derives from whatever vertical room is actually left after the fixed
+       chrome below, capped by the column's own width as a safety net for unusually
+       narrow-but-tall desktop windows. Reserved budget (measured live): 3.5rem TopBar + 1rem board
+       padding (0.5rem top+bottom) + 0.375rem gap before the (empty in PvE) banner row + 0.2rem
+       safety = 5.075rem total - an order of magnitude smaller than the old hand-inclusive budget,
+       which is the whole point of this pass. */
+    --arena-w: min(100%, calc((100dvh - 5.075rem) * 1672 / 941));
+  }
+
+  /* Overlaid directly on the arena's top edge instead of occupying its own document-flow row -
+     removes the large gap the live Preview showed between turn status and the battlefield. Insets
+     from `.board`'s own edges (not `.stage`'s, which would need replicating the width formula
+     above) - the gap between the two is small at every tested viewport once the arena is this
+     close to `.board`'s own width, so "near the arena's top-left/top-right edge" holds without
+     needing pixel-exact alignment. */
+  .header {
+    position: absolute;
+    top: 0.5rem;
+    left: 1.5rem;
+    right: 1.5rem;
+    z-index: 8;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .banner {
+    width: var(--arena-w);
+    margin-inline: auto;
+  }
+
+  .stage {
+    display: block;
+    position: relative;
+    width: var(--arena-w);
+    margin-inline: auto;
+    aspect-ratio: 1672 / 941;
+    background-image: url('/art/battlefield/kod-raido-arena-base.webp');
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    border-radius: 1.25rem;
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.65);
+  }
+
+  /* --- Opponent band --- */
+  /* Left-column deck/discard panel coordinates measured directly off the source artwork's own
+     pixel grid (1672x941 master) rather than estimated from a rendered screenshot. */
+  .oppDeckSlot {
+    position: absolute;
+    left: 2.5%;
+    top: 3.5%;
+    width: 12.5%;
+  }
+  .oppDiscardSlot {
+    position: absolute;
+    left: 2.5%;
+    top: 30%;
+    width: 12.5%;
+  }
+  .oppCommanderSlot {
+    position: absolute;
+    left: 50%;
+    top: 5%;
+    transform: translate(-50%, -50%);
+    z-index: 6;
+  }
+  /* Housed in the small illustrated red-lens mechanism at the top-right, not floating loose.
+     Sized to its own content (label + fan + counter) rather than a fixed box, and pulled right of
+     the opponent creature lane's own right edge (lane ends at left:20% + width:60% = 80%) so the
+     housing never overlaps a creature slot. */
+  .oppHandBacksSlot {
+    position: absolute;
+    left: 89%;
+    top: 8%;
+    transform: translate(-50%, -50%);
+    z-index: 6;
+  }
+  .oppLane {
+    position: absolute;
+    left: 20%;
+    top: 14%;
+    width: 60%;
+  }
+
+  /* --- Central Raido Core --- */
+  .coreSlot {
+    position: absolute;
+    left: 50%;
+    top: 45%;
+    width: 27%;
+    height: 30%;
+    transform: translate(-50%, -50%);
+    z-index: 5;
+  }
+
+  /* --- Player band --- */
+  .plyLane {
+    position: absolute;
+    left: 20%;
+    top: 58%;
+    width: 60%;
+  }
+  .plyRuneSlot {
+    position: absolute;
+    left: 64%;
+    top: 79%;
+    width: 20%;
+  }
+  .plyDeckSlot {
+    position: absolute;
+    left: 2.5%;
+    top: 49.5%;
+    width: 12.5%;
+  }
+  .plyDiscardSlot {
+    position: absolute;
+    left: 2.5%;
+    top: 73%;
+    width: 12.5%;
+  }
+  /* Pulled up from the stage's very bottom edge (was top:95%) so the HP badge doesn't hang far
+     enough below the stage to collide with the hand section that starts right after it - the
+     collision was worst at 1440x900, where the stage itself is shorter in absolute pixels.
+     `pointer-events:none` on this wrapper (not just the button inside) because the wrapper's own
+     box is what `elementFromPoint` returns once the button opts out - see `ConductorPanel.tsx`'s
+     `pointer-events-auto`, which opts the button itself back in only while it's an actual valid
+     target. Without this, the slot silently steals hover/click from any dock card whose resting
+     position lands behind it, since a narrow hand's center card(s) sit at the same x as this. */
+  .plyCommanderSlot {
+    position: absolute;
+    left: 50%;
+    top: 90%;
+    transform: translate(-50%, -50%);
+    z-index: 6;
+    pointer-events: none;
+  }
+  /* z-index kept above the resting hand dock (see `.handSection`) so the Resonance readout is
+     never painted over, matching `.plyCommanderSlot` just above. `pointer-events:none` because
+     `ResonanceMeter` is a pure display component (no click handler of its own) - without this, the
+     slot would still hit-test as the topmost element at its screen position purely by sitting
+     above the dock in paint order, silently blocking hover/click on any dock card whose resting
+     position happens to land underneath it.
+     Shrunk ~17% and shifted right+down from the original (left:65%/top:83%/width:20%) into the
+     free lower-right corner of the player half - clear of the commander frame (centered at 50%),
+     the player creature lane (ends ~top:75%), and the rune slot just above it, without touching
+     arena/card geometry or the mobile rule above this media query. */
+  .resonanceSlot {
+    position: absolute;
+    left: 74%;
+    top: 88%;
+    width: 16.5%;
+    z-index: 6;
+    pointer-events: none;
+  }
+
+  /* --- Right-side arena machinery: End Turn --- */
+  .endTurnSlot {
+    position: absolute;
+    left: 91%;
+    top: 43%;
+    width: 15%;
+    height: 17%;
+    transform: translate(-50%, -50%);
+    z-index: 7;
+  }
+
+  /* Hand tray is a compact bottom DOCK, not a floating fan: at rest only the top
+     `--hand-reveal-h` slice of every card (cost + faction accent) pokes up above the viewport's
+     own bottom edge - the rest of each full-size card (art, attack/health, name label) hangs past
+     the viewport and is never rendered, simply because nothing draws below `100vh`. That's also
+     what keeps this guaranteed scroll-safe: no CSS `overflow:hidden` clipping is involved (which
+     would still let the box's full height count toward a scrolling ancestor), the box is just
+     positioned mostly off-screen. `position:fixed` (not `.stage`/`.board`-relative) is required
+     for this to work at all - it's the only positioning scheme *guaranteed* by spec to never
+     contribute to any ancestor's scrollable overflow no matter how far past the viewport it
+     extends, which is also what lets the arena grow to its full `--arena-w` size with zero regard
+     for the hand's own footprint. `left:50%` matches the arena's own horizontal center since
+     `.board`'s padding is symmetric. Sized off `--arena-w` (not a fixed vw value) so the hand's
+     max width tracks the arena's own width at every viewport.
+
+     z-index is intentionally BELOW `.plyCommanderSlot`/`.resonanceSlot` (6) at rest: the dock's
+     resting reveal strip can still land close to the commander/Resonance readouts at short
+     viewports (measured overlap at 1366x650-1920x1080), and painting the commander/Resonance on
+     top is what actually guarantees they stay readable - not just narrowing the reveal strip,
+     which only reduces the odds, doesn't eliminate them. A hovered/dragged card is escalated
+     *individually* above both via `createPortal` in HandFan.tsx (straight into `document.body`,
+     bypassing this box's stacking context entirely) rather than by promoting this z-index -
+     promoting the whole box would lift every *resting* card's peeking corner too, regressing the
+     guarantee this paragraph just established for the sake of the one engaged card. */
+  .handSection {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 3;
+    max-width: min(94vw, calc(var(--arena-w) * 0.94));
+    /* Anchored via `top` (not `bottom`) - measured live, Chromium falls back to this box's normal-
+       flow static position (ignoring `bottom` entirely) whenever `top` is auto and `height` is an
+       intrinsic-sizing keyword (`fit-content`/`max-content`/`auto`) on a `position:fixed` flex
+       column; giving both `top` and `height` real computed values (not intrinsic keywords)
+       sidesteps that. `--hand-h` is the fan's real rendered row height (image + name-label strip),
+       measured directly rather than derived from the card width, since the card's own min-content
+       floor (driven by its image) already overrode a smaller requested max-width in an earlier
+       attempt - now that both breakpoints request >=140px (at/above that floor), the requested
+       size governs directly. `--hand-reveal-h` is how much of that stays inside the viewport at
+       rest - tall enough for the cost badge + faction dot (see HandFan.tsx), short enough to stay
+       clear of the player creature lane above it. */
+    --hand-h: 12.6rem;
+    --hand-reveal-h: 4.5rem;
+    height: var(--hand-h);
+    /* The extra 16px is an empirically-measured correction: this specific `position:fixed` box
+       (only this one - a trivial fixed box injected anywhere else on the same page positions
+       correctly) consistently renders 16px lower than `top`'s calc predicts, reproduced
+       identically at 1366x650/1600x720/1920x1080, so it isn't proportional to viewport size. Root
+       cause not fully isolated (ruled out: ancestor transform/filter/perspective/contain/isolation,
+       scroll position, dvh-vs-vh, and the flex/fit-content height quirk fixed above) - correcting
+       for it empirically is safe either way, since if it doesn't reproduce on a real browser the
+       only effect is the dock sitting 16px higher than intended, not a functional regression. */
+    top: calc(100vh - var(--hand-reveal-h) - 16px);
+  }
+
+  /* An earlier version of this fix promoted `.handSection`'s own z-index via a `:has()` rule
+     whenever a card inside was engaged - reverted. Promoting the whole box also lifted every
+     *resting* card's peeking corner above the commander/Resonance for the duration of the hover,
+     which regresses the rest-state guarantee above for the sake of the one engaged card. The
+     engaged card is now escalated individually via `createPortal` straight into `document.body`
+     in HandFan.tsx, which is unaffected by (and doesn't touch) this box's z-index at all. */
+
+  /* Defense-in-depth for the shortest desktop viewports (measured 650-720px tall):
+     `.plyCommanderSlot`/`.resonanceSlot`'s z-index:6 (above this box's z-index:3) already
+     guarantees they're never visually covered by the resting hand, but shrinking the resting
+     reveal strip here also reduces how many cards' peeking corners sit *underneath* the
+     commander's higher paint layer, which would otherwise steal pointer events from those
+     specific cards at rest. 3rem is the measured minimum that still clears the cost badge +
+     faction dot (see HandFan.tsx) without cutting into them. */
+  @media (max-height: 720px) {
+    .handSection {
+      --hand-reveal-h: 3rem;
+    }
+  }
+}

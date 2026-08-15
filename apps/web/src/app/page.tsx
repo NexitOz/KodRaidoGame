@@ -5,6 +5,30 @@ import { useQuery } from '@tanstack/react-query';
 import { Button, CardView, PremiumPanel, RuneDivider } from '@kod-raido/ui';
 import { api } from '@/lib/api';
 import { useAuthStore } from '@/lib/auth-store';
+import { useTutorialCta } from '@/lib/use-tutorial-cta';
+
+const TUTORIAL_CTA_HINT: Record<'not-started' | 'in-progress' | 'completed', string> = {
+  'not-started': 'Короткий учебный бой познакомит тебя с основами и Резонансом.',
+  'in-progress': 'У тебя есть незавершённый учебный бой — вернись и закончи его.',
+  completed: 'Ты уже прошёл обучение. Можешь пройти его снова в любой момент.',
+};
+
+function HomeTutorialCard() {
+  const cta = useTutorialCta();
+  if (!cta) return null;
+
+  return (
+    <PremiumPanel className="flex flex-wrap items-center justify-between gap-3 p-4">
+      <div>
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-raido-mist">Обучение</h2>
+        <p className="mt-1 text-sm text-raido-white">{TUTORIAL_CTA_HINT[cta.state]}</p>
+      </div>
+      <Button variant="secondary" onClick={cta.activate} disabled={cta.isPending}>
+        {cta.label}
+      </Button>
+    </PremiumPanel>
+  );
+}
 
 function HomeProgressCard() {
   const accessToken = useAuthStore((s) => s.accessToken);
@@ -85,6 +109,7 @@ export default function LandingPage() {
       </section>
 
       {user ? <HomeProgressCard /> : null}
+      {user ? <HomeTutorialCard /> : null}
 
       <section>
         <div className="mb-4 flex items-center justify-between">

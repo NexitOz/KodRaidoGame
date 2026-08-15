@@ -85,10 +85,9 @@ export default function TutorialMatchPage() {
     onSuccess: (result) => {
       // Clearing activeMatchId here matters, not just cosmetically: this match's row is already
       // FINISHED server-side (finishTutorialMatch ran synchronously when the winning action was
-      // applied), so OnboardingGate's resume banner must stop considering it "active" the moment
-      // we know that too - otherwise the cached (now stale) activeMatchId would make the banner
-      // reappear on this very victory screen, since it's a different pathname than the match's
-      // own /tutorial/[matchId] route.
+      // applied), so the Home/Settings CTA (useTutorialCta) must stop considering it "active" the
+      // moment we know that too - otherwise the cached (now stale) activeMatchId would keep
+      // offering "Продолжить обучение" for a match that's already over.
       queryClient.setQueryData<TutorialProgress | undefined>(['tutorial-progress', accessToken], (prev) =>
         prev
           ? { ...prev, completedAt: new Date().toISOString(), rewardClaimed: true, activeMatchId: undefined }

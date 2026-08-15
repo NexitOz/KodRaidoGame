@@ -17,8 +17,13 @@ test-results/
 playwright-report/
 blob-report/
 
+# Production Art Pass 01 review-only candidates (apps/web/src/app/admin/art-review) - never
+# committed; these are unapproved artwork files staged locally for crop/identity review only.
+apps/web/public/art-review-candidates/*
+!apps/web/public/art-review-candidates/.gitkeep
+
 # Accidental scratch artwork uploaded directly to this path via the GitHub web UI "Add file" flow
 # during Art Pack 01 candidate review (see docs/art-bible-01.md) - not a real project directory,
-# never a production source of truth. The real review workflow lives at
-# apps/web/public/art-review-candidates/ (its own, separate .gitignore rule below).
+# never a production source of truth. Distinct from apps/web/public/art-review-candidates/ above,
+# which is the real (intentional, gitignored) review workflow used by /admin/art-review.
 apps/web/art-review-candidates/

@@ -1,15 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { registerFreshUser } from './helpers';
-
-/** Dismisses the OnboardingGate's "Начать обучение" modal via Skip - these tests exercise
- * Collection/Home, not the tutorial itself, and OnboardingGate blocks every page for a
- * brand-new user until it's skipped or completed. */
-async function skipOnboarding(page: Page) {
-  await page.waitForTimeout(500);
-  await page.getByRole('button', { name: 'Пропустить' }).click();
-  await page.getByRole('button', { name: 'Понятно' }).click();
-  await page.waitForTimeout(200);
-}
 
 /**
  * Visual Polish 1.0 interaction coverage (section 40 of docs/visual-polish-01.md). Deliberately
@@ -23,7 +13,6 @@ async function skipOnboarding(page: Page) {
 test('collection: filtering and opening the cinematic card detail both work', async ({ page }) => {
   await registerFreshUser(page, 'collection-vp');
   await page.waitForURL('**/collection', { timeout: 15_000 });
-  await skipOnboarding(page);
 
   const grid = page.locator('div.grid').first();
   await expect(grid).toBeVisible();

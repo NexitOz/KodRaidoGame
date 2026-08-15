@@ -1,4 +1,4 @@
-import { PrismaClient, type CardType, type Rarity } from '@prisma/client';
+import { PrismaClient, type CardType, type Rarity, type RightsStatus } from '@prisma/client';
 import * as argon2 from 'argon2';
 import { STARTER_DECK_PRESETS } from '../src/content/starter-decks';
 
@@ -84,6 +84,12 @@ interface SeedCard {
    * never deleted (rows persist, old match logs and admin visibility are unaffected - see
    * docs/content-pack-01.md). */
   active?: boolean;
+  /** Art Pack 01 production promotion (docs/art-bible-01.md): when set, overrides the default
+   * generatePlaceholderArt() output for this card only. Every other card keeps regenerating its
+   * placeholder on every seed run. */
+  artworkUrl?: string;
+  /** Paired with artworkUrl - defaults to 'placeholder' when unset. */
+  rightsStatus?: RightsStatus;
 }
 
 const TRACKS = [
@@ -776,6 +782,11 @@ const SHADOW_CARDS: SeedCard[] = [
     health: 5,
     abilityText:
       'При выходе: верните на поле первого подходящего Shadow-персонажа из вашего сброса (100% характеристик).',
+    // Art Pack 01 Production Candidate 01b - FINAL APPROVED (docs/art-bible-01.md). The only
+    // card in Content Pack 01 with real commissioned art as of this change; all others keep
+    // generatePlaceholderArt().
+    artworkUrl: '/art/cards/necromancer-of-the-twilight-order.webp',
+    rightsStatus: 'owned',
     effectJson: [
       {
         trigger: 'ON_PLAY',
@@ -862,6 +873,10 @@ const PURIFICATION_CARDS: SeedCard[] = [
     health: 7,
     abilityText:
       'Выберите: очистите и защитите союзника Щитом ИЛИ проклиньте врага - в зависимости от выбранной цели.',
+    // Art Pack 01 Production Candidate 02b - FINAL APPROVED (docs/art-bible-01.md). Spear-tip
+    // apex clipping in the shipped crops is an accepted minor loss - see the review report.
+    artworkUrl: '/art/cards/high-warden-of-the-white-rune.webp',
+    rightsStatus: 'owned',
     effectJson: [
       {
         trigger: 'ON_PLAY',
@@ -964,6 +979,9 @@ const BOND_CARDS: SeedCard[] = [
     tags: ['Bond'],
     attack: 4,
     health: 7,
+    // Art Pack 01 Production Candidate 03 - FINAL APPROVED (docs/art-bible-01.md).
+    artworkUrl: '/art/cards/matriarch-of-the-spring-light.webp',
+    rightsStatus: 'owned',
     abilityText:
       'При выходе: восстановите 2 здоровья всем союзникам. При Резонансе 5+: все союзники получают Щит.',
     effectJson: [
@@ -1055,6 +1073,9 @@ const VEIL_CARDS: SeedCard[] = [
     tags: ['Veil'],
     attack: 5,
     health: 4,
+    // Art Pack 01 Production Candidate 04 - FINAL APPROVED (docs/art-bible-01.md).
+    artworkUrl: '/art/cards/lord-of-the-nameless-shadow.webp',
+    rightsStatus: 'owned',
     abilityText:
       'Выберите: укройте союзника в Тени (Скрытый) ИЛИ заглушите врага - в зависимости от выбранной цели.',
     effectJson: [
@@ -1156,6 +1177,9 @@ const MYSTERY_CARDS: SeedCard[] = [
     tags: ['Mystery'],
     attack: 5,
     health: 6,
+    // Art Pack 01 Production Candidate 05 - FINAL APPROVED (docs/art-bible-01.md).
+    artworkUrl: '/art/cards/keeper-of-the-grey-mist.webp',
+    rightsStatus: 'owned',
     abilityText:
       'При выходе: доберите 2 карты. При Резонансе 3+: поднимите наверх первую карту Mystery среди верхних 3.',
     effectJson: [
@@ -1238,6 +1262,9 @@ const COSMIC_CARDS: SeedCard[] = [
     tags: ['Cosmic'],
     attack: 7,
     health: 8,
+    // Art Pack 01 Production Candidate 06 - FINAL APPROVED (docs/art-bible-01.md).
+    artworkUrl: '/art/cards/lord-of-the-stellar-stream.webp',
+    rightsStatus: 'owned',
     abilityText: 'При выходе: доберите карту. При Резонансе 5+: получает +2/+2 навсегда.',
     effectJson: [
       { trigger: 'ON_PLAY', conditions: [], effects: [{ type: 'DRAW', amount: 1 }] },
@@ -1320,8 +1347,8 @@ async function main() {
         abilityText: card.abilityText,
         effectJson: (card.effectJson ?? []) as object[],
         linkedTrackIds,
-        artworkUrl: generatePlaceholderArt(card.name, card.rarity),
-        rightsStatus: 'placeholder',
+        artworkUrl: card.artworkUrl ?? generatePlaceholderArt(card.name, card.rarity),
+        rightsStatus: card.rightsStatus ?? 'placeholder',
         active: card.active ?? true,
         isPlayable: card.isPlayable ?? true,
         isToken: card.isToken ?? false,
@@ -1343,8 +1370,8 @@ async function main() {
         abilityText: card.abilityText,
         effectJson: (card.effectJson ?? []) as object[],
         linkedTrackIds,
-        artworkUrl: generatePlaceholderArt(card.name, card.rarity),
-        rightsStatus: 'placeholder',
+        artworkUrl: card.artworkUrl ?? generatePlaceholderArt(card.name, card.rarity),
+        rightsStatus: card.rightsStatus ?? 'placeholder',
         active: card.active ?? true,
         isPlayable: card.isPlayable ?? true,
         isToken: card.isToken ?? false,
