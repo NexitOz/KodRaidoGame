@@ -31,24 +31,24 @@
 
 @media (min-width: 1024px) {
   .pileLabel { font-size: 9px; line-height: 1; }
-  .deckControl, .discardControl { position: relative; display: block; width: 100%; height: 102px; pointer-events: none; }
+  .deckControl, .discardControl { position: relative; display: block; width: 100%; height: clamp(112px, 8.5vw, 146px); pointer-events: none; }
   .deckArtwork, .discardArtwork, .deckCounter, .discardCounter, .resonanceFrame, .gem { position: absolute; display: block; pointer-events: none; }
-  .deckArtwork { left: 4%; top: 0; width: 46%; aspect-ratio: 1086 / 1448; }
-  .discardArtwork { left: 5%; top: 0; width: 43%; aspect-ratio: 1086 / 1448; }
+  .deckArtwork { left: 1%; top: 0; width: 62%; aspect-ratio: 1086 / 1448; }
+  .discardArtwork { left: 2%; top: 0; width: 55%; aspect-ratio: 1086 / 1448; }
   .deckArtwork img, .discardArtwork img, .deckCounter img, .discardCounter img, .resonanceFrame img, .gem img { display: block; width: 100%; height: 100%; object-fit: contain; }
-  .deckCounter { left: 49%; top: 61%; width: 43%; aspect-ratio: 1387 / 333; }
-  .discardCounter { left: 51%; top: 18%; width: 18%; aspect-ratio: 347 / 753; }
+  .deckCounter { left: 45%; top: 59%; width: 50%; aspect-ratio: 1387 / 333; }
+  .discardCounter { left: 48%; top: 16%; width: 22%; aspect-ratio: 347 / 753; }
   .deckCount, .discardCount { position: absolute; z-index: 2; display: flex; align-items: center; justify-content: center; font-weight: 800; font-variant-numeric: tabular-nums; color: #f6edda; text-shadow: 0 1px 3px #000, 0 0 5px #000; transition: opacity 120ms ease; }
-  .deckCount { left: 54%; top: 62%; width: 33%; aspect-ratio: 1387 / 333; font-size: clamp(10px, .85vw, 15px); }
-  .discardCount { left: 51%; top: 27%; width: 18%; height: 45%; font-size: clamp(10px, .75vw, 14px); }
+  .deckCount { left: 50%; top: 60%; width: 40%; aspect-ratio: 1387 / 333; font-size: clamp(11px, .92vw, 16px); }
+  .discardCount { left: 48%; top: 25%; width: 22%; height: 46%; font-size: clamp(11px, .82vw, 15px); }
   .mobileResonance { display: none; }
-  .desktopResonance { position: relative; display: block; width: 100%; aspect-ratio: 1671 / 330; pointer-events: none; }
+  .desktopResonance { position: relative; display: block; width: 136%; aspect-ratio: 1671 / 330; pointer-events: none; transform: translateY(-5%); transform-origin: left center; }
   .resonanceFrame { inset: 0; }
-  .resonanceTitle { position: absolute; left: 6%; top: 10%; z-index: 2; font-size: clamp(7px, .58vw, 11px); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #dbc99c; text-shadow: 0 1px 3px #000; }
+  .resonanceTitle { position: absolute; left: 6%; top: 10%; z-index: 2; font-size: clamp(8px, .72vw, 13px); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #dbc99c; text-shadow: 0 1px 3px #000; }
   .gems { position: absolute; left: 7.2%; top: 35.5%; width: 65.5%; height: 52%; }
   .gem { top: 0; width: 18%; aspect-ratio: 1; transform: translateX(calc(var(--gem-index, 0) * 100%)); }
   .gem:nth-child(1) { left: 0; } .gem:nth-child(2) { left: 20%; } .gem:nth-child(3) { left: 40%; } .gem:nth-child(4) { left: 60%; } .gem:nth-child(5) { left: 80%; }
-  .resonanceValue { position: absolute; right: 4.7%; top: 22%; width: 17%; height: 58%; z-index: 2; display: flex; align-items: center; justify-content: center; font-size: clamp(9px, .9vw, 16px); font-weight: 900; font-variant-numeric: tabular-nums; color: #f6edda; text-shadow: 0 1px 4px #000; transition: opacity 120ms ease; }
+  .resonanceValue { position: absolute; right: 4.7%; top: 22%; width: 17%; height: 58%; z-index: 2; display: flex; align-items: center; justify-content: center; font-size: clamp(11px, 1.05vw, 18px); font-weight: 900; font-variant-numeric: tabular-nums; color: #f6edda; text-shadow: 0 1px 4px #000; transition: opacity 120ms ease; }
   .gemChanged { animation: production-control-pulse 260ms ease-out; }
 }
 
