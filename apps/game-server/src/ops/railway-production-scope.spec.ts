@@ -11,7 +11,7 @@ const projectTokenPayload = {
 };
 const project = {
   id: 'project-1',
-  name: 'KodRaidoGame',
+  name: 'gleaming-eagerness',
   environments: [{ id: 'environment-production', name: 'production' }],
   services: [
     { id: 'service-game-server', name: 'game-server' },
