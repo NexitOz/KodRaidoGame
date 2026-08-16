@@ -24,9 +24,6 @@ jobs:
       REQUIRED_SOURCE_COMMIT: 102d0cfbbefc4ef4bff42b9e14caa7c071e29459
       SOURCE_COMMIT: 102d0cfbbefc4ef4bff42b9e14caa7c071e29459
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-      EXPECTED_PROJECT_NAME: KodRaidoGame
-      EXPECTED_ENVIRONMENT_NAME: production
-      EXPECTED_SERVICE_NAME: game-server
 
     steps:
       - name: Require exact manual confirmation
@@ -89,9 +86,6 @@ jobs:
       - name: Generate Prisma client
         run: npm run prisma:generate -w apps/game-server
 
-      - name: Install pinned official Railway CLI
-        run: npm install --global @railway/cli@5.41.2
-
       - name: Require Railway project token
         shell: bash
         run: |
@@ -99,152 +93,29 @@ jobs:
           test -n "${RAILWAY_TOKEN:-}"
           echo "RAILWAY_TOKEN_PRESENT=YES"
 
-      - name: Verify Railway production identity
+      - name: Verify production scope and read-only connectivity
         shell: bash
         run: |
           set -euo pipefail
-          railway api --compact \
-            'query ProjectToken { projectToken { id project { id name } environment { id name } } }' \
-            > /tmp/railway-project-token.json
-          project_id="$(node <<'NODE'
-          const fs = require('node:fs');
-          const payload = JSON.parse(fs.readFileSync('/tmp/railway-project-token.json', 'utf8'));
-          const token = payload.data?.projectToken ?? payload.projectToken;
-          if (!token?.id) throw new Error('RAILWAY_TOKEN is not an introspectable Railway Project Token');
-          if (token.project?.name !== process.env.EXPECTED_PROJECT_NAME || !token.project?.id) {
-            throw new Error('Railway Project Token project identity mismatch');
-          }
-          if (token.environment?.name !== process.env.EXPECTED_ENVIRONMENT_NAME || !token.environment?.id) {
-            throw new Error('Railway Project Token is not scoped to the production environment');
-          }
-          process.stdout.write(token.project.id);
-          NODE
-          )"
-          railway status \
-            --project "$project_id" \
-            --environment "$EXPECTED_ENVIRONMENT_NAME" \
-            --json > /tmp/railway-status.json
-          node <<'NODE'
-          const fs = require('node:fs');
-          const status = JSON.parse(fs.readFileSync('/tmp/railway-status.json', 'utf8'));
-          const tokenPayload = JSON.parse(fs.readFileSync('/tmp/railway-project-token.json', 'utf8'));
-          const token = tokenPayload.data?.projectToken ?? tokenPayload.projectToken;
-          const project = status.project ?? status;
-          const environments = project.environments?.edges?.map((edge) => edge.node) ?? project.environments ?? [];
-          const environment = status.environment ?? project.environment ?? environments[0];
-          const services = project.services?.edges?.map((edge) => edge.node) ?? project.services ?? [];
-          const matches = services.filter((service) => service.name === process.env.EXPECTED_SERVICE_NAME);
-          if (project.name !== process.env.EXPECTED_PROJECT_NAME || project.id !== token.project.id) {
-            throw new Error('Railway project identity mismatch');
-          }
-          if (
-            environment?.name !== process.env.EXPECTED_ENVIRONMENT_NAME ||
-            environment?.id !== token.environment.id
-          ) {
-            throw new Error('Railway environment identity mismatch');
-          }
-          if (matches.length !== 1 || !matches[0].id) {
-            throw new Error('Expected exactly one verified game-server service');
-          }
-          const safe = [
-            `RAILWAY_PROJECT_NAME=${project.name}`,
-            `RAILWAY_PROJECT_ID=${project.id}`,
-            `RAILWAY_ENVIRONMENT_NAME=${environment.name}`,
-            `RAILWAY_ENVIRONMENT_ID=${environment.id}`,
-            `RAILWAY_SERVICE_NAME=${matches[0].name}`,
-            `RAILWAY_SERVICE_ID=${matches[0].id}`,
-          ];
-          fs.appendFileSync(process.env.GITHUB_ENV, `${safe.join('\n')}\n`);
-          console.log(`Project verified: ${project.name} (${project.id})`);
-          console.log(`Environment verified: ${environment.name} (${environment.id})`);
-          console.log(`Service verified: ${matches[0].name} (${matches[0].id})`);
-          NODE
-          rm -f /tmp/railway-project-token.json /tmp/railway-status.json
-
-      - name: Prepare private-aware database route helper
-        shell: bash
-        run: |
-          set -euo pipefail
-          cat > /tmp/railway-db-route.cjs <<'NODE'
-          const { spawnSync } = require('node:child_process');
-
-          function parseDatabaseUrl(name) {
-            const value = process.env[name];
-            if (!value) return undefined;
-            const parsed = new URL(value);
-            if (parsed.protocol !== 'postgres:' && parsed.protocol !== 'postgresql:') {
-              throw new Error(`${name} is not a PostgreSQL URL`);
-            }
-            return { value, hostname: parsed.hostname.toLowerCase() };
-          }
-
-          const privateRoute = parseDatabaseUrl('DATABASE_URL');
-          if (!privateRoute) throw new Error('DATABASE_URL_PRESENT=NO');
-          const privateHostname =
-            privateRoute.hostname.endsWith('.railway.internal') || privateRoute.hostname.endsWith('.internal');
-
-          if (privateHostname) {
-            const publicRoute = parseDatabaseUrl('DATABASE_PUBLIC_URL');
-            if (!publicRoute) throw new Error('Private DATABASE_URL requires DATABASE_PUBLIC_URL on this service');
-            if (publicRoute.hostname.endsWith('.railway.internal') || publicRoute.hostname.endsWith('.internal')) {
-              throw new Error('DATABASE_PUBLIC_URL unexpectedly resolves to a private hostname');
-            }
-            process.env.DATABASE_URL = publicRoute.value;
-            console.log('PRIVATE_DATABASE_URL_DETECTED=YES');
-            console.log('PUBLIC_DATABASE_URL_FALLBACK=YES');
-          } else {
-            console.log('PRIVATE_DATABASE_URL_DETECTED=NO');
-            console.log('PUBLIC_DATABASE_URL_FALLBACK=NO');
-          }
-          delete process.env.DATABASE_PUBLIC_URL;
-          console.log('DATABASE_URL_PRESENT=YES');
-          console.log('DB_ROUTE_PROJECT_ENVIRONMENT_SCOPED=YES');
-
-          if (process.argv[2] === '--probe') process.exit(0);
-          const child = spawnSync(process.argv[2], process.argv.slice(3), {
-            env: process.env,
-            stdio: 'inherit',
-          });
-          if (child.error) throw child.error;
-          process.exit(child.status ?? 1);
-          NODE
-
-      - name: Verify database route and read-only connectivity
-        shell: bash
-        run: |
-          set -euo pipefail
-          railway run \
-            --project "$RAILWAY_PROJECT_ID" \
-            --environment "$RAILWAY_ENVIRONMENT_ID" \
-            --service "$RAILWAY_SERVICE_ID" \
-            --no-local -- \
-            node /tmp/railway-db-route.cjs --probe \
-            | tee /tmp/database-route.log
-          grep -qx 'DATABASE_URL_PRESENT=YES' /tmp/database-route.log
-          grep -qx 'DB_ROUTE_PROJECT_ENVIRONMENT_SCOPED=YES' /tmp/database-route.log
-          railway run \
-            --project "$RAILWAY_PROJECT_ID" \
-            --environment "$RAILWAY_ENVIRONMENT_ID" \
-            --service "$RAILWAY_SERVICE_ID" \
-            --no-local -- \
-            node /tmp/railway-db-route.cjs node -e \
+          npm exec -- tsx apps/game-server/src/ops/railway-production-scope.ts -- \
+            node -e \
               'const { PrismaClient } = require("@prisma/client"); const prisma = new PrismaClient(); prisma.$queryRaw`SELECT 1`.then(() => console.log("READ_ONLY_DB_PREFLIGHT=YES")).finally(() => prisma.$disconnect())' \
-            | tee /tmp/database-preflight.log
-          grep -qx 'READ_ONLY_DB_PREFLIGHT=YES' /tmp/database-preflight.log
+            | tee /tmp/production-scope.log
+          grep -qx 'TOKEN_PROJECT_ID_VERIFIED=YES' /tmp/production-scope.log
+          grep -qx 'TOKEN_ENVIRONMENT_ID_VERIFIED=YES' /tmp/production-scope.log
+          grep -qx 'GAME_SERVER_DB_LINK_VERIFIED=YES' /tmp/production-scope.log
+          grep -qx 'PRODUCTION_SCOPE_VERIFIED=YES' /tmp/production-scope.log
+          grep -qx 'READ_ONLY_DB_PREFLIGHT=YES' /tmp/production-scope.log
 
       - name: PRE-WRITE read-only verification
         id: prewrite
         shell: bash
         run: |
           set -euo pipefail
-          railway run \
-            --project "$RAILWAY_PROJECT_ID" \
-            --environment "$RAILWAY_ENVIRONMENT_ID" \
-            --service "$RAILWAY_SERVICE_ID" \
-            --no-local -- \
-            node /tmp/railway-db-route.cjs \
-              npm exec -- tsx apps/game-server/scripts/sync-production-card-art.ts --check \
+          npm exec -- tsx apps/game-server/src/ops/railway-production-scope.ts -- \
+            npm exec -- tsx apps/game-server/scripts/sync-production-card-art.ts --check \
             | tee /tmp/prewrite.log
+          grep -qx 'PRODUCTION_SCOPE_VERIFIED=YES' /tmp/prewrite.log
           grep -qx 'TARGET_ROWS=7' /tmp/prewrite.log
           grep -qx 'UNIQUE_SLUGS=7' /tmp/prewrite.log
           snapshot="$(sed -n 's/^PRE_WRITE_SNAPSHOT=//p' /tmp/prewrite.log)"
@@ -260,15 +131,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          railway run \
-            --project "$RAILWAY_PROJECT_ID" \
-            --environment "$RAILWAY_ENVIRONMENT_ID" \
-            --service "$RAILWAY_SERVICE_ID" \
-            --no-local -- \
-            node /tmp/railway-db-route.cjs \
-              npm exec -- tsx apps/game-server/scripts/sync-production-card-art.ts \
-                --apply --expected-snapshot "${{ steps.prewrite.outputs.snapshot }}" \
+          npm exec -- tsx apps/game-server/src/ops/railway-production-scope.ts -- \
+            npm exec -- tsx apps/game-server/scripts/sync-production-card-art.ts \
+              --apply --expected-snapshot "${{ steps.prewrite.outputs.snapshot }}" \
             | tee /tmp/apply.log
+          grep -qx 'PRODUCTION_SCOPE_VERIFIED=YES' /tmp/apply.log
           grep -qx 'TRANSACTION_STARTED=YES' /tmp/apply.log
           grep -qx 'TRANSACTION_COMMITTED=YES' /tmp/apply.log
           grep -qx 'TARGET_ROWS_FINAL=7' /tmp/apply.log
@@ -285,14 +152,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          railway run \
-            --project "$RAILWAY_PROJECT_ID" \
-            --environment "$RAILWAY_ENVIRONMENT_ID" \
-            --service "$RAILWAY_SERVICE_ID" \
-            --no-local -- \
-            node /tmp/railway-db-route.cjs \
-              npm exec -- tsx apps/game-server/scripts/sync-production-card-art.ts --check \
+          npm exec -- tsx apps/game-server/src/ops/railway-production-scope.ts -- \
+            npm exec -- tsx apps/game-server/scripts/sync-production-card-art.ts --check \
             | tee /tmp/postwrite.log
+          grep -qx 'PRODUCTION_SCOPE_VERIFIED=YES' /tmp/postwrite.log
           grep -qx 'TARGET_ROWS=7' /tmp/postwrite.log
           grep -qx 'UNIQUE_SLUGS=7' /tmp/postwrite.log
           grep -qx 'ROWS_REQUIRING_MUTATION=0' /tmp/postwrite.log
