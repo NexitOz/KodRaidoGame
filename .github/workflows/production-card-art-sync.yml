@@ -1,0 +1,230 @@
+name: One-time production card artwork sync
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Type SYNC-7-CARD-ART-PRODUCTION to authorize the controlled production sync
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-card-art-sync
+  cancel-in-progress: false
+
+jobs:
+  sync-production-card-art:
+    name: Verify and synchronize seven production card artwork records
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      REQUIRED_SOURCE_COMMIT: 102d0cfbbefc4ef4bff42b9e14caa7c071e29459
+      SOURCE_COMMIT: 102d0cfbbefc4ef4bff42b9e14caa7c071e29459
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      EXPECTED_PROJECT_NAME: KodRaidoGame
+      EXPECTED_ENVIRONMENT_NAME: production
+      EXPECTED_SERVICE_NAME: game-server
+
+    steps:
+      - name: Require exact manual confirmation
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${{ inputs.confirmation }}" = "SYNC-7-CARD-ART-PRODUCTION"
+
+      - name: Check out the reviewed workflow revision
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify immutable production source commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          actual_main="$(git rev-parse origin/main)"
+          git merge-base --is-ancestor "$REQUIRED_SOURCE_COMMIT" "$actual_main"
+          git merge-base --is-ancestor "$REQUIRED_SOURCE_COMMIT" HEAD
+          git diff --quiet "$REQUIRED_SOURCE_COMMIT".."$actual_main" -- \
+            apps/game-server/prisma/seed.ts \
+            apps/game-server/prisma/schema.prisma \
+            apps/web/public/art/cards
+          git diff --quiet "$REQUIRED_SOURCE_COMMIT"..HEAD -- \
+            apps/game-server/prisma/seed.ts \
+            apps/game-server/prisma/schema.prisma \
+            apps/web/public/art/cards
+          echo "IMMUTABLE_SOURCE_SHA_VERIFIED=$REQUIRED_SOURCE_COMMIT"
+          echo "CURRENT_MAIN_SHA=$actual_main"
+
+      - name: Verify all seven committed artwork files
+        shell: bash
+        run: |
+          set -euo pipefail
+          slugs=(
+            necromancer-of-the-twilight-order
+            high-warden-of-the-white-rune
+            matriarch-of-the-spring-light
+            lord-of-the-nameless-shadow
+            keeper-of-the-grey-mist
+            lord-of-the-stellar-stream
+            whisper-of-the-forgotten
+          )
+          for slug in "${slugs[@]}"; do
+            git cat-file -e "$REQUIRED_SOURCE_COMMIT:apps/web/public/art/cards/$slug.webp"
+          done
+          echo "ARTWORK_FILES_PRESENT=7/7"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install repository dependencies
+        run: npm ci
+
+      - name: Generate Prisma client
+        run: npm run prisma:generate -w apps/game-server
+
+      - name: Install pinned official Railway CLI
+        run: npm install --global @railway/cli@5.41.2
+
+      - name: Require Railway project token
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "${RAILWAY_TOKEN:-}"
+          echo "RAILWAY_TOKEN_PRESENT=YES"
+
+      - name: Verify Railway production identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          railway list --json > /tmp/railway-projects.json
+          project_id="$(node <<'NODE'
+          const fs = require('node:fs');
+          const payload = JSON.parse(fs.readFileSync('/tmp/railway-projects.json', 'utf8'));
+          const projects = Array.isArray(payload)
+            ? payload
+            : payload.projects?.edges?.map((edge) => edge.node) ?? payload.projects ?? [];
+          const matches = projects.filter((project) => project.name === process.env.EXPECTED_PROJECT_NAME);
+          if (matches.length !== 1 || !matches[0].id) {
+            throw new Error('Expected exactly one accessible Railway project named KodRaidoGame');
+          }
+          process.stdout.write(matches[0].id);
+          NODE
+          )"
+          railway status \
+            --project "$project_id" \
+            --environment "$EXPECTED_ENVIRONMENT_NAME" \
+            --json > /tmp/railway-status.json
+          node <<'NODE'
+          const fs = require('node:fs');
+          const status = JSON.parse(fs.readFileSync('/tmp/railway-status.json', 'utf8'));
+          const project = status.project ?? status;
+          const environments = project.environments?.edges?.map((edge) => edge.node) ?? project.environments ?? [];
+          const environment = status.environment ?? project.environment ?? environments[0];
+          const services = project.services?.edges?.map((edge) => edge.node) ?? project.services ?? [];
+          const matches = services.filter((service) => service.name === process.env.EXPECTED_SERVICE_NAME);
+          if (project.name !== process.env.EXPECTED_PROJECT_NAME || !project.id) {
+            throw new Error('Railway project identity mismatch');
+          }
+          if (environment?.name !== process.env.EXPECTED_ENVIRONMENT_NAME || !environment?.id) {
+            throw new Error('Railway environment identity mismatch');
+          }
+          if (matches.length !== 1 || !matches[0].id) {
+            throw new Error('Expected exactly one verified game-server service');
+          }
+          const safe = [
+            `RAILWAY_PROJECT_NAME=${project.name}`,
+            `RAILWAY_PROJECT_ID=${project.id}`,
+            `RAILWAY_ENVIRONMENT_NAME=${environment.name}`,
+            `RAILWAY_ENVIRONMENT_ID=${environment.id}`,
+            `RAILWAY_SERVICE_NAME=${matches[0].name}`,
+            `RAILWAY_SERVICE_ID=${matches[0].id}`,
+          ];
+          fs.appendFileSync(process.env.GITHUB_ENV, `${safe.join('\n')}\n`);
+          console.log(`Project verified: ${project.name} (${project.id})`);
+          console.log(`Environment verified: ${environment.name} (${environment.id})`);
+          console.log(`Service verified: ${matches[0].name} (${matches[0].id})`);
+          NODE
+          rm -f /tmp/railway-projects.json /tmp/railway-status.json
+
+      - name: Verify DATABASE_URL presence without exposing it
+        shell: bash
+        run: |
+          set -euo pipefail
+          result="$(railway run \
+            --project "$RAILWAY_PROJECT_ID" \
+            --environment "$RAILWAY_ENVIRONMENT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --no-local -- \
+            node -e 'console.log(process.env.DATABASE_URL ? "DATABASE_URL_PRESENT=YES" : "DATABASE_URL_PRESENT=NO")')"
+          test "$result" = "DATABASE_URL_PRESENT=YES"
+          echo "$result"
+
+      - name: PRE-WRITE read-only verification
+        id: prewrite
+        shell: bash
+        run: |
+          set -euo pipefail
+          railway run \
+            --project "$RAILWAY_PROJECT_ID" \
+            --environment "$RAILWAY_ENVIRONMENT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --no-local -- \
+            npm exec -- tsx apps/game-server/scripts/sync-production-card-art.ts --check \
+            | tee /tmp/prewrite.log
+          grep -qx 'TARGET_ROWS=7' /tmp/prewrite.log
+          grep -qx 'UNIQUE_SLUGS=7' /tmp/prewrite.log
+          snapshot="$(sed -n 's/^PRE_WRITE_SNAPSHOT=//p' /tmp/prewrite.log)"
+          test "$(printf '%s' "$snapshot" | wc -c)" -eq 64
+          rows_requiring_mutation="$(sed -n 's/^ROWS_REQUIRING_MUTATION=//p' /tmp/prewrite.log)"
+          test "$rows_requiring_mutation" -ge 0
+          test "$rows_requiring_mutation" -le 7
+          echo "snapshot=$snapshot" >> "$GITHUB_OUTPUT"
+          echo "rows_requiring_mutation=$rows_requiring_mutation" >> "$GITHUB_OUTPUT"
+
+      - name: Atomic APPLY
+        if: steps.prewrite.outputs.rows_requiring_mutation != '0'
+        shell: bash
+        run: |
+          set -euo pipefail
+          railway run \
+            --project "$RAILWAY_PROJECT_ID" \
+            --environment "$RAILWAY_ENVIRONMENT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --no-local -- \
+            npm exec -- tsx apps/game-server/scripts/sync-production-card-art.ts \
+              --apply --expected-snapshot "${{ steps.prewrite.outputs.snapshot }}" \
+            | tee /tmp/apply.log
+          grep -qx 'TRANSACTION_STARTED=YES' /tmp/apply.log
+          grep -qx 'TRANSACTION_COMMITTED=YES' /tmp/apply.log
+          grep -qx 'TARGET_ROWS_FINAL=7' /tmp/apply.log
+          grep -qx 'SOURCE_OF_TRUTH_MATCH=7/7' /tmp/apply.log
+          grep -qx 'NON_TARGET_FIELD_CHANGES=0' /tmp/apply.log
+
+      - name: Report already synchronized state
+        if: steps.prewrite.outputs.rows_requiring_mutation == '0'
+        run: |
+          echo "ROWS_CHANGED=0"
+          echo "DATABASE_ALREADY_SYNCHRONIZED=YES"
+
+      - name: Independent POST-WRITE verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          railway run \
+            --project "$RAILWAY_PROJECT_ID" \
+            --environment "$RAILWAY_ENVIRONMENT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --no-local -- \
+            npm exec -- tsx apps/game-server/scripts/sync-production-card-art.ts --check \
+            | tee /tmp/postwrite.log
+          grep -qx 'TARGET_ROWS=7' /tmp/postwrite.log
+          grep -qx 'UNIQUE_SLUGS=7' /tmp/postwrite.log
+          grep -qx 'ROWS_REQUIRING_MUTATION=0' /tmp/postwrite.log
+          grep -qx 'SOURCE_OF_TRUTH_MATCH=7/7' /tmp/postwrite.log
