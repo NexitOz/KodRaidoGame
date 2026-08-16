@@ -2,7 +2,7 @@
 import { spawnSync } from 'node:child_process';
 
 const RAILWAY_API_URL = 'https://backboard.railway.com/graphql/v2';
-const EXPECTED_PROJECT_NAME = 'KodRaidoGame';
+const EXPECTED_PROJECT_NAME = 'gleaming-eagerness';
 const EXPECTED_ENVIRONMENT_NAME = 'production';
 const EXPECTED_GAME_SERVER_NAME = 'game-server';
 
