@@ -103,18 +103,21 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          railway list --json > /tmp/railway-projects.json
+          railway api --compact \
+            'query ProjectToken { projectToken { id project { id name } environment { id name } } }' \
+            > /tmp/railway-project-token.json
           project_id="$(node <<'NODE'
           const fs = require('node:fs');
-          const payload = JSON.parse(fs.readFileSync('/tmp/railway-projects.json', 'utf8'));
-          const projects = Array.isArray(payload)
-            ? payload
-            : payload.projects?.edges?.map((edge) => edge.node) ?? payload.projects ?? [];
-          const matches = projects.filter((project) => project.name === process.env.EXPECTED_PROJECT_NAME);
-          if (matches.length !== 1 || !matches[0].id) {
-            throw new Error('Expected exactly one accessible Railway project named KodRaidoGame');
+          const payload = JSON.parse(fs.readFileSync('/tmp/railway-project-token.json', 'utf8'));
+          const token = payload.data?.projectToken ?? payload.projectToken;
+          if (!token?.id) throw new Error('RAILWAY_TOKEN is not an introspectable Railway Project Token');
+          if (token.project?.name !== process.env.EXPECTED_PROJECT_NAME || !token.project?.id) {
+            throw new Error('Railway Project Token project identity mismatch');
           }
-          process.stdout.write(matches[0].id);
+          if (token.environment?.name !== process.env.EXPECTED_ENVIRONMENT_NAME || !token.environment?.id) {
+            throw new Error('Railway Project Token is not scoped to the production environment');
+          }
+          process.stdout.write(token.project.id);
           NODE
           )"
           railway status \
@@ -124,15 +127,20 @@ jobs:
           node <<'NODE'
           const fs = require('node:fs');
           const status = JSON.parse(fs.readFileSync('/tmp/railway-status.json', 'utf8'));
+          const tokenPayload = JSON.parse(fs.readFileSync('/tmp/railway-project-token.json', 'utf8'));
+          const token = tokenPayload.data?.projectToken ?? tokenPayload.projectToken;
           const project = status.project ?? status;
           const environments = project.environments?.edges?.map((edge) => edge.node) ?? project.environments ?? [];
           const environment = status.environment ?? project.environment ?? environments[0];
           const services = project.services?.edges?.map((edge) => edge.node) ?? project.services ?? [];
           const matches = services.filter((service) => service.name === process.env.EXPECTED_SERVICE_NAME);
-          if (project.name !== process.env.EXPECTED_PROJECT_NAME || !project.id) {
+          if (project.name !== process.env.EXPECTED_PROJECT_NAME || project.id !== token.project.id) {
             throw new Error('Railway project identity mismatch');
           }
-          if (environment?.name !== process.env.EXPECTED_ENVIRONMENT_NAME || !environment?.id) {
+          if (
+            environment?.name !== process.env.EXPECTED_ENVIRONMENT_NAME ||
+            environment?.id !== token.environment.id
+          ) {
             throw new Error('Railway environment identity mismatch');
           }
           if (matches.length !== 1 || !matches[0].id) {
@@ -151,20 +159,78 @@ jobs:
           console.log(`Environment verified: ${environment.name} (${environment.id})`);
           console.log(`Service verified: ${matches[0].name} (${matches[0].id})`);
           NODE
-          rm -f /tmp/railway-projects.json /tmp/railway-status.json
+          rm -f /tmp/railway-project-token.json /tmp/railway-status.json
 
-      - name: Verify DATABASE_URL presence without exposing it
+      - name: Prepare private-aware database route helper
         shell: bash
         run: |
           set -euo pipefail
-          result="$(railway run \
+          cat > /tmp/railway-db-route.cjs <<'NODE'
+          const { spawnSync } = require('node:child_process');
+
+          function parseDatabaseUrl(name) {
+            const value = process.env[name];
+            if (!value) return undefined;
+            const parsed = new URL(value);
+            if (parsed.protocol !== 'postgres:' && parsed.protocol !== 'postgresql:') {
+              throw new Error(`${name} is not a PostgreSQL URL`);
+            }
+            return { value, hostname: parsed.hostname.toLowerCase() };
+          }
+
+          const privateRoute = parseDatabaseUrl('DATABASE_URL');
+          if (!privateRoute) throw new Error('DATABASE_URL_PRESENT=NO');
+          const privateHostname =
+            privateRoute.hostname.endsWith('.railway.internal') || privateRoute.hostname.endsWith('.internal');
+
+          if (privateHostname) {
+            const publicRoute = parseDatabaseUrl('DATABASE_PUBLIC_URL');
+            if (!publicRoute) throw new Error('Private DATABASE_URL requires DATABASE_PUBLIC_URL on this service');
+            if (publicRoute.hostname.endsWith('.railway.internal') || publicRoute.hostname.endsWith('.internal')) {
+              throw new Error('DATABASE_PUBLIC_URL unexpectedly resolves to a private hostname');
+            }
+            process.env.DATABASE_URL = publicRoute.value;
+            console.log('PRIVATE_DATABASE_URL_DETECTED=YES');
+            console.log('PUBLIC_DATABASE_URL_FALLBACK=YES');
+          } else {
+            console.log('PRIVATE_DATABASE_URL_DETECTED=NO');
+            console.log('PUBLIC_DATABASE_URL_FALLBACK=NO');
+          }
+          delete process.env.DATABASE_PUBLIC_URL;
+          console.log('DATABASE_URL_PRESENT=YES');
+          console.log('DB_ROUTE_PROJECT_ENVIRONMENT_SCOPED=YES');
+
+          if (process.argv[2] === '--probe') process.exit(0);
+          const child = spawnSync(process.argv[2], process.argv.slice(3), {
+            env: process.env,
+            stdio: 'inherit',
+          });
+          if (child.error) throw child.error;
+          process.exit(child.status ?? 1);
+          NODE
+
+      - name: Verify database route and read-only connectivity
+        shell: bash
+        run: |
+          set -euo pipefail
+          railway run \
             --project "$RAILWAY_PROJECT_ID" \
             --environment "$RAILWAY_ENVIRONMENT_ID" \
             --service "$RAILWAY_SERVICE_ID" \
             --no-local -- \
-            node -e 'console.log(process.env.DATABASE_URL ? "DATABASE_URL_PRESENT=YES" : "DATABASE_URL_PRESENT=NO")')"
-          test "$result" = "DATABASE_URL_PRESENT=YES"
-          echo "$result"
+            node /tmp/railway-db-route.cjs --probe \
+            | tee /tmp/database-route.log
+          grep -qx 'DATABASE_URL_PRESENT=YES' /tmp/database-route.log
+          grep -qx 'DB_ROUTE_PROJECT_ENVIRONMENT_SCOPED=YES' /tmp/database-route.log
+          railway run \
+            --project "$RAILWAY_PROJECT_ID" \
+            --environment "$RAILWAY_ENVIRONMENT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --no-local -- \
+            node /tmp/railway-db-route.cjs node -e \
+              'const { PrismaClient } = require("@prisma/client"); const prisma = new PrismaClient(); prisma.$queryRaw`SELECT 1`.then(() => console.log("READ_ONLY_DB_PREFLIGHT=YES")).finally(() => prisma.$disconnect())' \
+            | tee /tmp/database-preflight.log
+          grep -qx 'READ_ONLY_DB_PREFLIGHT=YES' /tmp/database-preflight.log
 
       - name: PRE-WRITE read-only verification
         id: prewrite
@@ -176,7 +242,8 @@ jobs:
             --environment "$RAILWAY_ENVIRONMENT_ID" \
             --service "$RAILWAY_SERVICE_ID" \
             --no-local -- \
-            npm exec -- tsx apps/game-server/scripts/sync-production-card-art.ts --check \
+            node /tmp/railway-db-route.cjs \
+              npm exec -- tsx apps/game-server/scripts/sync-production-card-art.ts --check \
             | tee /tmp/prewrite.log
           grep -qx 'TARGET_ROWS=7' /tmp/prewrite.log
           grep -qx 'UNIQUE_SLUGS=7' /tmp/prewrite.log
@@ -198,8 +265,9 @@ jobs:
             --environment "$RAILWAY_ENVIRONMENT_ID" \
             --service "$RAILWAY_SERVICE_ID" \
             --no-local -- \
-            npm exec -- tsx apps/game-server/scripts/sync-production-card-art.ts \
-              --apply --expected-snapshot "${{ steps.prewrite.outputs.snapshot }}" \
+            node /tmp/railway-db-route.cjs \
+              npm exec -- tsx apps/game-server/scripts/sync-production-card-art.ts \
+                --apply --expected-snapshot "${{ steps.prewrite.outputs.snapshot }}" \
             | tee /tmp/apply.log
           grep -qx 'TRANSACTION_STARTED=YES' /tmp/apply.log
           grep -qx 'TRANSACTION_COMMITTED=YES' /tmp/apply.log
@@ -222,7 +290,8 @@ jobs:
             --environment "$RAILWAY_ENVIRONMENT_ID" \
             --service "$RAILWAY_SERVICE_ID" \
             --no-local -- \
-            npm exec -- tsx apps/game-server/scripts/sync-production-card-art.ts --check \
+            node /tmp/railway-db-route.cjs \
+              npm exec -- tsx apps/game-server/scripts/sync-production-card-art.ts --check \
             | tee /tmp/postwrite.log
           grep -qx 'TARGET_ROWS=7' /tmp/postwrite.log
           grep -qx 'UNIQUE_SLUGS=7' /tmp/postwrite.log
