@@ -42,7 +42,7 @@ const REVIEW_TARGETS: ReviewTarget[] = [
   {
     slug: 'whisper-of-the-forgotten',
     faction: 'SHADOW',
-    referenceLabel: 'ART PACK 02 — REVIEW CANDIDATE',
+    referenceLabel: 'ART PACK 02 — APPROVED 01',
     reviewArtworkUrl: '/art/cards/whisper-of-the-forgotten.webp',
   },
 ];
