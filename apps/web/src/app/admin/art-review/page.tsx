@@ -25,19 +25,33 @@ import { CreatureSlot } from '@/components/battlefield/CreatureSlot';
 
 const CANDIDATE_EXTENSIONS = ['png', 'jpg', 'webp'];
 
-const FLAGSHIPS: Array<{ slug: string; faction: string; referenceLabel: string }> = [
-  { slug: 'necromancer-of-the-twilight-order', faction: 'SHADOW', referenceLabel: 'Reference 01' },
-  { slug: 'high-warden-of-the-white-rune', faction: 'PURIFICATION', referenceLabel: 'Reference 02' },
-  { slug: 'matriarch-of-the-spring-light', faction: 'BOND', referenceLabel: 'Reference 03' },
-  { slug: 'lord-of-the-nameless-shadow', faction: 'VEIL', referenceLabel: 'Reference 04' },
-  { slug: 'keeper-of-the-grey-mist', faction: 'MYSTERY', referenceLabel: 'Reference 05' },
-  { slug: 'lord-of-the-stellar-stream', faction: 'COSMIC', referenceLabel: 'Reference 06' },
+type ReviewTarget = {
+  slug: string;
+  faction: string;
+  referenceLabel: string;
+  reviewArtworkUrl?: string;
+};
+
+const REVIEW_TARGETS: ReviewTarget[] = [
+  { slug: 'necromancer-of-the-twilight-order', faction: 'SHADOW', referenceLabel: 'Reference 01 — LOCKED' },
+  { slug: 'high-warden-of-the-white-rune', faction: 'PURIFICATION', referenceLabel: 'Reference 02 — LOCKED' },
+  { slug: 'matriarch-of-the-spring-light', faction: 'BOND', referenceLabel: 'Reference 03 — LOCKED' },
+  { slug: 'lord-of-the-nameless-shadow', faction: 'VEIL', referenceLabel: 'Reference 04 — LOCKED' },
+  { slug: 'keeper-of-the-grey-mist', faction: 'MYSTERY', referenceLabel: 'Reference 05 — LOCKED' },
+  { slug: 'lord-of-the-stellar-stream', faction: 'COSMIC', referenceLabel: 'Reference 06 — LOCKED' },
+  {
+    slug: 'whisper-of-the-forgotten',
+    faction: 'SHADOW',
+    referenceLabel: 'ART PACK 02 — APPROVED 01',
+    reviewArtworkUrl: '/art/cards/whisper-of-the-forgotten.webp',
+  },
 ];
 
 function FlagshipRow({
   slug,
   faction,
   referenceLabel,
+  reviewArtworkUrl,
   card,
   onOpenDetail,
   onOpenHandPreview,
@@ -45,6 +59,7 @@ function FlagshipRow({
   slug: string;
   faction: string;
   referenceLabel: string;
+  reviewArtworkUrl?: string;
   card: Card | undefined;
   onOpenDetail: (card: Card) => void;
   onOpenHandPreview: (card: Card) => void;
@@ -67,7 +82,10 @@ function FlagshipRow({
     );
   }
 
-  const displayCard: Card = candidateUrl ? { ...card, artworkUrl: candidateUrl } : card;
+  const displayArtworkUrl = reviewArtworkUrl ?? candidateUrl ?? card.artworkUrl;
+  const displayCard: Card =
+    displayArtworkUrl === card.artworkUrl ? card : { ...card, artworkUrl: displayArtworkUrl };
+  const usingReviewArtwork = Boolean(reviewArtworkUrl);
   const usingCandidate = Boolean(candidateUrl);
   // Stub unit for the Battlefield board-slot check only - never a real match, never persisted.
   // All six flagships are CHARACTER cards, so 'attack'/'health' are always present.
@@ -88,7 +106,7 @@ function FlagshipRow({
         <div>
           <h2 className="font-display text-lg font-bold">{card.name}</h2>
           <p className="text-xs text-raido-mist">
-            {factionLabel(faction)} · <code>{slug}</code> · {referenceLabel} LOCKED (see
+            {factionLabel(faction)} · <code>{slug}</code> · {referenceLabel} (see
             docs/art-bible-01.md)
           </p>
         </div>
@@ -106,15 +124,21 @@ function FlagshipRow({
           <span
             className={clsx(
               'rounded-full border px-2 py-0.5',
-              usingCandidate ? 'border-raido-gold/50 text-raido-gold' : 'border-white/10 text-raido-mist/70',
+              usingReviewArtwork || usingCandidate
+                ? 'border-raido-gold/50 text-raido-gold'
+                : 'border-white/10 text-raido-mist/70',
             )}
           >
-            {usingCandidate ? 'showing CANDIDATE (not wired to artworkUrl)' : 'no candidate file — showing shipped placeholder'}
+            {usingReviewArtwork
+              ? 'PRODUCTION ASSET — REVIEW'
+              : usingCandidate
+                ? 'showing CANDIDATE (not wired to artworkUrl)'
+                : 'no candidate file — showing shipped placeholder'}
           </span>
         </div>
       </div>
 
-      {!usingCandidate ? (
+      {!usingReviewArtwork && !usingCandidate ? (
         <p className="mb-3 text-xs text-raido-mist">
           Drop a file at <code>apps/web/public/art-review-candidates/{slug}.png</code> (or .jpg /
           .webp) to review a production candidate here. This never modifies the card record.
@@ -224,12 +248,13 @@ export default function ArtReviewPage() {
       {isLoading ? <p className="text-sm text-raido-mist">Loading cards…</p> : null}
 
       <div className="flex flex-col gap-6">
-        {FLAGSHIPS.map((f) => (
+        {REVIEW_TARGETS.map((f) => (
           <FlagshipRow
             key={f.slug}
             slug={f.slug}
             faction={f.faction}
             referenceLabel={f.referenceLabel}
+            reviewArtworkUrl={f.reviewArtworkUrl}
             card={bySlug.get(f.slug)}
             onOpenDetail={setDetailCard}
             onOpenHandPreview={setHandPreviewCard}
