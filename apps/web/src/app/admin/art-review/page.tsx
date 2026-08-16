@@ -25,13 +25,14 @@ import { CreatureSlot } from '@/components/battlefield/CreatureSlot';
 
 const CANDIDATE_EXTENSIONS = ['png', 'jpg', 'webp'];
 
-const FLAGSHIPS: Array<{ slug: string; faction: string; referenceLabel: string }> = [
-  { slug: 'necromancer-of-the-twilight-order', faction: 'SHADOW', referenceLabel: 'Reference 01' },
-  { slug: 'high-warden-of-the-white-rune', faction: 'PURIFICATION', referenceLabel: 'Reference 02' },
-  { slug: 'matriarch-of-the-spring-light', faction: 'BOND', referenceLabel: 'Reference 03' },
-  { slug: 'lord-of-the-nameless-shadow', faction: 'VEIL', referenceLabel: 'Reference 04' },
-  { slug: 'keeper-of-the-grey-mist', faction: 'MYSTERY', referenceLabel: 'Reference 05' },
-  { slug: 'lord-of-the-stellar-stream', faction: 'COSMIC', referenceLabel: 'Reference 06' },
+const REVIEW_TARGETS: Array<{ slug: string; faction: string; referenceLabel: string }> = [
+  { slug: 'necromancer-of-the-twilight-order', faction: 'SHADOW', referenceLabel: 'Reference 01 — LOCKED' },
+  { slug: 'high-warden-of-the-white-rune', faction: 'PURIFICATION', referenceLabel: 'Reference 02 — LOCKED' },
+  { slug: 'matriarch-of-the-spring-light', faction: 'BOND', referenceLabel: 'Reference 03 — LOCKED' },
+  { slug: 'lord-of-the-nameless-shadow', faction: 'VEIL', referenceLabel: 'Reference 04 — LOCKED' },
+  { slug: 'keeper-of-the-grey-mist', faction: 'MYSTERY', referenceLabel: 'Reference 05 — LOCKED' },
+  { slug: 'lord-of-the-stellar-stream', faction: 'COSMIC', referenceLabel: 'Reference 06 — LOCKED' },
+  { slug: 'whisper-of-the-forgotten', faction: 'SHADOW', referenceLabel: 'ART PACK 02 — REVIEW CANDIDATE' },
 ];
 
 function FlagshipRow({
@@ -88,7 +89,7 @@ function FlagshipRow({
         <div>
           <h2 className="font-display text-lg font-bold">{card.name}</h2>
           <p className="text-xs text-raido-mist">
-            {factionLabel(faction)} · <code>{slug}</code> · {referenceLabel} LOCKED (see
+            {factionLabel(faction)} · <code>{slug}</code> · {referenceLabel} (see
             docs/art-bible-01.md)
           </p>
         </div>
@@ -224,7 +225,7 @@ export default function ArtReviewPage() {
       {isLoading ? <p className="text-sm text-raido-mist">Loading cards…</p> : null}
 
       <div className="flex flex-col gap-6">
-        {FLAGSHIPS.map((f) => (
+        {REVIEW_TARGETS.map((f) => (
           <FlagshipRow
             key={f.slug}
             slug={f.slug}

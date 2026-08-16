@@ -712,6 +712,9 @@ const SHADOW_CARDS: SeedCard[] = [
     tags: ['Shadow'],
     attack: 1,
     health: 2,
+    // Art Pack 02 Card 01 - owner-approved production artwork.
+    artworkUrl: '/art/cards/whisper-of-the-forgotten.webp',
+    rightsStatus: 'owned',
     abilityText: 'При гибели призовите Эхо-Тень 1/1. При Резонансе 3+: призовите ещё одну.',
     effectJson: [
       {
