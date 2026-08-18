@@ -14,7 +14,14 @@ const ITEMS: Array<{ href: string; label: string; icon: IconName }> = [
   { href: '/resonance', label: 'Пульс', icon: 'resonance' },
 ];
 
-export function BottomNav() {
+export interface BottomNavProps {
+  /** Active mobile match viewport (see AppShell) - unconditionally hidden (matches the existing
+   * `md:hidden` desktop result at every width `>=1024`, and additionally hides the sub-768 range
+   * where it would otherwise show, since a match owns the full mobile viewport). */
+  hiddenOnMobileMatch?: boolean;
+}
+
+export function BottomNav({ hiddenOnMobileMatch }: BottomNavProps = {}) {
   const pathname = usePathname();
   const user = useAuthStore((s) => s.user);
 
@@ -25,7 +32,12 @@ export function BottomNav() {
   if (!user) return null;
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-white/5 bg-raido-black/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden">
+    <nav
+      className={clsx(
+        'fixed inset-x-0 bottom-0 z-30 border-t border-white/5 bg-raido-black/95 pb-[env(safe-area-inset-bottom)] backdrop-blur',
+        hiddenOnMobileMatch ? 'hidden' : 'md:hidden',
+      )}
+    >
       <ul className="flex items-stretch justify-between">
         {ITEMS.map((item) => {
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
