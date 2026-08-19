@@ -20,6 +20,11 @@ export interface HandFanProps {
   /** Which card (if any) currently has its enlarged preview open - a second tap on this same
    * card closes it. */
   previewedInstanceId?: string | null;
+  /** Which card (if any) is currently armed for play (`selection.kind === 'hand'` in the parent
+   * page) - distinct from `previewedInstanceId`: a drag-armed card never opens the preview modal
+   * at all, so without this the dock had no way to visually distinguish it from a resting card
+   * once armed (Battlefield Polish 3.1). */
+  selectedInstanceId?: string | null;
   disabled?: boolean;
   /** Plain tap: opens/closes the enlarged preview. Never plays the card by itself anymore -
    * playing is press-hold + drag + release onto the battlefield (see `onPlayByDrag`). */
@@ -67,11 +72,15 @@ export function HandFan({
   cards,
   energy,
   previewedInstanceId,
+  selectedInstanceId,
   disabled,
   onTogglePreview,
   onPlayByDrag,
 }: HandFanProps) {
   const center = (cards.length - 1) / 2;
+  // The one card the dock should visually escalate above its neighbors - armed (drag or
+  // preview->Play) takes priority since it's the more consequential state, previewed otherwise.
+  const engagedId = selectedInstanceId ?? previewedInstanceId ?? null;
   const hoverCapable = useDesktopHoverCapable();
   const [hoveredInstanceId, setHoveredInstanceId] = useState<string | null>(null);
 
@@ -108,7 +117,8 @@ export function HandFan({
             offsetFromCenter={i - center}
             marginLeft={i === 0 ? 0 : -OVERLAP_PX}
             zIndex={i}
-            previewed={previewedInstanceId === instanceId}
+            engaged={engagedId === instanceId}
+            dimmed={Boolean(engagedId) && engagedId !== instanceId}
             dragging={dragCard?.instanceId === instanceId}
             affordable={card.cost <= energy}
             disabled={disabled}
@@ -162,7 +172,14 @@ interface HandCardItemProps {
   offsetFromCenter: number;
   marginLeft: number;
   zIndex: number;
-  previewed: boolean;
+  /** True for the one card currently previewed (tap) or armed for play (drag, or preview->Play) -
+   * the dock's "escalated" card, visually lifted/scaled/glowing above its neighbors. */
+  engaged: boolean;
+  /** True for every OTHER card while one is engaged - dimmed on mobile only (Battlefield Polish
+   * 3.1: dense 10-13 card hands were hard to read which card was actually selected) so the
+   * engaged card reads clearly against its neighbors instead of being swallowed by the overlap.
+   * Desktop is unaffected (`lg:opacity-100` resets it), matching the frozen desktop requirement. */
+  dimmed: boolean;
   dragging: boolean;
   affordable: boolean;
   disabled?: boolean;
@@ -181,7 +198,8 @@ function HandCardItem({
   offsetFromCenter,
   marginLeft,
   zIndex,
-  previewed,
+  engaged,
+  dimmed,
   dragging,
   affordable,
   disabled,
@@ -193,18 +211,26 @@ function HandCardItem({
       role="listitem"
       className={clsx(
         'relative shrink-0 touch-none transition-transform duration-150 ease-out',
-        previewed && '[filter:drop-shadow(0_0_10px_rgba(255,45,85,0.5))]',
+        styles.cardItem,
         dragging && 'opacity-30',
-        !previewed && !dragging && styles.desktopHoverLift,
+        // Mobile-only: every card but the engaged one dims a touch so the engaged card reads
+        // clearly in a dense 10-13 card fan; `lg:opacity-100` keeps desktop pixel-identical.
+        dimmed && !dragging && 'opacity-55 lg:opacity-100',
+        !engaged && !dragging && styles.desktopHoverLift,
       )}
+      data-engaged={engaged || undefined}
       style={{
         marginLeft,
         // Must stay below HandCardPreview's modal (z-50, and a stacking-context sibling here via
-        // ArenaSurface's `isolate`) - 100 used to outrank it, letting the previewed card itself
+        // ArenaSurface's `isolate`) - 100 used to outrank it, letting the engaged card itself
         // intercept clicks on its own preview dialog's Close/Play buttons.
-        zIndex: previewed ? 40 : zIndex,
-        transform: previewed
-          ? 'translateY(-18px) scale(1.06) rotate(0deg)'
+        zIndex: engaged ? 40 : zIndex,
+        // `scale()` reads a CSS custom property (see HandFan.module.css `.cardItem`) so mobile can
+        // give the engaged card a stronger pop (Battlefield Polish 3.1) without touching this
+        // value at all - the property is only ever defined inside a `max-width:1023.98px` media
+        // query, so at desktop `var()`'s fallback (1.06, the original, unchanged literal) applies.
+        transform: engaged
+          ? 'translateY(-18px) scale(var(--hf-engaged-scale, 1.06)) rotate(0deg)'
           : `translateY(${Math.abs(offsetFromCenter) * ARC_STEP_PX}px) rotate(${offsetFromCenter * ANGLE_STEP_DEG}deg)`,
       }}
       {...bind}
@@ -219,7 +245,7 @@ function HandCardItem({
         className={clsx(
           'animate-card-in sm:!max-w-[112px] lg:!max-w-[140px] xl:!max-w-[156px]',
           styles.compactHandCard,
-          previewed && 'ring-2 ring-raido-red',
+          engaged && 'ring-2 ring-raido-red',
           !affordable && 'opacity-40',
           disabled && 'pointer-events-none',
         )}

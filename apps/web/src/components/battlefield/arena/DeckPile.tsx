@@ -22,7 +22,12 @@ export function DeckPile({ count, align = 'left', label, side, className }: Deck
     <div className={clsx('flex flex-col items-center gap-1', align === 'right' && 'items-end', className)}>
       {label ? <span className={styles.pileLabel}>{label}</span> : null}
 
-      <div className={clsx('relative flex flex-col items-center gap-1 lg:hidden', align === 'right' && 'flex-row-reverse')}>
+      {/* Battlefield Polish 3.1: `gap-1.5` (was `gap-1`) and a text-shadow on the count give the
+          number a touch more separation/contrast so it reads as belonging to *this* stack rather
+          than drifting toward the discard column ~8px away - purely internal spacing/typography,
+          the slot's own position against the painted housing is untouched. Already `lg:hidden`
+          (this whole block never renders at desktop), so no `lg:` reset is needed here. */}
+      <div className={clsx('relative flex flex-col items-center gap-1.5 lg:hidden', align === 'right' && 'flex-row-reverse')}>
         <div className="relative flex h-12 w-9 items-center justify-center">
           <div className="relative h-9 w-7" aria-hidden="true">
             {Array.from({ length: count <= 0 ? 0 : count < 8 ? 1 : count < 20 ? 2 : 3 }).map((_, i) => (
@@ -31,7 +36,7 @@ export function DeckPile({ count, align = 'left', label, side, className }: Deck
             {count > 0 ? <span className="absolute inset-0 flex items-center justify-center rounded-[4px] border border-raido-gold/45 bg-gradient-to-b from-raido-graphite to-raido-black text-sm text-raido-gold/75">ᚱ</span> : <span className="absolute inset-0 rounded-[4px] border border-dashed border-white/10" />}
           </div>
         </div>
-        <span className="text-sm font-bold tabular-nums text-raido-white">{count}</span>
+        <span className="text-sm font-bold tabular-nums text-raido-white [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">{count}</span>
       </div>
 
       <div className={styles.deckControl}>

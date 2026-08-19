@@ -333,6 +333,7 @@ export function MatchBoard({
             cards={you.hand}
             energy={you.energy}
             previewedInstanceId={previewedInstanceId}
+            selectedInstanceId={selection?.kind === 'hand' ? selection.instanceId : null}
             disabled={!isMyTurn || pending}
             onTogglePreview={togglePreview}
             onPlayByDrag={playByDrag}

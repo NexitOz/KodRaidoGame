@@ -10,6 +10,11 @@
 .discardControl,
 .desktopResonance { display: none; }
 
+/* Battlefield Polish 3.1: a modest (~10-15%) readability boost on the whole mechanism - same box,
+   same "not a floating panel" footprint, just a slightly stronger rim, a hint of internal
+   illumination, brighter idle sockets, and real contrast behind the `N/5` number instead of flat
+   white-on-art. This class is already only ever rendered on mobile (the desktop block below sets
+   `.mobileResonance { display:none }`), so no `lg:` gating is needed here. */
 .mobileResonance {
   position: relative;
   display: flex;
@@ -17,17 +22,27 @@
   align-items: center;
   gap: 0.25rem;
   padding: 0.375rem 0.5rem;
-  border: 2px solid rgb(201 163 95 / 0.25);
+  border: 2px solid rgb(201 163 95 / 0.35);
   border-radius: 0.75rem;
-  background: linear-gradient(to bottom, rgb(0 0 0 / 0.5), rgb(0 0 0 / 0.3));
-  box-shadow: inset 0 2px 10px rgb(0 0 0 / 0.6);
+  background: linear-gradient(to bottom, rgb(0 0 0 / 0.55), rgb(0 0 0 / 0.32));
+  box-shadow:
+    inset 0 2px 10px rgb(0 0 0 / 0.6),
+    inset 0 0 14px rgb(201 163 95 / 0.1);
 }
-.mobileTitle { font-size: 8px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; color: rgb(201 163 95 / .8); }
+.mobileTitle { font-size: 8px; font-weight: 700; letter-spacing: .15em; text-transform: uppercase; color: rgb(201 163 95 / .88); }
 .mobileNodes { display: flex; gap: .25rem; }
-.mobileNode { width: .625rem; height: .625rem; border-radius: 50%; background: rgb(255 255 255 / .05); box-shadow: 0 0 0 2px rgb(255 255 255 / .15); }
+.mobileNode { width: .625rem; height: .625rem; border-radius: 50%; background: rgb(255 255 255 / .09); box-shadow: 0 0 0 2px rgb(255 255 255 / .2); }
 .mobileNodeActive { background: #e3123e; box-shadow: 0 0 10px rgb(227 18 62 / .85), 0 0 0 2px rgb(255 75 105 / .8); }
-.mobileValue { font-size: 10px; font-weight: 900; font-variant-numeric: tabular-nums; color: white; }
-.mobileValue span { color: #a7a7ad; }
+.mobileValue {
+  font-size: 11px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  color: white;
+  text-shadow:
+    0 1px 3px rgb(0 0 0 / 0.9),
+    0 0 5px rgb(0 0 0 / 0.6);
+}
+.mobileValue span { color: #c7c7d3; }
 
 @media (min-width: 1024px) {
   .pileLabel { font-size: 9px; line-height: 1; }

@@ -22,7 +22,12 @@ export function DiscardPile({ count, align = 'left', label, side, className }: D
     <div className={clsx('flex flex-col items-center gap-1', align === 'right' && 'items-end', className)}>
       {label ? <span className={styles.pileLabel}>{label}</span> : null}
 
-      <div className={clsx('relative flex flex-col items-center gap-1 lg:hidden', align === 'right' && 'flex-row-reverse')}>
+      {/* Battlefield Polish 3.1: `gap-1.5` (was `gap-1`), same reasoning as DeckPile - a touch more
+          separation from the deck column ~8px away, plus a brighter/shadowed count (was the same
+          dim `text-raido-mist` as the idle icon itself, which is the harder of the two piles to
+          associate at a glance) so it instantly reads as "belonging to Discard" rather than fading
+          into the icon above it. Already `lg:hidden`, so no `lg:` reset needed. */}
+      <div className={clsx('relative flex flex-col items-center gap-1.5 lg:hidden', align === 'right' && 'flex-row-reverse')}>
         <div className="relative flex h-12 w-9 items-center justify-center">
           <div className="relative h-9 w-7" aria-hidden="true">
             {Array.from({ length: count <= 0 ? 0 : count < 8 ? 1 : count < 20 ? 2 : 3 }).map((_, i) => (
@@ -31,7 +36,7 @@ export function DiscardPile({ count, align = 'left', label, side, className }: D
             {count > 0 ? <span className="absolute inset-0 flex items-center justify-center rounded-[4px] border border-white/15 bg-raido-black/80 text-raido-mist opacity-90"><Icon name="skull" size={16} /></span> : <span className="absolute inset-0 rounded-[4px] border border-dashed border-white/10" />}
           </div>
         </div>
-        <span className="text-sm font-bold tabular-nums text-raido-mist">{count}</span>
+        <span className="text-sm font-bold tabular-nums text-raido-white/90 [text-shadow:0_1px_3px_rgba(0,0,0,0.9)]">{count}</span>
       </div>
 
       <div className={styles.discardControl}>
