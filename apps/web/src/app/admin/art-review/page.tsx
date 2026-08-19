@@ -45,15 +45,11 @@ const REVIEW_TARGETS: ReviewTarget[] = [
     referenceLabel: 'ART PACK 02 — APPROVED 01',
     reviewArtworkUrl: '/art/cards/whisper-of-the-forgotten.webp',
   },
-  // Not yet approved - deliberately uses the plain candidate-file mechanism (no reviewArtworkUrl
-  // override, which is reserved for already-wired production assets like whisper-of-the-forgotten
-  // above) so this row shows the standard "showing CANDIDATE (not wired to artworkUrl)" badge, not
-  // a "PRODUCTION ASSET" one. Drop the candidate at
-  // apps/web/public/art-review-candidates/ashen-blade.webp (gitignored, never committed) to review it.
   {
     slug: 'ashen-blade',
     faction: 'SHADOW',
-    referenceLabel: 'ART PACK 02 — PRODUCTION CANDIDATE / OWNER REVIEW',
+    referenceLabel: 'ART PACK 02 — APPROVED 02',
+    reviewArtworkUrl: '/art/cards/ashen-blade.webp',
   },
 ];
 
