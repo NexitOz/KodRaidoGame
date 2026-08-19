@@ -181,7 +181,7 @@ export function MatchBoard({
   const ownRunePulse = runeTriggerKey?.playerId === you.playerId ? runeTriggerKey.key : 0;
 
   return (
-    <ArenaSurface isMyTurn={isMyTurn} className={clsx('mx-auto w-full pb-24 lg:pb-2', styles.board)}>
+    <ArenaSurface isMyTurn={isMyTurn} className={clsx('mx-auto w-full lg:pb-2', styles.board)}>
       <TurnOverlay activePlayerId={view.activePlayerId} isMyTurn={isMyTurn} />
 
       <header className={clsx('flex items-center justify-between text-xs text-raido-mist', styles.header)}>
