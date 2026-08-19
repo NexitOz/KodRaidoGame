@@ -13,6 +13,11 @@
     backdrop-filter: none !important;
     padding: 0 0.125rem !important;
     box-shadow: none !important;
-    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9));
+    /* Battlefield Polish 3.1: an "etched into metal" read - a stronger dark shadow beneath for
+       real contrast against the busy mechanism art, plus a very faint light shadow above for a
+       catch-light/engraved-edge cue. Still no background/chip, just the text itself. */
+    filter:
+      drop-shadow(0 1px 3px rgba(0, 0, 0, 0.95))
+      drop-shadow(0 -0.5px 0 rgba(255, 224, 170, 0.35));
   }
 }

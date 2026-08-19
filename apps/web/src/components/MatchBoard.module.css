@@ -160,10 +160,15 @@
     z-index: 6;
     pointer-events: none;
   }
+  /* Battlefield Polish 3.1: nudged up ~1-1.5 points (was top:74%/76.5%) to open a touch more
+     vertical breathing room against the commander/Resonance band right below (79-79.5%) - the
+     painted housings themselves have enough vertical tolerance at this scale that the small shift
+     doesn't visibly detach the icon from its socket. Left/width (the horizontal anchor against the
+     art) are untouched. */
   .plyDeckSlot {
     position: absolute;
     left: 4%;
-    top: 74%;
+    top: 73%;
     width: 12%;
     z-index: 6;
     pointer-events: none;
@@ -171,7 +176,7 @@
   .plyDiscardSlot {
     position: absolute;
     left: 18%;
-    top: 76.5%;
+    top: 75.5%;
     width: 10%;
     z-index: 6;
     pointer-events: none;

@@ -18,3 +18,26 @@
     filter: brightness(1.15) !important;
   }
 }
+
+/* Battlefield Polish 3.1: the engaged (previewed/armed) card's glow, split out of the inline
+   Tailwind arbitrary-value class it used to be so mobile can get a stronger version without a
+   `!important` fight with a second identical-specificity utility class on the same element. This
+   base rule (no media query - applies everywhere, including desktop) is the exact original value,
+   byte-for-byte, so desktop's result is unchanged. */
+.cardItem[data-engaged='true'] {
+  filter: drop-shadow(0 0 10px rgba(255, 45, 85, 0.5));
+}
+
+@media (max-width: 1023.98px) {
+  /* Read by the inline `transform` in HandFan.tsx via `var(--hf-engaged-scale, 1.06)` - only
+     defined here, so desktop's `var()` always falls through to its own unchanged 1.06 fallback. A
+     stronger pop than desktop needs since mobile has no hover state to lean on and the resting
+     card itself is much smaller (62px vs. desktop's 140-156px) - the engaged card needs to do more
+     of the "this is the one I'm about to play" work on its own. */
+  .cardItem {
+    --hf-engaged-scale: 1.16;
+  }
+  .cardItem[data-engaged='true'] {
+    filter: drop-shadow(0 0 16px rgba(255, 45, 85, 0.75));
+  }
+}
