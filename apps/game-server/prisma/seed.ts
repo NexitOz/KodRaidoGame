@@ -738,6 +738,9 @@ const SHADOW_CARDS: SeedCard[] = [
     tags: ['Shadow'],
     attack: 3,
     health: 1,
+    // Art Pack 02 Card 02 - owner-approved production artwork.
+    artworkUrl: '/art/cards/ashen-blade.webp',
+    rightsStatus: 'owned',
   },
   {
     slug: 'keeper-of-smoldering-embers',
