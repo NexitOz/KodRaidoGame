@@ -39,10 +39,10 @@
     overflow: hidden;
   }
 
-  /* Compact HUD overlay over the stage's own painted top zone (same "absolute over the top edge"
-     technique the desktop pass below uses for its own `.header`) - a translucent chip behind the
-     text/icons guarantees legibility regardless of what's painted underneath at this position,
-     since (unlike desktop) there's no reserved plain-background band above the artwork here. */
+  /* Compact HUD overlay over the stage's own painted top zone - just a positioning container now
+     (Battlefield Polish 3.0): the two children (turn status / Help+Log) carry their own small
+     independent pill backgrounds directly in MatchBoard.tsx instead of one full-width dark slab,
+     so the artwork stays visible in the gap between them and around their edges. */
   .header {
     position: absolute;
     top: max(0.5rem, env(safe-area-inset-top));
@@ -52,17 +52,13 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-radius: 0.75rem;
-    background: rgba(7, 7, 10, 0.55);
-    padding: 0.3rem 0.625rem;
-    backdrop-filter: blur(6px);
   }
 
   /* Only ever holds a PvP reconnect notice (rare/usually empty) - stacked directly under the HUD
      row rather than reserving permanent space, so it costs nothing when empty. */
   .banner {
     position: absolute;
-    top: calc(max(0.5rem, env(safe-area-inset-top)) + 2.375rem);
+    top: calc(max(0.5rem, env(safe-area-inset-top)) + 1.875rem);
     left: 0.625rem;
     right: 0.625rem;
     z-index: 8;
@@ -225,28 +221,44 @@
      from stealing taps on the arena underneath, the same wrapper/child split used throughout this
      file.
 
-     `max-height` sized directly off the real rendered card box (measured live: a resting `xs`
-     card is 92x147px, plus HandFan's own `pt-2`/`pb-1` padding = 159px of required content
-     height) rather than an arbitrary "peek strip" - mobile has no hover state to reveal more of a
-     clipped card the way desktop's dock does, so the resting card has to be the full readable
-     card up front. `clamp(150px, 24vh, 180px)` clears that 159px requirement with a few px to
-     spare at every tested viewport (the 20vh-based clamp this replaced only cleared it above
-     ~795px of viewport height, which is exactly why 360x800/390x740 were cutting off card names).
-     Growing the dock doesn't risk hiding the player band it now reaches further into - those slots
-     are already `z-index:6`/`pointer-events:none` (see above), guaranteed to stay on top and
-     tappable regardless of how much of their box the dock's own box happens to overlap. */
+     Battlefield Polish 3.0 — the resting dock target is 15-20% of the viewport height (owner
+     spec). `.card-tilt-layer` below is shrunk to a genuinely mobile-scaled card (62px, down from
+     the shared 92px `xs` size) with a much smaller name row, so the *resting* fan reads as a
+     compact identification strip (cost + art + short name) rather than the fully-readable card -
+     tapping still opens the existing full-size `HandCardPreview` for that. That compact card's own
+     content only needs ~108px (measured live: 62*4/3 image + the shrunk name row + HandFan's own
+     `pt-2`/`pb-1`), well under the 15-20vh target - an explicit `height` (not `max-height`) is
+     used here specifically so the dock still occupies its full spec'd share of the viewport (extra
+     space below the fan, above the safe-area padding) instead of shrinking to the smaller
+     min-content size the way `max-height` alone would. `clamp(110px, 17vh, 160px)` keeps 17% as
+     the real driver across every tested viewport (110/160 only matter as safety rails for
+     viewports outside the tested range). `max-width` alone (not `width`) on the card so drag/tap
+     hitboxes still track the rendered box exactly - nothing here changes hit-testing, only paint
+     size. */
   .handSection {
     position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
     z-index: 4;
-    max-height: clamp(150px, 24vh, 180px);
-    padding-bottom: max(0.375rem, env(safe-area-inset-bottom));
+    height: clamp(110px, 17vh, 160px);
+    padding-bottom: max(0.25rem, env(safe-area-inset-bottom));
     pointer-events: none;
   }
   .handSection > * {
     pointer-events: auto;
+  }
+  .handSection :global(.card-tilt-layer) {
+    max-width: 62px;
+  }
+  /* The name row is the one piece of a resting card this pass deliberately keeps illegible at
+     full size - "cost / art / short name" per the owner spec, not a fully readable card (that's
+     what tap-to-preview is for). Still present (not `display:none`) so the fan keeps some text
+     identity at a glance, just at a scale that fits the compact card above. */
+  .handSection :global(.card-tilt-layer) p {
+    padding: 1px 3px;
+    font-size: 7px;
+    line-height: 9px;
   }
   /* Selecting a hand card (or a failed play attempt) adds a confirm button and/or an error line as
      direct children below the fan - `:has(> button)`/`:has(> p)` (not the bare descendant form,
@@ -255,7 +267,7 @@
      compact size above instead of permanently reserving room for a state most turns don't hit. */
   .handSection:has(> button),
   .handSection:has(> p) {
-    max-height: clamp(210px, 34vh, 250px);
+    height: clamp(170px, 26vh, 215px);
   }
 }
 

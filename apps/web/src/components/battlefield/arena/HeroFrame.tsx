@@ -49,7 +49,7 @@ const SIDE_ACTIVE_RING_TEXT = {
  */
 export function HeroFrame({ icon, low, targetable, rank, impactKey, damaged, healed, active, hp, side }: HeroFrameProps) {
   return (
-    <span className="relative flex h-20 w-20 flex-shrink-0 items-center justify-center sm:h-24 sm:w-24 lg:h-28 lg:w-28">
+    <span className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center sm:h-16 sm:w-16 lg:h-28 lg:w-28">
       {/* Ambient side-color glow - permanent identity, brightens further when active. */}
       <span
         aria-hidden
@@ -83,7 +83,7 @@ export function HeroFrame({ icon, low, targetable, rank, impactKey, damaged, hea
         key={impactKey}
         aria-hidden
         className={clsx(
-          'relative z-10 flex h-[4rem] w-[4rem] flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-raido-graphite to-raido-black text-raido-white ring-1 sm:h-[5rem] sm:w-[5rem] lg:h-[5.75rem] lg:w-[5.75rem]',
+          'relative z-10 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-raido-graphite to-raido-black text-raido-white ring-1 sm:h-12 sm:w-12 lg:h-[5.75rem] lg:w-[5.75rem]',
           low ? 'ring-raido-red/60' : 'ring-white/10',
           targetable && 'ring-2 ring-emerald-400/70',
           impactKey > 0 && (damaged ? 'animate-shake-hit' : healed ? 'animate-flash-hit' : ''),
@@ -103,7 +103,7 @@ export function HeroFrame({ icon, low, targetable, rank, impactKey, damaged, hea
       {/* HP badge overlapping the base of the medallion - the dominant, at-a-glance number. */}
       <span
         className={clsx(
-          'absolute -bottom-2.5 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1.5 rounded-full border-2 bg-raido-black px-3.5 py-1 text-base font-black tabular-nums shadow-[0_3px_10px_rgba(0,0,0,0.7)] lg:text-lg',
+          'absolute -bottom-1.5 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-full border-2 bg-raido-black px-2 py-0.5 text-[10px] font-black tabular-nums shadow-[0_3px_10px_rgba(0,0,0,0.7)] lg:-bottom-2.5 lg:gap-1.5 lg:px-3.5 lg:py-1 lg:text-base lg:text-lg',
           low ? 'border-raido-red/70 text-raido-redGlow' : 'border-raido-gold/50 text-raido-white',
         )}
       >

@@ -15,7 +15,10 @@ export function OpponentHandBacks({ count }: { count: number }) {
           plus a numeric counter that always shows the real count, including 0, so the indicator
           never just disappears. */}
       <div className="flex flex-col items-center gap-1">
-        <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-raido-red/70">Рука</span>
+        {/* The painted arena mechanism at this position already reads "РУКА" - a second rendered
+            label here would just repeat it. Desktop's own housing/spacing was tuned with this
+            label present, so it stays there unchanged; mobile drops it. */}
+        <span className="hidden text-[9px] font-bold uppercase tracking-[0.2em] text-raido-red/70 lg:inline">Рука</span>
         <div className="flex items-center gap-1.5">
           <div className="relative flex h-8 w-10 items-center justify-center" aria-hidden="true">
             {Array.from({ length: fanned }, (_, i) => {
