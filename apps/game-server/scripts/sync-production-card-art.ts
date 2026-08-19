@@ -4,7 +4,7 @@ import { execFileSync } from 'node:child_process';
 
 import { PrismaClient, RightsStatus } from '@prisma/client';
 
-const REQUIRED_SOURCE_COMMIT = '102d0cfbbefc4ef4bff42b9e14caa7c071e29459';
+const REQUIRED_SOURCE_COMMIT = 'e5263567c201029cf69759599f1ef1eb132c5693';
 const TARGET_SLUGS = [
   'necromancer-of-the-twilight-order',
   'high-warden-of-the-white-rune',
@@ -13,6 +13,7 @@ const TARGET_SLUGS = [
   'keeper-of-the-grey-mist',
   'lord-of-the-stellar-stream',
   'whisper-of-the-forgotten',
+  'ashen-blade',
 ] as const;
 
 type Mode = 'check' | 'apply';
@@ -88,7 +89,7 @@ function deriveDesiredValues(seedSource: string): Map<string, DesiredCardArt> {
   }
 
   if (desired.size !== TARGET_SLUGS.length) {
-    throw new Error('Source-of-truth derivation did not produce exactly seven targets');
+    throw new Error(`Source-of-truth derivation did not produce exactly ${TARGET_SLUGS.length} targets`);
   }
   return desired;
 }
