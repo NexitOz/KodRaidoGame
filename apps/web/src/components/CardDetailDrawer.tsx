@@ -4,7 +4,15 @@ import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { explainCardResonance, type Card } from '@kod-raido/shared';
-import { Icon, RARITY_FRAME_CLASS, RARITY_LABEL, ResonanceBadge, ResonanceRing, RuneDivider } from '@kod-raido/ui';
+import {
+  Icon,
+  RARITY_FRAME_CLASS,
+  RARITY_LABEL,
+  ResonanceBadge,
+  ResonanceRing,
+  RuneDivider,
+  factionAccent,
+} from '@kod-raido/ui';
 import { api } from '@/lib/api';
 import { factionLabel } from '@/lib/factions';
 import { playSfx } from '@/lib/sfx';
@@ -80,21 +88,34 @@ export function CardDetailDrawer({ card, onClose }: { card: Card | null; onClose
           card.rarity === 'RAIDO' ? 'border-raido-red/50 shadow-raido' : 'border-white/10',
         )}
       >
-        <div className="relative mb-4 flex items-start gap-4">
-          {/* Cinematic mode: rarity-tinted glow behind the artwork + a Resonance ring anchor,
-              distinct/rarer framing for RAIDO than the standard rarity glow (section 9). */}
-          <div className="pointer-events-none absolute -left-6 -top-6 opacity-60">
-            <ResonanceRing tier={card.resonanceTier} size={120} />
-          </div>
+        <div className="relative mb-4">
+          {/* Art-first presentation (Art Pack 01): the illustration is the hero, not a side
+              thumbnail - a large centered portrait with a static faction-tinted ambient wash
+              behind it, metadata moved below. Applies generically to every card via
+              card.artworkUrl (the placeholder SVG data-URI every un-illustrated card still uses
+              renders the same way) - no per-card/flagship special-casing. The wash is a plain
+              background fill (no motion), so it needs no Low Data Mode/reduced-motion gating. */}
           <div
+            aria-hidden
             className={clsx(
-              'relative h-40 w-32 flex-shrink-0 overflow-hidden rounded-xl border transition-transform duration-300 hover:-rotate-1 hover:scale-[1.03]',
-              RARITY_FRAME_CLASS[card.rarity],
+              'pointer-events-none absolute inset-x-6 top-2 h-44 rounded-full blur-3xl',
+              factionAccent(card.faction).glowClass,
             )}
-          >
-            <img src={card.artworkUrl} alt={card.name} className="h-full w-full object-cover" />
+          />
+          <div className="relative flex flex-col items-center">
+            <div className="pointer-events-none absolute -top-4 z-10 opacity-60">
+              <ResonanceRing tier={card.resonanceTier} size={116} />
+            </div>
+            <div
+              className={clsx(
+                'relative aspect-[4/5] w-full max-w-[220px] overflow-hidden rounded-2xl border transition-transform duration-300 hover:scale-[1.02]',
+                RARITY_FRAME_CLASS[card.rarity],
+              )}
+            >
+              <img src={card.artworkUrl} alt={card.name} className="h-full w-full object-cover" />
+            </div>
           </div>
-          <div className="relative flex flex-1 flex-col gap-1.5">
+          <div className="relative mt-3 flex flex-col items-center gap-1.5 text-center">
             <h2 className="font-display text-xl font-bold">{card.name}</h2>
             <p className="text-xs uppercase tracking-wide text-raido-mist">
               {TYPE_LABEL[card.type]} · {RARITY_LABEL[card.rarity]} · Стоимость {card.cost}
