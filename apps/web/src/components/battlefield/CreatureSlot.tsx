@@ -60,17 +60,20 @@ export function CreatureSlot({
     return (
       <div
         aria-hidden="true"
-        className="relative flex aspect-[3/4] w-full flex-col items-center justify-center overflow-hidden rounded-lg border border-raido-gold/10 bg-gradient-to-b from-black/60 to-raido-black [box-shadow:inset_0_4px_14px_rgba(0,0,0,0.75),inset_0_-2px_8px_rgba(0,0,0,0.5)]"
+        className="relative flex aspect-[3/4] w-full flex-col items-center justify-center overflow-hidden rounded-lg border border-transparent bg-transparent [box-shadow:inset_0_1px_5px_rgba(0,0,0,0.3)] lg:border-raido-gold/10 lg:bg-gradient-to-b lg:from-black/60 lg:to-raido-black lg:[box-shadow:inset_0_4px_14px_rgba(0,0,0,0.75),inset_0_-2px_8px_rgba(0,0,0,0.5)]"
       >
         {/* Recessed stone plate look - a physical socket carved into the arena, not a dashed
-            placeholder box. */}
+            placeholder box. Desktop only: mobile relies on the painted housing itself for this
+            cue, per the "illustrated arena is the UI" pass - a second drawn plate here would just
+            be another rectangle stacked on top of the real one already painted into the art. */}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-1.5 rounded-md border border-raido-gold/10"
+          className="pointer-events-none absolute inset-1.5 hidden rounded-md border border-raido-gold/10 lg:block"
           style={{ backgroundImage: 'radial-gradient(circle at 50% 42%, rgba(217,180,106,0.05), transparent 65%)' }}
         />
-        {/* Engraved rune-circle sigil - idle, faction-neutral, low glow. */}
-        <svg aria-hidden viewBox="0 0 100 100" className="pointer-events-none absolute h-3/5 w-3/5 text-raido-gold/15">
+        {/* Engraved rune-circle sigil - idle, faction-neutral, low glow. Quieter and smaller on
+            mobile (a light identity mark over the painted housing), full-strength on desktop. */}
+        <svg aria-hidden viewBox="0 0 100 100" className="pointer-events-none absolute h-2/5 w-2/5 text-raido-gold/10 lg:h-3/5 lg:w-3/5 lg:text-raido-gold/15">
           <circle cx="50" cy="50" r="42" stroke="currentColor" strokeWidth="1" fill="none" />
           <circle cx="50" cy="50" r="30" stroke="currentColor" strokeWidth="0.5" fill="none" strokeDasharray="2 4" />
           {Array.from({ length: 6 }).map((_, i) => {
@@ -82,14 +85,15 @@ export function CreatureSlot({
             return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="currentColor" strokeWidth="0.5" />;
           })}
         </svg>
-        <span className="relative text-2xl text-raido-gold/20" style={{ fontFamily: 'serif' }}>
+        <span className="relative text-base text-raido-gold/15 lg:text-2xl lg:text-raido-gold/20" style={{ fontFamily: 'serif' }}>
           ᚱ
         </span>
-        {/* Ornamental corners, matching the arena's brass filigree language. */}
-        <span aria-hidden className="pointer-events-none absolute left-1 top-1 h-2.5 w-2.5 border-l border-t border-raido-gold/25" />
-        <span aria-hidden className="pointer-events-none absolute right-1 top-1 h-2.5 w-2.5 border-r border-t border-raido-gold/25" />
-        <span aria-hidden className="pointer-events-none absolute bottom-1 left-1 h-2.5 w-2.5 border-b border-l border-raido-gold/25" />
-        <span aria-hidden className="pointer-events-none absolute bottom-1 right-1 h-2.5 w-2.5 border-b border-r border-raido-gold/25" />
+        {/* Ornamental corners, matching the arena's brass filigree language - desktop only, same
+            reasoning as the recessed plate above. */}
+        <span aria-hidden className="pointer-events-none absolute left-1 top-1 hidden h-2.5 w-2.5 border-l border-t border-raido-gold/25 lg:block" />
+        <span aria-hidden className="pointer-events-none absolute right-1 top-1 hidden h-2.5 w-2.5 border-r border-t border-raido-gold/25 lg:block" />
+        <span aria-hidden className="pointer-events-none absolute bottom-1 left-1 hidden h-2.5 w-2.5 border-b border-l border-raido-gold/25 lg:block" />
+        <span aria-hidden className="pointer-events-none absolute bottom-1 right-1 hidden h-2.5 w-2.5 border-b border-r border-raido-gold/25 lg:block" />
       </div>
     );
   }

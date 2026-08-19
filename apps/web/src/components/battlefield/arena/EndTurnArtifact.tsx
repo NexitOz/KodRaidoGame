@@ -180,10 +180,31 @@ export function EndTurnArtifact({ onClick, disabled, pending, isMyTurn, classNam
         onPointerDown={() => setPressed(true)}
         onPointerUp={() => setPressed(false)}
         className={clsx(
-          'relative z-10 flex !h-[62%] !w-[62%] !min-h-0 flex-col items-center justify-center whitespace-normal break-words rounded-full !p-0.5 text-[7px] font-black uppercase leading-[1.1] tracking-tight shadow-[inset_0_2px_6px_rgba(0,0,0,0.5)] transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-raido-black disabled:cursor-not-allowed',
-          ready && 'bg-raido-red text-raido-white shadow-glow border-2 border-raido-gold/50 focus-visible:ring-raido-red',
-          !ready && !pending && 'bg-[#1c1830] border-2 border-[#8a6fe0]/30 text-[#c9bdf0]',
-          pending && 'bg-amber-900/60 border-2 border-amber-400/50 text-amber-50',
+          // Mobile-only material pass: everything in this base (unprefixed) class list is fully
+          // reset by `lg:bg-transparent`/`lg:border-0`/`lg:shadow-none` below at >=1024px, so
+          // desktop's own (frozen) sapphire-lens treatment is untouched regardless of what these
+          // say - only mobile ever actually paints with them.
+          // No base `shadow-*` here (unlike the old flat-red version) - each state below sets its
+          // own complete replacement value, since two different `shadow-[...]` arbitrary-value
+          // utilities on the same element would conflict on which one actually wins the cascade.
+          // Desktop is unaffected either way (`lg:shadow-none` always wins there regardless).
+          'relative z-10 flex !h-[62%] !w-[62%] !min-h-0 flex-col items-center justify-center whitespace-normal break-words rounded-full !p-0.5 text-[7px] font-black uppercase leading-[1.1] tracking-tight transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-raido-black disabled:cursor-not-allowed',
+          pressed && !isDesktop && 'scale-[0.96] transition-transform duration-100',
+          // Ready: a controlled internal glow (radial highlight fading to a dark crimson edge),
+          // not a flat fill - reads as an illuminated gem set into the housing rather than a web
+          // button. `disabled:opacity-40` is intentionally not used anywhere here - dimness comes
+          // from the gradient/shadow itself, matching the "restrained" direction throughout.
+          ready &&
+            'bg-[radial-gradient(circle_at_50%_35%,#ff5170_0%,#e3123e_45%,#5c0f1a_100%)] text-raido-white shadow-[0_0_14px_rgba(227,18,62,0.55),inset_0_1px_2px_rgba(255,255,255,0.35),inset_0_-4px_8px_rgba(0,0,0,0.55)] border-2 border-raido-gold/50 focus-visible:ring-raido-red',
+          // Inactive/unavailable: dark, low-energy artifact - a dim metal-and-glass read, not a
+          // colored "disabled" state.
+          !ready &&
+            !pending &&
+            'bg-[radial-gradient(circle_at_50%_35%,#241f33_0%,#100d1a_75%)] shadow-[inset_0_2px_5px_rgba(0,0,0,0.7)] border-2 border-white/10 text-white/35',
+          // Pending/processing: restrained pulse (reuses the same rune-pulse animation used
+          // elsewhere for active mechanisms) instead of a static amber fill.
+          pending &&
+            'bg-[radial-gradient(circle_at_50%_35%,#d99a3a_0%,#7a4a10_70%)] shadow-[inset_0_1px_3px_rgba(0,0,0,0.5)] border-2 border-amber-400/50 text-amber-50 animate-pulse-rune',
           // Desktop: transparent hit-zone over the master art's own sapphire lens only - the outer
           // gold body is not part of the button and is not clickable. Same base posture as the
           // img above, plus its own press-only micro-translate, so the hit area is tilted into

@@ -20,7 +20,7 @@ export function EnergyPips({ energy, maxEnergy, className }: EnergyPipsProps) {
   const pips = Array.from({ length: MAX_PIPS }, (_, i) => i);
   return (
     <div
-      className={clsx('flex items-center gap-0.5', className)}
+      className={clsx('flex flex-wrap items-center justify-center gap-0.5 lg:flex-nowrap', className)}
       role="img"
       aria-label={`Энергия: ${energy} из ${maxEnergy} доступно`}
     >
@@ -32,7 +32,7 @@ export function EnergyPips({ energy, maxEnergy, className }: EnergyPipsProps) {
             key={i}
             aria-hidden="true"
             className={clsx(
-              'text-[13px] leading-none transition-all duration-300',
+              'text-[8px] leading-none transition-all duration-300 lg:text-[13px]',
               !unlocked && 'text-white/10',
               unlocked && !available && 'text-raido-red/30',
               unlocked && available && 'text-raido-redGlow drop-shadow-[0_0_4px_rgba(255,45,85,0.75)]',

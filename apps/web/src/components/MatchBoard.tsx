@@ -185,12 +185,12 @@ export function MatchBoard({
       <TurnOverlay activePlayerId={view.activePlayerId} isMyTurn={isMyTurn} />
 
       <header className={clsx('flex items-center justify-between text-xs text-raido-mist', styles.header)}>
-        <span>
+        <span className="rounded-full bg-black/40 px-2 py-1 backdrop-blur-sm lg:rounded-none lg:bg-transparent lg:px-0 lg:py-0 lg:backdrop-blur-none">
           Ход {view.turn} · <span className={isMyTurn ? 'font-semibold text-raido-red' : ''}>
             {isMyTurn ? 'Твой ход' : opponentTurnLabel}
           </span>
         </span>
-        <span className="flex items-center gap-2">
+        <span className="flex items-center gap-2 rounded-full bg-black/40 px-1.5 py-1 backdrop-blur-sm lg:rounded-none lg:bg-transparent lg:px-0 lg:py-0 lg:backdrop-blur-none">
           <HelpSheet />
           <EventLogSheet events={events} />
         </span>
@@ -235,7 +235,10 @@ export function MatchBoard({
             </div>
             <div
               className={clsx(
-                'flex flex-col items-center gap-1 rounded-xl border border-raido-red/30 bg-black/50 px-2.5 py-1.5 [box-shadow:inset_0_2px_6px_rgba(0,0,0,0.65)]',
+                // Mobile: no drawn panel - the "РУКА" mechanism painted into the arena art is the
+                // frame, this only supplies the dynamic fan/count/rune content on top of it.
+                // Desktop keeps the original plate exactly as approved.
+                'flex flex-col items-center gap-1 lg:rounded-xl lg:border lg:border-raido-red/30 lg:bg-black/50 lg:px-2.5 lg:py-1.5 lg:[box-shadow:inset_0_2px_6px_rgba(0,0,0,0.65)]',
                 styles.oppHandBacksSlot,
               )}
             >

@@ -1,0 +1,18 @@
+/* Mobile only: `ResonanceBadge` (@kod-raido/ui) is a generic rounded chip shared by Card Detail,
+   the hand preview, and the /resonance page - overriding its own default classes there would leak
+   into all of those. This module only ever gets applied via `className` from `ResonancePulse.tsx`
+   (the arena-core reading, nowhere else uses this file), so scoping the override here instead
+   keeps every other call site pixel-identical. `!important` because the override lands in a
+   separate CSS chunk from Tailwind's own utilities and can't rely on cascade/source order to win.
+   At `>=1024px` this block doesn't exist at all, so desktop keeps the plain, already-approved
+   `ResonanceBadge` chip untouched. */
+@media (max-width: 1023.98px) {
+  .tierBadge {
+    background: transparent !important;
+    border-color: transparent !important;
+    backdrop-filter: none !important;
+    padding: 0 0.125rem !important;
+    box-shadow: none !important;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.9));
+  }
+}

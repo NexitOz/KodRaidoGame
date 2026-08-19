@@ -2,6 +2,7 @@
 
 import type { ResonanceTier } from '@kod-raido/shared';
 import { ResonanceBadge, ResonanceRing } from '@kod-raido/ui';
+import styles from './ResonancePulse.module.css';
 
 export interface ResonancePulseProps {
   tier: ResonanceTier;
@@ -24,7 +25,7 @@ export function ResonancePulse({ tier, triggerKey }: ResonancePulseProps) {
         <ResonanceRing key={triggerKey} tier={tier} pulse={triggerKey > 0} size={tier >= 4 ? 72 : 56} />
       </div>
       <div className="-mt-2">
-        <ResonanceBadge tier={tier} />
+        <ResonanceBadge tier={tier} className={styles.tierBadge} />
       </div>
       {triggerKey > 0 ? (
         <span

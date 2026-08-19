@@ -67,7 +67,7 @@ export function ConductorPanel({
       data-drop-zone={dropZone}
       aria-label={`${name}: ${player.conductorHp} здоровья, ${player.energy} из ${player.maxEnergy} энергии${targetable ? ' — доступная цель' : ''}`}
       className={clsx(
-        'group relative flex flex-col items-center gap-1.5 rounded-2xl px-2 pb-2 pt-3 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-raido-red',
+        'group relative flex flex-col items-center gap-0.5 rounded-2xl px-1 pb-1 pt-1.5 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-raido-red lg:gap-1.5 lg:px-2 lg:pb-2 lg:pt-3',
         targetable && 'ring-2 ring-emerald-400/60 ring-offset-2 ring-offset-raido-black',
         // `disabled` already makes this a no-op when not targetable, but the *wrapper*
         // (`.plyCommanderSlot` in MatchBoard.module.css) is set `pointer-events:none` so it never
@@ -95,7 +95,7 @@ export function ConductorPanel({
         side={side}
       />
 
-      <span className="relative z-10 mt-2 truncate text-xs font-bold uppercase tracking-wide text-raido-white">
+      <span className="relative z-10 mt-0.5 max-w-full truncate text-[9px] font-bold uppercase tracking-wide text-raido-white lg:mt-2 lg:text-xs">
         {name}
       </span>
       <EnergyPips energy={player.energy} maxEnergy={player.maxEnergy} className="relative z-10 justify-center" />
