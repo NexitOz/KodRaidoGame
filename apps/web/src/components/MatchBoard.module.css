@@ -18,7 +18,14 @@
    these new properties can ever leak into the desktop block below regardless of which properties
    that block does or doesn't re-specify — see the desktop block's own comment for why it's safe
    for desktop to rely on the old unscoped-base convention (it re-specifies every property itself),
-   which is exactly the guarantee this new block sidesteps needing by being explicitly scoped. */
+   which is exactly the guarantee this new block sidesteps needing by being explicitly scoped.
+
+   Mobile Battlefield V2 — the mobile `.stage` background and every slot coordinate in the block
+   below were re-measured against the owner-approved `kod-raido-arena-mobile-v2.webp` production
+   master (still 852:1846, materialized via `node scripts/materialize-mobile-battlefield-v2.mjs`
+   from `art-source/mobile-battlefield-v2/`, see docs/CLAUDE_MOBILE_BATTLEFIELD_V2_TASK.md). Only
+   the mobile block's asset URL and slot percentages changed for this pass — component structure,
+   the desktop block below, and gameplay logic are untouched. */
 
 .board {
   min-width: 0;
@@ -80,135 +87,146 @@
     max-width: 100%;
     margin-inline: auto;
     aspect-ratio: 852 / 1846;
-    background-image: url('/art/battlefield/kod-raido-arena-mobile.webp');
+    background-image: url('/art/battlefield/kod-raido-arena-mobile-v2.webp');
     background-size: 100% 100%;
     background-repeat: no-repeat;
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
   }
 
-  /* Coordinates measured directly off the source artwork's own 852x1846 pixel grid - unchanged
-     from the pre-2.0 pass: they're percentages of `.stage`'s own box, so they re-scale correctly
-     whether `.stage` ends up sized width-first or height-first. */
+  /* Mobile Battlefield V2 — coordinates re-measured directly off the owner-approved
+     `kod-raido-arena-mobile-v2.webp` master's own 852x1846 pixel grid (a fresh, differently
+     composed painting from the earlier `kod-raido-arena-mobile.webp` this replaces: separate
+     upper/lower commander rings, separate upper/lower Resonance pill housings, four left-column
+     deck/discard housings, a dedicated central Raido Core ring and a dedicated right-side End Turn
+     ring, rather than the old pass's combined top strip). Every value below is a percentage of
+     `.stage`'s own box, so it re-scales correctly regardless of how `.stage` itself is sized. */
   .oppDeckSlot {
     position: absolute;
-    left: 4%;
-    top: 11%;
-    width: 12%;
+    left: 0.9%;
+    top: 21.7%;
+    width: 14.3%;
   }
   .oppDiscardSlot {
     position: absolute;
-    left: 18%;
-    top: 12.5%;
-    width: 10%;
+    left: 0.9%;
+    top: 33.2%;
+    width: 14.3%;
   }
   .oppCommanderSlot {
     position: absolute;
-    left: 50%;
-    top: 14.5%;
-    width: 24%;
+    left: 50.5%;
+    top: 14.6%;
+    width: 16%;
     transform: translate(-50%, -50%);
     z-index: 6;
   }
+  /* The painted upper pill next to the commander ring is labeled a "Resonance housing" in the
+     production spec, but there is no legitimate opponent-side Resonance value to show there - see
+     `computeViewerResonanceHeat` (apps/web/src/lib/resonance-heat.ts): Resonance is derived from
+     the *viewer's own* hand + board, and the opponent's hand is intentionally hidden, so a mirrored
+     "opponent Resonance" reading would have to be invented. Per the task's own instruction ("do not
+     fake opponent data the current model does not expose... fit the existing UI into the painted
+     housing instead"), this housing keeps exactly the real dynamic content the pre-V2 pass already
+     placed in the equivalent top-right slot - the opponent's visible hand count + their (public)
+     RuneZone - just re-anchored to the V2 pill's own coordinates instead of inventing a new stat. */
   .oppHandBacksSlot {
     position: absolute;
-    left: 86.5%;
-    top: 15%;
-    width: 16%;
+    left: 69.5%;
+    top: 17.5%;
+    width: 26%;
     transform: translate(-50%, -50%);
     z-index: 6;
   }
   .oppLane {
     position: absolute;
-    left: 5%;
-    top: 22%;
-    width: 90%;
-    height: 18%;
+    left: 20.5%;
+    top: 24.1%;
+    width: 66.6%;
+    height: 8.3%;
     display: flex;
     align-items: center;
   }
 
   .coreSlot {
     position: absolute;
-    left: 50%;
-    top: 47%;
-    width: 32%;
-    height: 13%;
+    left: 50.5%;
+    top: 47.7%;
+    width: 27%;
+    height: 11.4%;
     transform: translate(-50%, -50%);
     z-index: 5;
   }
 
   .plyLane {
     position: absolute;
-    left: 5%;
-    top: 55%;
-    width: 90%;
-    height: 17%;
+    left: 20.5%;
+    top: 60.8%;
+    width: 66.6%;
+    height: 8.1%;
     display: flex;
     align-items: center;
   }
-  /* Player band (rune/deck/discard/commander/Resonance) all sit in the lower ~74-90% of the
+  /* Player band (rune/deck/discard/commander/Resonance) all sit in the lower ~53-81% of the
      stage - the same band the hand overlay dock below can visually reach into. `z-index:6` +
      `pointer-events:none` on each wrapper (mirroring the desktop pass's own documented pattern
      below) is what keeps them paintable and tappable above the dock even where its box happens to
      overlap their edge - the actual interactive element inside each opts back into pointer events
-     itself (ConductorPanel's button, etc.), the wrapper never needs the click. */
+     itself (ConductorPanel's button, etc.), the wrapper never needs the click. V2's art has no
+     dedicated rune housing (unlike deck/discard/commander/Resonance, all painted), so this sits in
+     open background canvas to the right of the player creature lane, clear of every painted
+     mechanism above and below it. */
   .plyRuneSlot {
     position: absolute;
-    left: 65%;
-    top: 76%;
-    width: 18%;
+    left: 80%;
+    top: 57%;
+    width: 16%;
     z-index: 6;
     pointer-events: none;
   }
-  /* Battlefield Polish 3.1: nudged up ~1-1.5 points (was top:74%/76.5%) to open a touch more
-     vertical breathing room against the commander/Resonance band right below (79-79.5%) - the
-     painted housings themselves have enough vertical tolerance at this scale that the small shift
-     doesn't visibly detach the icon from its socket. Left/width (the horizontal anchor against the
-     art) are untouched. */
   .plyDeckSlot {
     position: absolute;
-    left: 4%;
-    top: 73%;
-    width: 12%;
+    left: 0.9%;
+    top: 53.4%;
+    width: 14.3%;
     z-index: 6;
     pointer-events: none;
   }
   .plyDiscardSlot {
     position: absolute;
-    left: 18%;
-    top: 75.5%;
-    width: 10%;
+    left: 0.9%;
+    top: 61.2%;
+    width: 14.3%;
     z-index: 6;
     pointer-events: none;
   }
   .plyCommanderSlot {
     position: absolute;
-    left: 50%;
-    top: 79.5%;
-    width: 24%;
+    left: 48.7%;
+    top: 80.4%;
+    width: 17%;
     transform: translate(-50%, -50%);
     z-index: 6;
     pointer-events: none;
   }
   .resonanceSlot {
     position: absolute;
-    left: 87%;
-    top: 79%;
-    width: 22%;
+    left: 71.6%;
+    top: 77.3%;
+    width: 19%;
     transform: translate(-50%, -50%);
     z-index: 6;
     pointer-events: none;
   }
 
-  /* Re-measured directly against the source artwork's real pixels - the mechanism is a ~170px
-     circle centered near (760, 860) of 852x1846. Above the hand dock (z-index 4) so it's never
-     covered by it either. */
+  /* Re-measured directly against the V2 master's real pixels - the End Turn mechanism is a ring
+     centered near (750, 885) of 852x1846. Above the hand dock (z-index 4) so it's never covered by
+     it either. */
   .endTurnSlot {
     position: absolute;
-    left: 87%;
-    top: 47%;
-    width: 19%;
-    height: 9%;
+    left: 88%;
+    top: 47.9%;
+    width: 21%;
+    height: 9.8%;
     transform: translate(-50%, -50%);
     z-index: 7;
   }
