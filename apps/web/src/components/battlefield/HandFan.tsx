@@ -68,6 +68,22 @@ function useDesktopHoverCapable() {
   return capable;
 }
 
+/** Mirrors `useDesktopHoverCapable`'s breakpoint (the same `1023.98px` line every other mobile-vs-
+ * desktop split in this codebase uses) so the engaged-card escalation overlay below only ever
+ * renders on mobile - desktop keeps its existing, approved local-transform escalation completely
+ * untouched. */
+function useMobileViewport() {
+  const [mobile, setMobile] = useState(false);
+  useEffect(() => {
+    const mql = window.matchMedia('(max-width: 1023.98px)');
+    setMobile(mql.matches);
+    const onChange = () => setMobile(mql.matches);
+    mql.addEventListener('change', onChange);
+    return () => mql.removeEventListener('change', onChange);
+  }, []);
+  return mobile;
+}
+
 export function HandFan({
   cards,
   energy,
@@ -82,6 +98,7 @@ export function HandFan({
   // preview->Play) takes priority since it's the more consequential state, previewed otherwise.
   const engagedId = selectedInstanceId ?? previewedInstanceId ?? null;
   const hoverCapable = useDesktopHoverCapable();
+  const isMobile = useMobileViewport();
   const [hoveredInstanceId, setHoveredInstanceId] = useState<string | null>(null);
 
   const { dragCard, ghostRef, bind } = useDragToPlay({
@@ -103,6 +120,17 @@ export function HandFan({
       ? cards.find((c) => c.instanceId === hoveredInstanceId)
       : undefined;
 
+  // Mobile engaged-card escalation overlay: the same "a child can never out-stack content above
+  // its own fixed-position ancestor's stacking context" problem the hover overlay above already
+  // documents applies just as much to the plain armed/previewed state on mobile - `.handSection`
+  // sits below `.plyCommanderSlot`/`.resonanceSlot` in z-index, so no local z-index on the in-dock
+  // card can ever paint above them, and the dock's own horizontally-scrolling row clips a locally
+  // scaled-up edge card the moment it grows past the row's own left/right bound. Both are ancestor
+  // problems, so (matching the hover overlay's own fix) this escapes both via the identical
+  // `createPortal` technique, fixed + centered with viewport-safe margins so neither an edge nor a
+  // center card can ever clip off-screen or land behind the commander/Resonance housings again.
+  const mobileEngagedEntry = isMobile && !dragCard && engagedId ? cards.find((c) => c.instanceId === engagedId) : undefined;
+
   return (
     <div
       className="flex justify-center overflow-x-auto px-2 pb-1 pt-2 lg:overflow-visible lg:px-0 lg:pb-0 lg:pt-0"
@@ -118,6 +146,10 @@ export function HandFan({
             marginLeft={i === 0 ? 0 : -OVERLAP_PX}
             zIndex={i}
             engaged={engagedId === instanceId}
+            // The portal overlay below already shows the escalated view on mobile - suppress the
+            // in-dock card's own large local scale/lift for that one card so it doesn't also try
+            // to grow (and clip) in place. It keeps the ring/glow feedback either way.
+            suppressLocalEscalation={Boolean(mobileEngagedEntry) && engagedId === instanceId}
             dimmed={Boolean(engagedId) && engagedId !== instanceId}
             dragging={dragCard?.instanceId === instanceId}
             affordable={card.cost <= energy}
@@ -163,6 +195,37 @@ export function HandFan({
             document.body,
           )
         : null}
+
+      {/* Mobile engaged-card escalation overlay (see `mobileEngagedEntry` above for why this
+       * exists) - always horizontally centered with a fixed safe margin rather than tracking the
+       * original card's own on-screen position, so an edge card and a center card land in
+       * exactly the same safe, fully-on-screen spot; there's nothing to clamp because it never
+       * inherits an off-screen position to begin with. Bottom-anchored well above the resting
+       * dock's own reveal strip and the commander/Resonance band beneath it (both measured live
+       * against the mobile `.stage` at every tested viewport - see HandFan.module.css) rather
+       * than the hover overlay's desktop-tuned `bottom-8`, which sits far too low for the mobile
+       * dock's much larger reserved height. The original in-dock card stays exactly where it was,
+       * fully interactive underneath (tap-to-cancel, drag-to-play) - `suppressLocalEscalation`
+       * above only mutes its own competing scale/lift, never its hit target. */}
+      {mobileEngagedEntry && typeof document !== 'undefined'
+        ? createPortal(
+            <div
+              aria-hidden
+              className={clsx(
+                'pointer-events-none fixed left-1/2 z-[68] w-[150px] -translate-x-1/2 animate-card-in drop-shadow-[0_20px_40px_rgba(0,0,0,0.75)]',
+                styles.engagedOverlay,
+              )}
+            >
+              <CardView
+                card={mobileEngagedEntry.card}
+                size="sm"
+                allowNameWrap
+                className="!max-w-[150px] ring-2 ring-raido-red/80"
+              />
+            </div>,
+            document.body,
+          )
+        : null}
     </div>
   );
 }
@@ -180,6 +243,11 @@ interface HandCardItemProps {
    * engaged card reads clearly against its neighbors instead of being swallowed by the overlap.
    * Desktop is unaffected (`lg:opacity-100` resets it), matching the frozen desktop requirement. */
   dimmed: boolean;
+  /** True only for the one engaged card, and only on mobile (see `mobileEngagedEntry` in the
+   * parent) - the portal overlay already shows the escalated view, so this card's own local
+   * transform is muted to a small lift instead of the full scale-up, which is what used to clip
+   * off-screen for an edge card in a 10-card fan. Ring/glow feedback stays either way. */
+  suppressLocalEscalation: boolean;
   dragging: boolean;
   affordable: boolean;
   disabled?: boolean;
@@ -199,6 +267,7 @@ function HandCardItem({
   marginLeft,
   zIndex,
   engaged,
+  suppressLocalEscalation,
   dimmed,
   dragging,
   affordable,
@@ -229,8 +298,14 @@ function HandCardItem({
         // give the engaged card a stronger pop (Battlefield Polish 3.1) without touching this
         // value at all - the property is only ever defined inside a `max-width:1023.98px` media
         // query, so at desktop `var()`'s fallback (1.06, the original, unchanged literal) applies.
+        // `suppressLocalEscalation` (mobile only, see the parent's `mobileEngagedEntry`) trades
+        // that scale-up for a small lift only - the portal overlay is what actually escalates the
+        // card there, so growing this one too just doubled the visual and was what clipped an
+        // edge card off-screen in a dense 10-card fan.
         transform: engaged
-          ? 'translateY(-18px) scale(var(--hf-engaged-scale, 1.06)) rotate(0deg)'
+          ? suppressLocalEscalation
+            ? 'translateY(-6px) scale(1) rotate(0deg)'
+            : 'translateY(-18px) scale(var(--hf-engaged-scale, 1.06)) rotate(0deg)'
           : `translateY(${Math.abs(offsetFromCenter) * ARC_STEP_PX}px) rotate(${offsetFromCenter * ANGLE_STEP_DEG}deg)`,
       }}
       {...bind}

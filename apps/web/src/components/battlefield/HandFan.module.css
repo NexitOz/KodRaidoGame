@@ -33,11 +33,30 @@
      defined here, so desktop's `var()` always falls through to its own unchanged 1.06 fallback. A
      stronger pop than desktop needs since mobile has no hover state to lean on and the resting
      card itself is much smaller (62px vs. desktop's 140-156px) - the engaged card needs to do more
-     of the "this is the one I'm about to play" work on its own. */
+     of the "this is the one I'm about to play" work on its own. Only actually applied to the
+     in-dock card when `suppressLocalEscalation` is false (i.e. the mobile engaged-overlay portal
+     below isn't already showing for that card) - see the inline `transform` comment in
+     HandFan.tsx. */
   .cardItem {
     --hf-engaged-scale: 1.16;
   }
   .cardItem[data-engaged='true'] {
     filter: drop-shadow(0 0 16px rgba(255, 45, 85, 0.75));
+  }
+}
+
+/* Mobile engaged-card escalation overlay (see `mobileEngagedEntry`/`.engagedOverlay` usage in
+   HandFan.tsx) - `bottom` anchor measured live against the mobile `.stage` (MatchBoard.module.css)
+   at 390x844/412x915/360x800/430x932: the player commander/Resonance band sits at roughly
+   77-80% of stage height (~20-23% up from the stage's own bottom edge), and `.stage` itself fills
+   essentially all of `100dvh` at every supported phone size (height-first sizing, at most a small
+   letterbox). `28dvh` clears that band with comfortable margin at every tested size without
+   needing to read `.stage`'s own coordinates from this unrelated file - a plain viewport-relative
+   percentage scales the same way `.stage`'s own percentage coordinates do, since the two nearly
+   coincide. `dvh` (not `vh`) matches the rest of the mobile viewport-fit pass elsewhere in this
+   codebase, so this tracks the same dynamic toolbar-safe viewport `.board`/`.stage` already use. */
+@media (max-width: 1023.98px) {
+  .engagedOverlay {
+    bottom: 28dvh;
   }
 }
