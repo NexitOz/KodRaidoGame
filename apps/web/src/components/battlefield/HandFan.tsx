@@ -35,9 +35,41 @@ export interface HandFanProps {
   onPlayByDrag: (instanceId: string, cost: number, zone: string | null) => void;
 }
 
-const ANGLE_STEP_DEG = 5;
-const ARC_STEP_PX = 3;
-const OVERLAP_PX = 22;
+/** Desktop geometry - frozen, unconditional regardless of hand size (Battlefield Polish 3.1's
+ * original values, byte-for-byte). Mobile Hand Density Polish only ever branches on `isMobile`
+ * before picking a tier below - desktop always takes this exact object, so desktop stays
+ * pixel-identical at every hand size, matching the "desktop layout... frozen" requirement. */
+const DESKTOP_TIER: DensityTier = { angleStepDeg: 5, arcStepPx: 3, overlapPx: 22, compactName: false };
+
+interface DensityTier {
+  angleStepDeg: number;
+  arcStepPx: number;
+  overlapPx: number;
+  /** Threaded straight through to `CardView`'s own `compactName` prop (default `false`, so every
+   * other caller of `CardView` - Collection, Deck Builder, Admin review, HandCardPreview, this
+   * same dock's own 1-7 card renders - is unaffected either way). */
+  compactName: boolean;
+}
+
+/** Mobile Hand Density Polish: three density tiers chosen purely by hand size (never per-card),
+ * so the same hand size always produces the same geometry. Only ever consulted when `isMobile` -
+ * see `DESKTOP_TIER` above.
+ *
+ * Live-measured against the real dock at 390x844: 5 cards spanned 237px (comfortable margin), 7
+ * cards 324px (fits 390px but tight), 10 cards 452.9px - 63px *wider than the 390px viewport
+ * itself*, clipping both edges. Per the task spec: 1-5 is left alone; 6-7 gets only a modest
+ * overlap increase (no name-treatment change - a 6-7 card fan still has enough per-card width for
+ * a legible name row); 8-10 gets the denser fan (reduced rotation/arc so the fan doesn't also grow
+ * *taller*, just tighter) plus `compactName` to move the name into the gradient-backed in-artwork
+ * label instead of a separate row, which is what actually frees the width the denser overlap
+ * needs. Re-verified via the same live measurement after each adjustment, across every required
+ * viewport (360-430px), until the 8-10 tier's span cleared even the narrowest (360px) with a safe
+ * margin - `CardView`'s own `xs` max-width is never touched, only overlap/rotation/arc/name. */
+function getMobileDensityTier(handSize: number): DensityTier {
+  if (handSize <= 5) return { angleStepDeg: 5, arcStepPx: 3, overlapPx: 22, compactName: false };
+  if (handSize <= 7) return { angleStepDeg: 4, arcStepPx: 2.2, overlapPx: 30, compactName: false };
+  return { angleStepDeg: 1.6, arcStepPx: 0.8, overlapPx: 48, compactName: true };
+}
 
 /** Keyed by card TYPE, never by cardId - the tutorial overlay spotlights whichever hand card
  * happens to satisfy the current step's objective, regardless of which specific card it is. */
@@ -100,6 +132,9 @@ export function HandFan({
   const hoverCapable = useDesktopHoverCapable();
   const isMobile = useMobileViewport();
   const [hoveredInstanceId, setHoveredInstanceId] = useState<string | null>(null);
+  // Mobile Hand Density Polish - desktop always takes the frozen `DESKTOP_TIER` regardless of
+  // `cards.length`, so this can only ever change geometry on mobile.
+  const tier = isMobile ? getMobileDensityTier(cards.length) : DESKTOP_TIER;
 
   const { dragCard, ghostRef, bind } = useDragToPlay({
     disabled,
@@ -137,13 +172,16 @@ export function HandFan({
       role="list"
       aria-label={`Рука, ${cards.length} карт`}
     >
-      <div className="flex" style={{ marginLeft: cards.length > 1 ? OVERLAP_PX : 0 }}>
+      <div className="flex" style={{ marginLeft: cards.length > 1 ? tier.overlapPx : 0 }}>
         {cards.map(({ instanceId, card }, i) => (
           <HandCardItem
             key={instanceId}
             card={card}
             offsetFromCenter={i - center}
-            marginLeft={i === 0 ? 0 : -OVERLAP_PX}
+            marginLeft={i === 0 ? 0 : -tier.overlapPx}
+            angleStepDeg={tier.angleStepDeg}
+            arcStepPx={tier.arcStepPx}
+            compactName={tier.compactName}
             zIndex={i}
             engaged={engagedId === instanceId}
             // The portal overlay below already shows the escalated view on mobile - suppress the
@@ -234,6 +272,15 @@ interface HandCardItemProps {
   card: Card;
   offsetFromCenter: number;
   marginLeft: number;
+  /** Per-card rotation/arc step for this render's density tier (see `getMobileDensityTier`) -
+   * always `DESKTOP_TIER`'s fixed 5deg/3px on desktop, so desktop's own transform math is
+   * unchanged regardless of hand size. */
+  angleStepDeg: number;
+  arcStepPx: number;
+  /** Threaded straight through to `CardView`'s own `compactName` prop - `false` (1-7 cards, and
+   * always on desktop) leaves `CardView` completely unchanged; `true` (mobile 8-10 cards) opts
+   * this dock's cards into the compact in-artwork name label. */
+  compactName: boolean;
   zIndex: number;
   /** True for the one card currently previewed (tap) or armed for play (drag, or preview->Play) -
    * the dock's "escalated" card, visually lifted/scaled/glowing above its neighbors. */
@@ -265,6 +312,9 @@ function HandCardItem({
   card,
   offsetFromCenter,
   marginLeft,
+  angleStepDeg,
+  arcStepPx,
+  compactName,
   zIndex,
   engaged,
   suppressLocalEscalation,
@@ -306,7 +356,7 @@ function HandCardItem({
           ? suppressLocalEscalation
             ? 'translateY(-6px) scale(1) rotate(0deg)'
             : 'translateY(-18px) scale(var(--hf-engaged-scale, 1.06)) rotate(0deg)'
-          : `translateY(${Math.abs(offsetFromCenter) * ARC_STEP_PX}px) rotate(${offsetFromCenter * ANGLE_STEP_DEG}deg)`,
+          : `translateY(${Math.abs(offsetFromCenter) * arcStepPx}px) rotate(${offsetFromCenter * angleStepDeg}deg)`,
       }}
       {...bind}
       onMouseEnter={onHoverChange ? () => onHoverChange(true) : undefined}
@@ -317,6 +367,7 @@ function HandCardItem({
       <CardView
         card={card}
         size="xs"
+        compactName={compactName}
         className={clsx(
           'animate-card-in sm:!max-w-[112px] lg:!max-w-[140px] xl:!max-w-[156px]',
           styles.compactHandCard,

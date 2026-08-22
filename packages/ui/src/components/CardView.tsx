@@ -16,6 +16,14 @@ export interface CardViewProps {
    * in when a caller has room to spare and truncation would hide real information instead of just
    * saving space - e.g. a free-floating "read the whole card" overlay, not a dense grid. */
   allowNameWrap?: boolean;
+  /** `size="xs"` only; defaults to `false` so every existing caller (Collection, Deck Builder,
+   * Admin review, the hand dock's own 1-7 card renders, HandCardPreview, ...) is completely
+   * unchanged. Opt in only for a dense mobile hand fan: moves the name off its own row below the
+   * artwork and into a compact gradient-backed label directly over the bottom of the artwork
+   * itself, positioned above the ATK/HP row on CHARACTER cards so neither is obscured - trades a
+   * full-width name row for a few px of vertical space, which is what a dense resting fan needs
+   * most. Cost (top overlay) is never affected either way. */
+  compactName?: boolean;
 }
 
 const TYPE_LABEL: Record<Card['type'], string> = {
@@ -26,7 +34,7 @@ const TYPE_LABEL: Record<Card['type'], string> = {
   EDIT: 'Эдит',
 };
 
-export function CardView({ card, size = 'md', trending, onSelect, className, allowNameWrap }: CardViewProps) {
+export function CardView({ card, size = 'md', trending, onSelect, className, allowNameWrap, compactName }: CardViewProps) {
   const isCharacter = card.type === 'CHARACTER';
   const accent = factionAccent(card.faction);
   const glowClass = RARITY_GLOW_CLASS[card.rarity];
@@ -106,16 +114,38 @@ export function CardView({ card, size = 'md', trending, onSelect, className, all
             </span>
           </div>
         ) : null}
+        {size === 'xs' && compactName ? (
+          <>
+            {/* Ambient scrim behind the compact name below, tall enough to also back the ATK/HP
+                row on CHARACTER cards (which paints on top of it, at bottom-0, unaffected) -
+                one continuous gradient reads as a single bottom treatment rather than two
+                competing boxes. */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/85 via-black/35 to-transparent"
+            />
+            <p
+              className={clsx(
+                'pointer-events-none absolute inset-x-1 truncate text-[9px] font-semibold text-raido-white',
+                isCharacter ? 'bottom-5' : 'bottom-1',
+              )}
+            >
+              {card.name}
+            </p>
+          </>
+        ) : null}
       </div>
       {size === 'xs' ? (
-        <p
-          className={clsx(
-            allowNameWrap ? 'line-clamp-2' : 'truncate',
-            'px-1.5 py-1 text-[11px] font-semibold text-raido-white',
-          )}
-        >
-          {card.name}
-        </p>
+        compactName ? null : (
+          <p
+            className={clsx(
+              allowNameWrap ? 'line-clamp-2' : 'truncate',
+              'px-1.5 py-1 text-[11px] font-semibold text-raido-white',
+            )}
+          >
+            {card.name}
+          </p>
+        )
       ) : (
         <div className="relative z-10 flex flex-1 flex-col gap-1 bg-raido-graphite/95 p-2.5">
           <p
