@@ -34,7 +34,15 @@ export function DeckPile({ count, align = 'left', label, side, className }: Deck
             className={clsx('h-full w-full object-contain', count <= 0 && 'opacity-30 grayscale')}
           />
         </picture>
-        <span className="absolute bottom-[1%] left-1/2 z-10 -translate-x-1/2 text-[10px] font-black tabular-nums text-raido-white [text-shadow:0_1px_4px_rgba(0,0,0,1)]">
+        {/* QA fix (Task 5.1): was `bottom-[1%]`, which put the count right at the housing's own
+            bottom edge - on the player's side, `.plyDeckSlot`/`.plyDiscardSlot` (MatchBoard.module.css,
+            frozen) sit close enough together that the number collided with the Discard pile's
+            "СБРОС" label directly beneath it (e.g. "СБ25ОС"). `bottom-[24%]` lands the count over
+            the dark stacked-pages area low in the art itself (still visually part of the deck
+            housing, not floating in empty space) with enough clearance to clear that label on both
+            sides at every tested count (0/1/19/20/25+) - purely an internal repositioning of this
+            span, no change to the housing's own size/position or to DiscardPile. */}
+        <span className="absolute bottom-[24%] left-1/2 z-10 -translate-x-1/2 text-[10px] font-black tabular-nums text-raido-white [text-shadow:0_1px_4px_rgba(0,0,0,1)]">
           {count}
         </span>
       </div>

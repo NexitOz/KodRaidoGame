@@ -32,22 +32,31 @@ const MOBILE_COMMANDER_ART = {
   opponent: '/art/battlefield/mobile-controls/kod-raido-mobile-commander-opponent-v1.webp',
   player: '/art/battlefield/mobile-controls/kod-raido-mobile-commander-player-v1.webp',
 } as const;
+// QA fix (Task 5.1): a 1x1 transparent placeholder for the always-present `<img>` inside the
+// `<picture>` below - same technique DeckPile/DiscardPile already use, so the real mobile WebP is
+// requested only when the `(max-width: 1023.98px)` `<source>` actually matches, instead of a plain
+// `<img src>` that Chromium fetches unconditionally regardless of the `lg:hidden` CSS class hiding
+// it (a CSS display:none never stops an already-issued image fetch).
+const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
 
 export function HeroFrame({ icon, low, targetable, rank, impactKey, damaged, healed, active, hp, side }: HeroFrameProps) {
   return (
     <span className="relative flex h-[70px] w-[62px] flex-shrink-0 items-center justify-center sm:h-[76px] sm:w-[68px] lg:h-28 lg:w-28">
-      <img
-        key={`mobile-commander-${impactKey}`}
-        src={MOBILE_COMMANDER_ART[side]}
-        alt=""
-        aria-hidden="true"
-        draggable={false}
-        className={clsx(
-          'pointer-events-none absolute inset-0 h-full w-full object-contain lg:hidden',
-          active ? 'drop-shadow-[0_0_10px_rgba(255,255,255,0.18)]' : 'opacity-95',
-          impactKey > 0 && (damaged ? 'animate-shake-hit' : healed ? 'animate-flash-hit' : ''),
-        )}
-      />
+      <picture key={`mobile-commander-${impactKey}`} className="pointer-events-none absolute inset-0 lg:hidden" aria-hidden="true">
+        <source media="(max-width: 1023.98px)" srcSet={MOBILE_COMMANDER_ART[side]} />
+        <img
+          src={TRANSPARENT_PIXEL}
+          alt=""
+          draggable={false}
+          width={129}
+          height={160}
+          className={clsx(
+            'h-full w-full object-contain',
+            active ? 'drop-shadow-[0_0_10px_rgba(255,255,255,0.18)]' : 'opacity-95',
+            impactKey > 0 && (damaged ? 'animate-shake-hit' : healed ? 'animate-flash-hit' : ''),
+          )}
+        />
+      </picture>
       {targetable ? (
         <span aria-hidden className="pointer-events-none absolute inset-[12%] z-10 rounded-full ring-2 ring-emerald-400/75 lg:hidden" />
       ) : null}

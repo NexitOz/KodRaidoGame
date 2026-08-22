@@ -19,6 +19,11 @@ const MOBILE_END_TURN = {
   idle: `${MOBILE_CONTROL_PATH}/kod-raido-mobile-end-turn-idle-v1.webp`,
   disabled: `${MOBILE_CONTROL_PATH}/kod-raido-mobile-end-turn-disabled-v1.webp`,
 } as const;
+// QA fix (Task 5.1): same reasoning as HeroFrame.tsx - a `<picture>` with a `(max-width:
+// 1023.98px)` `<source>` only fetches whichever mobile asset `mobileAsset` currently points to
+// when that media query actually matches; the previous plain `<img src={mobileAsset}>` (hidden via
+// `lg:hidden` CSS only) was fetched by the browser regardless of viewport width.
+const TRANSPARENT_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
 
 const LENS_DIAMETER_PERCENT = 54;
 const CENTER_X_PERCENT = 50 + (-11.5 / 250.8) * 100;
@@ -86,18 +91,22 @@ export function EndTurnArtifact({ onClick, disabled, pending, isMyTurn, classNam
 
   return (
     <div className={clsx('relative flex h-full w-full items-center justify-center', className)} style={scaleVar}>
-      <img
-        src={mobileAsset}
-        alt=""
-        aria-hidden="true"
-        draggable={false}
-        className={clsx(
-          'pointer-events-none absolute inset-0 h-full w-full object-contain lg:hidden',
-          ready && 'drop-shadow-[0_0_10px_rgba(239,68,68,0.55)]',
-          pending && 'animate-pulse-rune opacity-85',
-          pressed && !isDesktop && 'scale-[0.96] transition-transform duration-100',
-        )}
-      />
+      <picture className="pointer-events-none absolute inset-0 lg:hidden" aria-hidden="true">
+        <source media="(max-width: 1023.98px)" srcSet={mobileAsset} />
+        <img
+          src={TRANSPARENT_PIXEL}
+          alt=""
+          draggable={false}
+          width={96}
+          height={95}
+          className={clsx(
+            'h-full w-full object-contain',
+            ready && 'drop-shadow-[0_0_10px_rgba(239,68,68,0.55)]',
+            pending && 'animate-pulse-rune opacity-85',
+            pressed && !isDesktop && 'scale-[0.96] transition-transform duration-100',
+          )}
+        />
+      </picture>
 
       {isDesktop ? (
         <img
