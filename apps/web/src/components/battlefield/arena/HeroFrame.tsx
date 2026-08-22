@@ -11,14 +11,8 @@ export interface HeroFrameProps {
   impactKey: number;
   damaged: boolean;
   healed: boolean;
-  /** Whose turn it is right now — a quiet lighting cue only, no new state. */
   active: boolean;
-  /** Raw HP shown in the overlapping badge at the medallion's base, echoing the reference's large
-   * "28" number under each commander portrait — same `player.conductorHp` ConductorPanel already
-   * reads, just presented as the dominant number instead of a small text line. */
   hp: number;
-  /** Permanent side identity - opponent reads crimson, player reads blue/violet, independent of
-   * whose turn it is (which only brightens the ring further via `active`). */
   side: 'opponent' | 'player';
 }
 
@@ -26,9 +20,6 @@ const SIDE_GLOW = {
   opponent: 'bg-raido-red/25',
   player: 'bg-[#8a6fe0]/25',
 } as const;
-/** Literal (not string-composed) Tailwind classes - the JIT scanner needs the exact class text to
- * appear somewhere in source, so a `.replace('border-', 'text-')` trick on a variant string would
- * silently generate no CSS at all. */
 const SIDE_RING_TEXT = {
   opponent: 'text-raido-red/45',
   player: 'text-[#8a6fe0]/50',
@@ -37,34 +28,61 @@ const SIDE_ACTIVE_RING_TEXT = {
   opponent: 'text-raido-red/80',
   player: 'text-[#a894f0]/85',
 } as const;
+const MOBILE_COMMANDER_ART = {
+  opponent: '/art/battlefield/mobile-controls/kod-raido-mobile-commander-opponent-v1.webp',
+  player: '/art/battlefield/mobile-controls/kod-raido-mobile-commander-player-v1.webp',
+} as const;
 
-/**
- * Large circular commander-medallion standing in for a painted hero portrait (Battlefield Visual
- * Upgrade, desktop reference pass) — we have no commissioned character portraits, so this stays a
- * scaled-up version of the existing `Icon` glyph inside an ornate layered gold frame rather than
- * inventing permanent character art or binding flagship card art to player identity. Visual space
- * (the frame itself) is already sized/positioned for real commander art to drop into later. HP is
- * folded into an overlapping badge at the base of the medallion (matching the reference's large HP
- * number under each portrait) instead of a separate bar/text row.
- */
 export function HeroFrame({ icon, low, targetable, rank, impactKey, damaged, healed, active, hp, side }: HeroFrameProps) {
   return (
-    <span className="relative flex h-14 w-14 flex-shrink-0 items-center justify-center sm:h-16 sm:w-16 lg:h-28 lg:w-28">
-      {/* Ambient side-color glow - permanent identity, brightens further when active. */}
+    <span className="relative flex h-[70px] w-[62px] flex-shrink-0 items-center justify-center sm:h-[76px] sm:w-[68px] lg:h-28 lg:w-28">
+      <img
+        key={`mobile-commander-${impactKey}`}
+        src={MOBILE_COMMANDER_ART[side]}
+        alt=""
+        aria-hidden="true"
+        draggable={false}
+        className={clsx(
+          'pointer-events-none absolute inset-0 h-full w-full object-contain lg:hidden',
+          active ? 'drop-shadow-[0_0_10px_rgba(255,255,255,0.18)]' : 'opacity-95',
+          impactKey > 0 && (damaged ? 'animate-shake-hit' : healed ? 'animate-flash-hit' : ''),
+        )}
+      />
+      {targetable ? (
+        <span aria-hidden className="pointer-events-none absolute inset-[12%] z-10 rounded-full ring-2 ring-emerald-400/75 lg:hidden" />
+      ) : null}
+      <span
+        className={clsx(
+          'pointer-events-none absolute bottom-[7%] left-[61%] z-20 -translate-x-1/2 text-[9px] font-black tabular-nums [text-shadow:0_1px_3px_rgba(0,0,0,1)] lg:hidden',
+          low ? 'text-raido-redGlow' : 'text-white',
+        )}
+      >
+        {hp}
+      </span>
+      {rank ? (
+        <span
+          className="pointer-events-none absolute right-[4%] top-[6%] z-20 rounded-full bg-raido-black/80 px-1 py-0.5 text-[7px] font-bold uppercase text-raido-gold lg:hidden"
+          title={rank.label}
+        >
+          {rank.tier.slice(0, 2)}
+        </span>
+      ) : null}
+
       <span
         aria-hidden
         className={clsx(
-          'pointer-events-none absolute inset-0 rounded-full blur-xl transition-opacity duration-700',
+          'pointer-events-none absolute inset-0 hidden rounded-full blur-xl transition-opacity duration-700 lg:block',
           SIDE_GLOW[side],
           active ? 'opacity-100 animate-arena-breathe' : 'opacity-40',
         )}
       />
-
-      {/* Outer engraved ring with tick marks - the layered "premium frame" the request asked for. */}
       <svg
         aria-hidden
         viewBox="0 0 100 100"
-        className={clsx('pointer-events-none absolute inset-0 h-full w-full', active ? SIDE_ACTIVE_RING_TEXT[side] : SIDE_RING_TEXT[side])}
+        className={clsx(
+          'pointer-events-none absolute inset-0 hidden h-full w-full lg:block',
+          active ? SIDE_ACTIVE_RING_TEXT[side] : SIDE_RING_TEXT[side],
+        )}
       >
         <circle cx="50" cy="50" r="48" stroke="currentColor" strokeWidth="1.2" fill="none" />
         {Array.from({ length: 20 }).map((_, i) => {
@@ -76,14 +94,14 @@ export function HeroFrame({ icon, low, targetable, rank, impactKey, damaged, hea
           return <line key={i} x1={x1} y1={y1} x2={x2} y2={y2} stroke="currentColor" strokeWidth="1" />;
         })}
       </svg>
-      <span aria-hidden className="pointer-events-none absolute inset-2.5 rounded-full border border-raido-gold/25" />
-      <span aria-hidden className="pointer-events-none absolute inset-[14px] rounded-full border border-raido-gold/10" />
+      <span aria-hidden className="pointer-events-none absolute inset-2.5 hidden rounded-full border border-raido-gold/25 lg:block" />
+      <span aria-hidden className="pointer-events-none absolute inset-[14px] hidden rounded-full border border-raido-gold/10 lg:block" />
 
       <span
         key={impactKey}
         aria-hidden
         className={clsx(
-          'relative z-10 flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-raido-graphite to-raido-black text-raido-white ring-1 sm:h-12 sm:w-12 lg:h-[5.75rem] lg:w-[5.75rem]',
+          'relative z-10 hidden h-[5.75rem] w-[5.75rem] flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-b from-raido-graphite to-raido-black text-raido-white ring-1 lg:flex',
           low ? 'ring-raido-red/60' : 'ring-white/10',
           targetable && 'ring-2 ring-emerald-400/70',
           impactKey > 0 && (damaged ? 'animate-shake-hit' : healed ? 'animate-flash-hit' : ''),
@@ -100,10 +118,9 @@ export function HeroFrame({ icon, low, targetable, rank, impactKey, damaged, hea
         ) : null}
       </span>
 
-      {/* HP badge overlapping the base of the medallion - the dominant, at-a-glance number. */}
       <span
         className={clsx(
-          'absolute -bottom-1.5 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-full border-2 bg-raido-black px-2 py-0.5 text-[10px] font-black tabular-nums shadow-[0_3px_10px_rgba(0,0,0,0.7)] lg:-bottom-2.5 lg:gap-1.5 lg:px-3.5 lg:py-1 lg:text-base lg:text-lg',
+          'absolute -bottom-2.5 left-1/2 z-20 hidden -translate-x-1/2 items-center gap-1.5 rounded-full border-2 bg-raido-black px-3.5 py-1 text-lg font-black tabular-nums shadow-[0_3px_10px_rgba(0,0,0,0.7)] lg:flex',
           low ? 'border-raido-red/70 text-raido-redGlow' : 'border-raido-gold/50 text-raido-white',
         )}
       >

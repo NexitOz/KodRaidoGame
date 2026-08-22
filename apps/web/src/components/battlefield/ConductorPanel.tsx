@@ -12,25 +12,15 @@ import type { FeedbackItem } from '@/lib/use-combat-feedback';
 export interface ConductorPanelProps {
   player: PlayerStateView;
   name: string;
-  /** Original SVG glyph standing in for a portrait/emblem placeholder (section 20) - 'player' for
-   * a human (you or a PvP opponent), 'bot' for the PvE bot. No emoji. */
   icon: IconName;
-  /** Kept for API compatibility with existing callers - the vertical hero-medallion layout reads
-   * the same centered either way, so this no longer changes text alignment/row direction. */
   align: 'left' | 'right';
   targetable: boolean;
   onTap: () => void;
   feedback: FeedbackItem[];
   rank?: RankTierDefinition;
-  /** data-tutorial-target value for the tutorial overlay to spotlight, if any. */
   tutorialTarget?: string;
-  /** Whether it is currently this Conductor's turn - a quiet hero-frame lighting cue only. */
   active?: boolean;
-  /** `data-drop-zone` value for drag-to-play (e.g. "own-conductor"/"enemy-conductor") - omit to
-   * leave this panel out of the drop-zone map. */
   dropZone?: string;
-  /** Permanent side identity for the hero medallion's frame color (crimson opponent / blue-violet
-   * player) - independent of whose turn it is. */
   side: 'opponent' | 'player';
 }
 
@@ -67,14 +57,8 @@ export function ConductorPanel({
       data-drop-zone={dropZone}
       aria-label={`${name}: ${player.conductorHp} здоровья, ${player.energy} из ${player.maxEnergy} энергии${targetable ? ' — доступная цель' : ''}`}
       className={clsx(
-        'group relative flex flex-col items-center gap-0.5 rounded-2xl px-1 pb-1 pt-1.5 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-raido-red lg:gap-1.5 lg:px-2 lg:pb-2 lg:pt-3',
-        targetable && 'ring-2 ring-emerald-400/60 ring-offset-2 ring-offset-raido-black',
-        // `disabled` already makes this a no-op when not targetable, but the *wrapper*
-        // (`.plyCommanderSlot` in MatchBoard.module.css) is set `pointer-events:none` so it never
-        // steals hover/click from whatever's rendered underneath at the same screen point (the
-        // desktop hand dock's resting cards can land directly behind it for narrow hands) -
-        // `pointer-events-auto` here opts this button itself back in, but only while it's actually
-        // a valid target, matching `disabled`'s own condition.
+        'group relative flex flex-col items-center gap-0 rounded-2xl px-0 pb-0 pt-0 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-raido-red lg:gap-1.5 lg:px-2 lg:pb-2 lg:pt-3',
+        targetable && 'lg:ring-2 lg:ring-emerald-400/60 lg:ring-offset-2 lg:ring-offset-raido-black',
         targetable ? 'pointer-events-auto' : 'pointer-events-none',
       )}
     >
@@ -95,10 +79,10 @@ export function ConductorPanel({
         side={side}
       />
 
-      <span className="relative z-10 mt-0.5 max-w-full truncate text-[9px] font-bold uppercase tracking-wide text-raido-white lg:mt-2 lg:text-xs">
+      <span className="relative z-10 -mt-1 max-w-full truncate text-[8px] font-bold uppercase tracking-wide text-raido-white [text-shadow:0_1px_3px_rgba(0,0,0,1)] lg:mt-2 lg:text-xs lg:[text-shadow:none]">
         {name}
       </span>
-      <EnergyPips energy={player.energy} maxEnergy={player.maxEnergy} className="relative z-10 justify-center" />
+      <EnergyPips energy={player.energy} maxEnergy={player.maxEnergy} className="relative z-10 origin-top scale-[0.72] justify-center lg:scale-100" />
 
       <FloatingFeedback items={feedback} />
     </button>
