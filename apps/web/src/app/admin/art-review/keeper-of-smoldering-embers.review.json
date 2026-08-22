@@ -1,0 +1,13 @@
+{
+  "slug": "keeper-of-smoldering-embers",
+  "faction": "SHADOW",
+  "referenceLabel": "ART PACK 02 - PRODUCTION CANDIDATE / OWNER REVIEW",
+  "status": "candidate-only",
+  "sourceBranch": "assets/keeper-of-smoldering-embers-candidate-source",
+  "localCandidatePath": "/art-review-candidates/keeper-of-smoldering-embers.webp",
+  "sourceDimensions": "1024x1536",
+  "sourceAspectRatio": "2:3",
+  "expectedSha256": "7bde6a98e36bdd9155f315ce3adc22d50d574a5f8581711126ffa99739eca696",
+  "reviewSurfaces": ["raw-2:3", "CardView-3:4", "CardDetailDrawer-4:5", "HandCardPreview-7:9", "CreatureSlot-3:4"],
+  "productionMutationAllowed": false
+}
