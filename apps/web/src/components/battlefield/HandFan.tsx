@@ -35,9 +35,42 @@ export interface HandFanProps {
   onPlayByDrag: (instanceId: string, cost: number, zone: string | null) => void;
 }
 
-const ANGLE_STEP_DEG = 5;
-const ARC_STEP_PX = 3;
-const OVERLAP_PX = 22;
+interface DensityTier {
+  angleStepDeg: number;
+  arcStepPx: number;
+  overlapPx: number;
+  compactName: boolean;
+  /** The wrapper row's own `marginLeft` (see the render below) - re-centers the fan's rotated
+   * bounding box under `justify-center`, which alone only centers the *unrotated* flex layout box,
+   * not what actually paints once rotation pushes each card's visual extent outside it. Kept as its
+   * own per-tier value (not derived from `overlapPx`) because the correction isn't proportional to
+   * overlap - it was re-measured directly per tier against a real 10-card hand's bounding rects. */
+  centerOffsetPx: number;
+}
+
+/** Desktop's own numbers, byte-for-byte unchanged - used whenever `!isMobile`, and also mobile's
+ * own tier for hands of 5 or fewer (the size every existing mobile screenshot/QA pass was taken
+ * at, so that range is intentionally left untouched too). */
+const DESKTOP_TIER: DensityTier = { angleStepDeg: 5, arcStepPx: 3, overlapPx: 22, compactName: false, centerOffsetPx: 22 };
+
+/** Mobile-only density tiers (Mobile Battlefield production polish 4.0). Live-measured at
+ * 360/390/412/430px against a real 10-card hand: the old fixed desktop-shared numbers produced a
+ * fan ~453px wide in a 390px viewport (both edge cards clipped by the viewport, ~20px left / ~42px
+ * right) - `getBoundingClientRect` on `[role="listitem"]` before/after every change below. The
+ * dominant cause wasn't overlap so much as *rotation*: a ~22.5deg edge-card tilt turns a ~62px-wide
+ * card into a ~93px-wide axis-aligned bounding box. Flattening the rotation step for dense hands
+ * shrinks that bounding box far more than tightening overlap alone could, so both move together per
+ * tier. `compactName` (new `CardView` prop, defaults off everywhere else) drops the below-artwork
+ * name row starting at 6+ cards, where it was already overlapping into unreadable noise (measured
+ * live - even the lighter 6-7 tier's own overlap still smeared adjacent names together) - the full
+ * name is still one tap away via the existing preview modal, and via the engaged-card portal
+ * overlay while a card is selected, so no information is actually lost, only the illegible
+ * resting-state copy. */
+function getMobileDensityTier(handSize: number): DensityTier {
+  if (handSize <= 5) return DESKTOP_TIER;
+  if (handSize <= 7) return { angleStepDeg: 3, arcStepPx: 2, overlapPx: 32, compactName: true, centerOffsetPx: 0 };
+  return { angleStepDeg: 1, arcStepPx: 0.6, overlapPx: 42, compactName: true, centerOffsetPx: 0 };
+}
 
 /** Keyed by card TYPE, never by cardId - the tutorial overlay spotlights whichever hand card
  * happens to satisfy the current step's objective, regardless of which specific card it is. */
@@ -131,19 +164,26 @@ export function HandFan({
   // center card can ever clip off-screen or land behind the commander/Resonance housings again.
   const mobileEngagedEntry = isMobile && !dragCard && engagedId ? cards.find((c) => c.instanceId === engagedId) : undefined;
 
+  // Mobile-only density tier (Mobile Battlefield production polish 4.0) - `DESKTOP_TIER` is used
+  // verbatim whenever `!isMobile`, so desktop's own geometry is untouched byte-for-byte.
+  const tier = isMobile ? getMobileDensityTier(cards.length) : DESKTOP_TIER;
+
   return (
     <div
       className="flex justify-center overflow-x-auto px-2 pb-1 pt-2 lg:overflow-visible lg:px-0 lg:pb-0 lg:pt-0"
       role="list"
       aria-label={`Рука, ${cards.length} карт`}
     >
-      <div className="flex" style={{ marginLeft: cards.length > 1 ? OVERLAP_PX : 0 }}>
+      <div className="flex" style={{ marginLeft: cards.length > 1 ? tier.centerOffsetPx : 0 }}>
         {cards.map(({ instanceId, card }, i) => (
           <HandCardItem
             key={instanceId}
             card={card}
             offsetFromCenter={i - center}
-            marginLeft={i === 0 ? 0 : -OVERLAP_PX}
+            marginLeft={i === 0 ? 0 : -tier.overlapPx}
+            angleStepDeg={tier.angleStepDeg}
+            arcStepPx={tier.arcStepPx}
+            compactName={tier.compactName}
             zIndex={i}
             engaged={engagedId === instanceId}
             // The portal overlay below already shows the escalated view on mobile - suppress the
@@ -234,6 +274,15 @@ interface HandCardItemProps {
   card: Card;
   offsetFromCenter: number;
   marginLeft: number;
+  /** Per-tier resting-fan geometry (see `getMobileDensityTier`) - `DESKTOP_TIER`'s own values on
+   * desktop/small mobile hands, flattened for denser mobile hands so the fan's rotated bounding
+   * box stops clipping past the viewport edge at 8-10 cards. */
+  angleStepDeg: number;
+  arcStepPx: number;
+  /** Mobile-only, 6+ card hands (see `CardView`'s own `compactName` doc) - the full name is still
+   * one tap away via preview/engaged-overlay, so this only ever suppresses illegible resting-state
+   * text, never information reachable no other way. */
+  compactName: boolean;
   zIndex: number;
   /** True for the one card currently previewed (tap) or armed for play (drag, or preview->Play) -
    * the dock's "escalated" card, visually lifted/scaled/glowing above its neighbors. */
@@ -265,6 +314,9 @@ function HandCardItem({
   card,
   offsetFromCenter,
   marginLeft,
+  angleStepDeg,
+  arcStepPx,
+  compactName,
   zIndex,
   engaged,
   suppressLocalEscalation,
@@ -306,7 +358,7 @@ function HandCardItem({
           ? suppressLocalEscalation
             ? 'translateY(-6px) scale(1) rotate(0deg)'
             : 'translateY(-18px) scale(var(--hf-engaged-scale, 1.06)) rotate(0deg)'
-          : `translateY(${Math.abs(offsetFromCenter) * ARC_STEP_PX}px) rotate(${offsetFromCenter * ANGLE_STEP_DEG}deg)`,
+          : `translateY(${Math.abs(offsetFromCenter) * arcStepPx}px) rotate(${offsetFromCenter * angleStepDeg}deg)`,
       }}
       {...bind}
       onMouseEnter={onHoverChange ? () => onHoverChange(true) : undefined}
@@ -317,6 +369,7 @@ function HandCardItem({
       <CardView
         card={card}
         size="xs"
+        compactName={compactName}
         className={clsx(
           'animate-card-in sm:!max-w-[112px] lg:!max-w-[140px] xl:!max-w-[156px]',
           styles.compactHandCard,
