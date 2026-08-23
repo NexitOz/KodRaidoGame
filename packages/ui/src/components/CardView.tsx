@@ -16,6 +16,14 @@ export interface CardViewProps {
    * in when a caller has room to spare and truncation would hide real information instead of just
    * saving space - e.g. a free-floating "read the whole card" overlay, not a dense grid. */
   allowNameWrap?: boolean;
+  /** `size="xs"` only; defaults to `false` so every existing caller (Collection, Deck Builder,
+   * Admin review, the hand dock's own smaller hands, HandCardPreview, ...) is byte-for-byte
+   * unchanged. Opt in only for the densest mobile hand fans (Mobile Battlefield production polish
+   * 4.0): at 8-10 overlapping cards the below-artwork name row became illegible visual noise
+   * (adjacent cards' names smearing into each other), and the full name is already one tap away
+   * via the existing preview modal / engaged-card overlay - so the compact treatment simply omits
+   * the name row rather than trying to fit it, instead of rendering text nobody could read anyway. */
+  compactName?: boolean;
 }
 
 const TYPE_LABEL: Record<Card['type'], string> = {
@@ -26,7 +34,7 @@ const TYPE_LABEL: Record<Card['type'], string> = {
   EDIT: 'Эдит',
 };
 
-export function CardView({ card, size = 'md', trending, onSelect, className, allowNameWrap }: CardViewProps) {
+export function CardView({ card, size = 'md', trending, onSelect, className, allowNameWrap, compactName }: CardViewProps) {
   const isCharacter = card.type === 'CHARACTER';
   const accent = factionAccent(card.faction);
   const glowClass = RARITY_GLOW_CLASS[card.rarity];
@@ -108,14 +116,16 @@ export function CardView({ card, size = 'md', trending, onSelect, className, all
         ) : null}
       </div>
       {size === 'xs' ? (
-        <p
-          className={clsx(
-            allowNameWrap ? 'line-clamp-2' : 'truncate',
-            'px-1.5 py-1 text-[11px] font-semibold text-raido-white',
-          )}
-        >
-          {card.name}
-        </p>
+        compactName ? null : (
+          <p
+            className={clsx(
+              allowNameWrap ? 'line-clamp-2' : 'truncate',
+              'px-1.5 py-1 text-[11px] font-semibold text-raido-white',
+            )}
+          >
+            {card.name}
+          </p>
+        )
       ) : (
         <div className="relative z-10 flex flex-1 flex-col gap-1 bg-raido-graphite/95 p-2.5">
           <p
