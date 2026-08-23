@@ -1,0 +1,29 @@
+{
+  "slug": "keeper-of-smoldering-embers",
+  "faction": "SHADOW",
+  "referenceLabel": "ART PACK 02 - CANDIDATE / AWAITING VALID SOURCE",
+  "status": "blocked-source-incomplete",
+  "sourceBranch": "assets/keeper-of-smoldering-embers-candidate-source",
+  "localCandidatePath": "/art-review-candidates/keeper-of-smoldering-embers.webp",
+  "sourceDimensions": "1024x1536",
+  "sourceAspectRatio": "2:3",
+  "expectedSha256": "7bde6a98e36bdd9155f315ce3adc22d50d574a5f8581711126ffa99739eca696",
+  "expectedSha256Reproducible": false,
+  "sourceDefect": {
+    "summary": "The chunked base64 transport is incomplete; the candidate cannot be reconstructed.",
+    "finalChunk": "art-source/keeper-of-smoldering-embers/q60-15.b64 contains the literal text 'PLACEHOLDER' instead of base64 data",
+    "riffDeclaredBytes": 136324,
+    "recoverableBytes": 135000,
+    "missingBytes": 1324,
+    "reconstructedSha256": "933f5ae8751ce73b77daa76a936e65d2b9fb2fb34ef0b9184d91f49e3bf73636",
+    "decodeResult": "Chromium reports 1024x1536 from the VP8 header but renders a uniform blank grey frame - no character, polearm, ember cracks or Echo-Shadow"
+  },
+  "reviewSurfaces": [
+    "raw-2:3",
+    "CardView-3:4",
+    "CardDetailDrawer-4:5",
+    "HandCardPreview-7:9",
+    "CreatureSlot-3:4"
+  ],
+  "productionMutationAllowed": false
+}
