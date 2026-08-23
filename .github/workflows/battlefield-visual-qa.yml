@@ -1,0 +1,127 @@
+name: Battlefield Visual QA
+
+# QA/tooling infrastructure only - captures real, non-mocked screenshots of the live app for
+# manual visual review. Never touches production: Postgres/Redis are throwaway service
+# containers scoped to this run, and the app runs against them, never against any deployed
+# database. See apps/web/e2e/battlefield-visual-qa.spec.ts for the capture logic itself.
+on:
+  workflow_dispatch: {}
+  pull_request:
+    paths:
+      - 'apps/web/src/components/battlefield/**'
+      - 'apps/web/src/app/play/**'
+      - 'apps/web/src/app/pvp/**'
+      - 'apps/web/e2e/battlefield-visual-qa.spec.ts'
+      - 'apps/web/e2e/helpers.ts'
+      - '.github/workflows/battlefield-visual-qa.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  visual-qa:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: raido
+          POSTGRES_PASSWORD: raido
+          POSTGRES_DB: kod_raido
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U raido"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://raido:raido@localhost:5432/kod_raido?schema=public
+      REDIS_URL: redis://localhost:6379
+      JWT_ACCESS_SECRET: visual-qa-ci-only-not-a-real-secret
+      WEB_ORIGIN: http://localhost:3000
+      PORT: 4000
+      NEXT_PUBLIC_API_URL: http://localhost:4000/api
+      E2E_BASE_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate Prisma client
+        run: npm run prisma:generate -w apps/game-server
+
+      - name: Apply database migrations
+        run: npm run prisma:deploy -w apps/game-server
+
+      - name: Seed reference content
+        run: npm run seed -w apps/game-server
+
+      # Same dependency-before-consumer ordering as ci.yml - apps import these by dist/, not source.
+      - name: Build dependency packages (shared, game-engine, ui)
+        run: npm run build -w @kod-raido/shared -w @kod-raido/game-engine -w @kod-raido/ui
+
+      - name: Build game-server
+        run: npm run build -w apps/game-server
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+        working-directory: apps/web
+
+      # The PRACTICE bot difficulty this suite depends on for deterministic states is only ever
+      # rendered when NEXT_PUBLIC apps/web is running under `next dev` (see PlayPage's
+      # DIFFICULTIES gate, `process.env.NODE_ENV !== 'production'` - a Next.js build-time check).
+      # A `next build && next start` here would silently make the "Тест" button disappear and
+      # break every capture below, so the web app runs via `next dev`, not a production build.
+      - name: Start game-server
+        run: nohup npm run start -w apps/game-server > /tmp/game-server.log 2>&1 &
+
+      - name: Start web app (next dev)
+        run: nohup npm run dev -w apps/web > /tmp/web.log 2>&1 &
+
+      - name: Wait for game-server readiness
+        run: npx wait-on -t 60000 http://localhost:4000/api/health || npx wait-on -t 60000 tcp:localhost:4000
+
+      - name: Wait for web app readiness
+        run: npx wait-on -t 120000 http://localhost:3000
+
+      - name: Run Battlefield Visual QA screenshot matrix
+        run: npm run test:visual-qa -w apps/web
+
+      - name: Show service logs on failure
+        if: failure()
+        run: |
+          echo "--- game-server log ---"
+          cat /tmp/game-server.log || true
+          echo "--- web log ---"
+          cat /tmp/web.log || true
+
+      - name: Stop local services
+        if: always()
+        run: |
+          pkill -f "apps/game-server/dist/main.js" || true
+          pkill -f "next dev" || true
+
+      - name: Upload screenshots + manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: battlefield-visual-qa
+          path: artifacts/battlefield-visual-qa/
+          retention-days: 7
+          if-no-files-found: warn

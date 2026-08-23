@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 
 /**
  * Maps the tutorial overlay's exact Russian step title (rendered by TutorialOverlay's <h2>) back
@@ -128,6 +128,58 @@ export async function playCardByTarget(page: Page, targetKey: string): Promise<b
   await page.waitForTimeout(300);
   const ok = await tryConfirmPlayNoTarget(page);
   return ok ? true : playTargetFallback(page);
+}
+
+/**
+ * Starts a PRACTICE-difficulty PvE match through the real `/play` UI flow (pick the first ready
+ * deck, the "Тест" difficulty, "Начать бой") - the same deterministic no-op-bot setup
+ * player-progression.spec.ts already relies on for reproducible reward-pipeline tests. A bot that
+ * never plays a card or attacks (see pve-bot.ts) is what makes hand-size/turn-state screenshots
+ * reproducible run to run - "Тест" is only ever rendered for `NODE_ENV !== 'production'` (see
+ * PlayPage's own `DIFFICULTIES` gate) and rejected server-side in production regardless
+ * (MatchesService.createPveMatch), so this never becomes a path a real player can reach.
+ */
+export async function startPracticePveMatch(page: Page): Promise<void> {
+  await page.goto('/play');
+  await expect(page.getByText('У тебя нет готовой колоды')).toHaveCount(0);
+  const deckButtons = page.locator('section', { hasText: 'Колода' }).first().getByRole('button');
+  await expect(deckButtons.first()).toBeVisible({ timeout: 10_000 });
+  await deckButtons.first().click();
+  await page.getByRole('button', { name: 'Тест' }).click();
+  await page.getByRole('button', { name: 'Начать бой' }).click();
+  await page.waitForURL(/\/play\/[^/]+$/, { timeout: 20_000 });
+}
+
+/**
+ * Reads the live hand size straight from `HandFan`'s own `aria-label` ("Рука, N карт") rather
+ * than counting DOM cards directly - the same list container also becomes a drop target and
+ * (once runes are in play) sits alongside `RuneZone`'s own `role="listitem"` badges, so counting
+ * children is more selector-fragile than trusting the label the component already computes from
+ * `cards.length`.
+ */
+export async function getHandSize(page: Page): Promise<number> {
+  const label = await page.locator('[role="list"][aria-label^="Рука"]').first().getAttribute('aria-label');
+  const match = label?.match(/Рука, (\d+) карт/);
+  return match ? Number(match[1]) : 0;
+}
+
+/**
+ * Ends turns (via the real End Turn control, not an API shortcut) until the viewer's hand reaches
+ * at least `target` cards or `maxTurns` is hit. Against the PRACTICE bot this is fully
+ * deterministic: it never plays a card or attacks, so the hand only ever grows via the normal
+ * per-turn draw, one card closer to `target` every iteration.
+ */
+export async function advanceHandToSize(page: Page, target: number, maxTurns = 20): Promise<void> {
+  for (let i = 0; i < maxTurns; i += 1) {
+    if ((await getHandSize(page)) >= target) return;
+    const endTurn = page.locator('[data-tutorial-target="end-turn"]');
+    if (await endTurn.isEnabled().catch(() => false)) {
+      await endTurn.click();
+      await page.waitForTimeout(600);
+    } else {
+      await page.waitForTimeout(300);
+    }
+  }
 }
 
 export async function attackWithReadyUnit(page: Page): Promise<boolean> {
