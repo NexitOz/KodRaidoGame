@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { FIRST_WIN_OF_DAY_BONUS, REWARD_TABLE, levelForXp } from '@kod-raido/shared';
-import { attackWithReadyUnit, playCardByTarget, registerFreshUser } from './helpers';
+import { attackWithReadyUnit, playCardByTarget, registerFreshUser, startPracticePveMatch } from './helpers';
 
 /**
  * Player Progression & Economy 1.0 end-to-end coverage. Requires the same running local stack as
@@ -55,17 +55,6 @@ async function driveNormalPveToFinish(page: Page, maxIterations = 250): Promise<
     }
   }
   throw new Error('driveNormalPveToFinish exceeded max iterations without a result');
-}
-
-async function startPracticePveMatch(page: Page): Promise<void> {
-  await page.goto('/play');
-  await expect(page.getByText('У тебя нет готовой колоды')).toHaveCount(0);
-  const deckButtons = page.locator('section', { hasText: 'Колода' }).first().getByRole('button');
-  await expect(deckButtons.first()).toBeVisible({ timeout: 10_000 });
-  await deckButtons.first().click();
-  await page.getByRole('button', { name: 'Тест' }).click();
-  await page.getByRole('button', { name: 'Начать бой' }).click();
-  await page.waitForURL(/\/play\/[^/]+$/, { timeout: 20_000 });
 }
 
 /**

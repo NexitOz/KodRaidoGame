@@ -1,0 +1,241 @@
+name: Battlefield Visual QA
+
+# QA/tooling infrastructure only - captures real, non-mocked screenshots of the live app for
+# manual visual review. Never touches production: Postgres/Redis are throwaway service
+# containers scoped to this run, and the app runs against them, never against any deployed
+# database. See apps/web/e2e/battlefield-visual-qa.spec.ts for the capture logic itself.
+on:
+  workflow_dispatch: {}
+  pull_request:
+    paths:
+      - 'apps/web/src/components/battlefield/**'
+      - 'apps/web/src/app/play/**'
+      - 'apps/web/src/app/pvp/**'
+      - 'apps/web/e2e/battlefield-visual-qa.spec.ts'
+      - 'apps/web/e2e/helpers.ts'
+      - '.github/workflows/battlefield-visual-qa.yml'
+
+permissions:
+  contents: read
+
+# One in-flight publish at a time: the gallery deploys to a single repo-wide Pages site, so two
+# overlapping runs would race to be "the" published gallery. Newer run wins, but never cancel a
+# deployment that is already mid-flight.
+concurrency:
+  group: battlefield-visual-qa
+  cancel-in-progress: false
+
+jobs:
+  visual-qa:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: raido
+          POSTGRES_PASSWORD: raido
+          POSTGRES_DB: kod_raido
+        ports:
+          - 5432:5432
+        # -d kod_raido matters: without it pg_isready probes a database named after the user
+        # ("raido"), which does not exist here, so every 5s health probe logged a spurious
+        # `FATAL: database "raido" does not exist` into the service container log for the whole
+        # job. The container still reported healthy (pg_isready treats "server reachable but
+        # rejected me" as up), so this was pure log noise hiding real errors - not a broken gate.
+        options: >-
+          --health-cmd "pg_isready -U raido -d kod_raido"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://raido:raido@localhost:5432/kod_raido?schema=public
+      REDIS_URL: redis://localhost:6379
+      JWT_ACCESS_SECRET: visual-qa-ci-only-not-a-real-secret
+      WEB_ORIGIN: http://localhost:3000
+      NEXT_PUBLIC_API_URL: http://localhost:4000/api
+      E2E_BASE_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Generate Prisma client
+        run: npm run prisma:generate -w apps/game-server
+
+      - name: Apply database migrations
+        run: npm run prisma:deploy -w apps/game-server
+
+      - name: Seed reference content
+        run: npm run seed -w apps/game-server
+
+      # Same dependency-before-consumer ordering as ci.yml - apps import these by dist/, not source.
+      - name: Build dependency packages (shared, game-engine, ui)
+        run: npm run build -w @kod-raido/shared -w @kod-raido/game-engine -w @kod-raido/ui
+
+      - name: Build game-server
+        run: npm run build -w apps/game-server
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+        working-directory: apps/web
+
+      # The PRACTICE bot difficulty this suite depends on for deterministic states is only ever
+      # rendered when NEXT_PUBLIC apps/web is running under `next dev` (see PlayPage's
+      # DIFFICULTIES gate, `process.env.NODE_ENV !== 'production'` - a Next.js build-time check).
+      # A `next build && next start` here would silently make the "Тест" button disappear and
+      # break every capture below, so the web app runs via `next dev`, not a production build.
+      - name: Start game-server
+        run: nohup npm run start -w apps/game-server > /tmp/game-server.log 2>&1 &
+
+      - name: Start web app (next dev)
+        run: nohup npm run dev -w apps/web > /tmp/web.log 2>&1 &
+
+      - name: Wait for game-server readiness
+        run: npx wait-on -t 60000 http://localhost:4000/api/health || npx wait-on -t 60000 tcp:localhost:4000
+
+      - name: Wait for web app readiness
+        run: npx wait-on -t 120000 http://localhost:3000
+
+      - name: Run Battlefield Visual QA screenshot matrix
+        run: npm run test:visual-qa -w apps/web
+        env:
+          # Passed in explicitly rather than read from GITHUB_SHA inside the spec: on a
+          # pull_request event GITHUB_SHA is the refs/pull/N/merge commit, which is genuinely what
+          # gets tested but is not the PR head a reviewer recognises. The manifest records all
+          # three so neither number can be mistaken for the other. On workflow_dispatch the two
+          # pull_request expressions resolve to empty strings and the manifest stores null.
+          VQA_TESTED_SHA: ${{ github.sha }}
+          VQA_PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          VQA_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          VQA_BRANCH: ${{ github.head_ref || github.ref_name }}
+          VQA_RUN_ID: ${{ github.run_id }}
+          VQA_EVENT_NAME: ${{ github.event_name }}
+
+      - name: Show service logs on failure
+        if: failure()
+        run: |
+          echo "--- game-server log ---"
+          cat /tmp/game-server.log || true
+          echo "--- web log ---"
+          cat /tmp/web.log || true
+
+      - name: Stop local services
+        if: always()
+        run: |
+          pkill -f "apps/game-server/dist/main.js" || true
+          pkill -f "next dev" || true
+
+      # Uploaded before the gallery is built so this artifact keeps exactly the contents it has
+      # always had - the 12 PNGs, manifest.json and summary.md. The contact sheet and index.html
+      # are additive presentation layered on top for the Pages site, not a change to this contract.
+      - name: Upload screenshots + manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: battlefield-visual-qa
+          path: artifacts/battlefield-visual-qa/
+          retention-days: 7
+          if-no-files-found: warn
+
+      - name: Build gallery (contact sheet + index.html)
+        run: node scripts/build-visual-qa-gallery.mjs
+
+      # Echoes the manifest's commit identity (never the screenshot array) into the job log and
+      # summary, so which revision a gallery describes is checkable from the run page alone,
+      # without downloading and unzipping the artifact. SHAs, branch, run id and event name only.
+      - name: Report manifest commit identity
+        run: |
+          node -e '
+            const m = require("./artifacts/battlefield-visual-qa/manifest.json");
+            const { screenshots, ...identity } = m;
+            const text = JSON.stringify(identity, null, 2);
+            console.log(text);
+            console.log(`screenshots: ${screenshots.length}`);
+          ' | tee -a "$GITHUB_STEP_SUMMARY"
+
+      # Separate from the `battlefield-visual-qa` artifact above, which keeps its original
+      # contents. This one carries the browsable gallery, so the contact sheet is still
+      # obtainable even while the Pages site is not enabled (see publish-gallery below).
+      - name: Upload gallery (contact sheet + index.html)
+        uses: actions/upload-artifact@v4
+        with:
+          name: battlefield-visual-qa-gallery
+          path: artifacts/battlefield-visual-qa/
+          retention-days: 7
+          if-no-files-found: error
+
+      - name: Package gallery for GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: artifacts/battlefield-visual-qa/
+
+  # Publishes the gallery to the repo's GitHub Pages site so a reviewer can open the screenshots,
+  # the contact sheet and the manifest at plain HTTPS URLs instead of downloading the Actions ZIP.
+  # Only the captured game screenshots and the manifest metadata are published - the workflow never
+  # writes env vars, tokens or service logs into artifacts/battlefield-visual-qa/.
+  #
+  # Runs only when the capture job actually succeeded, so a failed QA run can never overwrite a
+  # good published gallery with a partial one.
+  publish-gallery:
+    needs: visual-qa
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      # Pages has to be switched on once, by hand, before this job can publish anything.
+      #
+      # `actions/configure-pages` accepts `enablement: true`, but it cannot work here: creating a
+      # Pages site is POST /repos/{owner}/{repo}/pages, and that endpoint is closed to the Actions
+      # GITHUB_TOKEN no matter what `permissions:` the workflow requests. Verified empirically on
+      # run 32647191721, where the token was granted `Pages: write` and still got back
+      # `Create Pages site failed. Error: Resource not accessible by integration`. Enabling Pages
+      # needs repo-admin rights, which only a human (or a PAT/App with `administration`) has.
+      #
+      # `pages: write` *is* enough to deploy to a site that already exists, so this job probes for
+      # the site and skips cleanly when it is absent rather than failing the whole run. The moment
+      # someone sets Settings -> Pages -> Source = "GitHub Actions", the next run publishes with no
+      # further changes here.
+      - name: Check whether GitHub Pages is enabled
+        id: pages_check
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          status=$(curl -sS -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/pages")
+          if [ "$status" = "200" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            echo "GitHub Pages is enabled - publishing the gallery."
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Visual QA gallery not published::GitHub Pages is not enabled for this repository (GET /pages returned $status). Enable it once under Settings -> Pages -> Source = \"GitHub Actions\"; the next run of this workflow will then publish the gallery automatically. Until then the screenshots, contact sheet and manifest are available from the battlefield-visual-qa-gallery artifact on this run."
+          fi
+
+      - name: Configure GitHub Pages
+        if: steps.pages_check.outputs.enabled == 'true'
+        uses: actions/configure-pages@v5
+
+      - name: Deploy gallery to GitHub Pages
+        id: deploy
+        if: steps.pages_check.outputs.enabled == 'true'
+        uses: actions/deploy-pages@v4
