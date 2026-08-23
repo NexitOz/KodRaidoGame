@@ -3,10 +3,12 @@
 Status: **BLOCKED - candidate source is incomplete.** No production art mutation is allowed, and
 the visual review itself cannot be performed until a valid source lands.
 
-> Art direction for the next generation pass lives in
+> This file covers the **earlier, broken candidate** only. The approved concept is recorded in
+> [`keeper-of-smoldering-embers-concept-lock.md`](./keeper-of-smoldering-embers-concept-lock.md)
+> (canonical: what is approved and must be preserved), and the generation direction in
 > [`keeper-of-smoldering-embers-master-art-brief.md`](./keeper-of-smoldering-embers-master-art-brief.md)
-> - locked concept invariants, the SHADOW-family differentiation audit, crop-safe composition
-> rules, and the generation prompt.
+> (prompt, differentiation audit, crop maths). The transport investigation below is still accurate
+> and is kept as the record of why that candidate could not be reviewed.
 
 ## Card (unchanged, for context only)
 
