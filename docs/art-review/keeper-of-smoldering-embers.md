@@ -3,6 +3,11 @@
 Status: **BLOCKED - candidate source is incomplete.** No production art mutation is allowed, and
 the visual review itself cannot be performed until a valid source lands.
 
+> Art direction for the next generation pass lives in
+> [`keeper-of-smoldering-embers-master-art-brief.md`](./keeper-of-smoldering-embers-master-art-brief.md)
+> - locked concept invariants, the SHADOW-family differentiation audit, crop-safe composition
+> rules, and the generation prompt.
+
 ## Card (unchanged, for context only)
 
 |                      |                                         |
@@ -86,6 +91,9 @@ is comparatively safe because the crop removes vertical, not horizontal, area.
 
 ## Recommended next action
 
+0. **Generate the polished master-art** against
+   [`keeper-of-smoldering-embers-master-art-brief.md`](./keeper-of-smoldering-embers-master-art-brief.md),
+   which carries the prompt, the negative prompt, and the crop-safe composition constraints.
 1. **Re-export the candidate** and re-upload the transport with a complete final chunk. The
    reassembly must satisfy `sha256sum` against a recorded hash _and_ the RIFF-declared length must
    equal the reconstructed byte count - the existing README's `sha256sum` step would have caught
