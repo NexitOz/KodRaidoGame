@@ -155,14 +155,23 @@ export function HandFan({
 
   // Mobile engaged-card escalation overlay: the same "a child can never out-stack content above
   // its own fixed-position ancestor's stacking context" problem the hover overlay above already
-  // documents applies just as much to the plain armed/previewed state on mobile - `.handSection`
-  // sits below `.plyCommanderSlot`/`.resonanceSlot` in z-index, so no local z-index on the in-dock
-  // card can ever paint above them, and the dock's own horizontally-scrolling row clips a locally
-  // scaled-up edge card the moment it grows past the row's own left/right bound. Both are ancestor
-  // problems, so (matching the hover overlay's own fix) this escapes both via the identical
-  // `createPortal` technique, fixed + centered with viewport-safe margins so neither an edge nor a
-  // center card can ever clip off-screen or land behind the commander/Resonance housings again.
-  const mobileEngagedEntry = isMobile && !dragCard && engagedId ? cards.find((c) => c.instanceId === engagedId) : undefined;
+  // documents applies just as much to the plain armed state on mobile - `.handSection` sits below
+  // `.plyCommanderSlot`/`.resonanceSlot` in z-index, so no local z-index on the in-dock card can
+  // ever paint above them, and the dock's own horizontally-scrolling row clips a locally scaled-up
+  // edge card the moment it grows past the row's own left/right bound. Both are ancestor problems,
+  // so (matching the hover overlay's own fix) this escapes both via the identical `createPortal`
+  // technique, fixed + centered with viewport-safe margins so neither an edge nor a center card
+  // can ever clip off-screen or land behind the commander/Resonance housings again.
+  //
+  // Mobile battlefield polish pass: keyed off `selectedInstanceId` only, not `engagedId` (which
+  // also includes `previewedInstanceId`) - a plain preview already opens `HandCardPreview`'s own
+  // full-size modal, so showing this overlay too painted a second, smaller card directly on top of
+  // the modal's own header (cost/title/type row visibly cut off underneath it). The armed state
+  // (after tapping "Сыграть" in the modal, or completing a drag) has no modal of its own, so it's
+  // the only mobile state that still needs this floating card as its sole "what's about to be
+  // played" readout.
+  const mobileEngagedEntry =
+    isMobile && !dragCard && selectedInstanceId ? cards.find((c) => c.instanceId === selectedInstanceId) : undefined;
 
   // Mobile-only density tier (Mobile Battlefield production polish 4.0) - `DESKTOP_TIER` is used
   // verbatim whenever `!isMobile`, so desktop's own geometry is untouched byte-for-byte.

@@ -60,10 +60,18 @@ export function HeroFrame({ icon, low, targetable, rank, impactKey, damaged, hea
       {targetable ? (
         <span aria-hidden className="pointer-events-none absolute inset-[12%] z-10 rounded-full ring-2 ring-emerald-400/75 lg:hidden" />
       ) : null}
+      {/* Mobile battlefield polish pass: a small dark pill behind the HP figure (same "rounded
+       * pill on the medallion" language the `rank` badge just below already uses on this same
+       * component) instead of bare shadowed text - gives the commander's one piece of live combat
+       * state the same "framed" weight as the Resonance panel beside it, without moving its own
+       * anchor point (`bottom-[7%] left-[61%]`, tuned to a specific clear spot on the painted
+       * medallion, is unchanged) or growing large enough to cover any of the art around it. */}
       <span
         className={clsx(
-          'pointer-events-none absolute bottom-[7%] left-[61%] z-20 -translate-x-1/2 text-[9px] font-black tabular-nums [text-shadow:0_1px_3px_rgba(0,0,0,1)] lg:hidden',
-          low ? 'text-raido-redGlow' : 'text-white',
+          'pointer-events-none absolute bottom-[7%] left-[61%] z-20 -translate-x-1/2 rounded-full px-1.5 py-0.5 text-[9px] font-black tabular-nums shadow-[0_1px_4px_rgba(0,0,0,0.85)] lg:hidden',
+          low
+            ? 'bg-raido-black/70 text-raido-redGlow ring-1 ring-raido-red/45'
+            : 'bg-raido-black/70 text-white ring-1 ring-[#c9a35f]/40',
         )}
       >
         {hp}
