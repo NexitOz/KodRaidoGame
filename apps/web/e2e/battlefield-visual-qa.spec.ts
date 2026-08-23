@@ -68,24 +68,40 @@ test.beforeAll(() => {
   fs.mkdirSync(OUT_DIR, { recursive: true });
 });
 
+/** Reads a workflow-provided value, treating empty string (an unset `${{ }}` expression) as absent. */
+function envOrNull(name: string): string | null {
+  const value = process.env[name];
+  return value && value.trim() ? value.trim() : null;
+}
+
+function localGit(args: string[]): string | null {
+  try {
+    return execSync(`git ${args.join(' ')}`, { cwd: __dirname }).toString().trim() || null;
+  } catch {
+    return null;
+  }
+}
+
 test.afterAll(() => {
   // Runs even if the test above threw partway through, so a broken run still leaves a manifest
   // describing whatever screenshots it did manage to capture instead of nothing at all.
   fs.mkdirSync(OUT_DIR, { recursive: true });
 
-  const gitCommit = (envVar: string, gitArgs: string[]) => {
-    const fromEnv = process.env[envVar];
-    if (fromEnv) return fromEnv;
-    try {
-      return execSync(`git ${gitArgs.join(' ')}`, { cwd: __dirname }).toString().trim();
-    } catch {
-      return 'unknown';
-    }
-  };
-
+  // Commit identity is passed in explicitly by the workflow rather than read from GITHUB_SHA,
+  // because on a `pull_request` event GITHUB_SHA is the ephemeral refs/pull/N/merge commit - it
+  // is genuinely what got checked out and tested, but it is NOT the PR head a reviewer sees, and
+  // reporting it alone as "commit" made the manifest look like it tested something unrelated.
+  // Recording all three separately (what ran, what the PR points at, what it merges into) removes
+  // that ambiguity. On workflow_dispatch there is no PR context, so prHeadSha/baseSha are null and
+  // testedSha/branch come straight from the dispatched ref; running locally, all of it falls back
+  // to the working copy's own git state.
   const manifest = {
-    commit: gitCommit('GITHUB_SHA', ['rev-parse', 'HEAD']),
-    branch: gitCommit('GITHUB_REF_NAME', ['rev-parse', '--abbrev-ref', 'HEAD']),
+    testedSha: envOrNull('VQA_TESTED_SHA') ?? localGit(['rev-parse', 'HEAD']),
+    prHeadSha: envOrNull('VQA_PR_HEAD_SHA'),
+    baseSha: envOrNull('VQA_BASE_SHA'),
+    branch: envOrNull('VQA_BRANCH') ?? localGit(['rev-parse', '--abbrev-ref', 'HEAD']),
+    runId: envOrNull('VQA_RUN_ID'),
+    eventName: envOrNull('VQA_EVENT_NAME') ?? 'local',
     timestamp: new Date().toISOString(),
     screenshots: records,
   };
@@ -94,8 +110,11 @@ test.afterAll(() => {
   const overflowing = records.filter((r) => r.hOverflow || r.vOverflow);
   const lines = [
     `Battlefield Visual QA - ${records.length} screenshot(s)`,
-    `Commit: ${manifest.commit}`,
-    `Branch: ${manifest.branch}`,
+    `Tested SHA: ${manifest.testedSha ?? 'unknown'}`,
+    `PR head SHA: ${manifest.prHeadSha ?? 'n/a'}`,
+    `Base SHA: ${manifest.baseSha ?? 'n/a'}`,
+    `Branch: ${manifest.branch ?? 'unknown'}`,
+    `Event: ${manifest.eventName}${manifest.runId ? ` (run ${manifest.runId})` : ''}`,
     `Generated: ${manifest.timestamp}`,
     '',
     ...records.map(
