@@ -155,6 +155,19 @@ jobs:
       - name: Build gallery (contact sheet + index.html)
         run: node scripts/build-visual-qa-gallery.mjs
 
+      # Echoes the manifest's commit identity (never the screenshot array) into the job log and
+      # summary, so which revision a gallery describes is checkable from the run page alone,
+      # without downloading and unzipping the artifact. SHAs, branch, run id and event name only.
+      - name: Report manifest commit identity
+        run: |
+          node -e '
+            const m = require("./artifacts/battlefield-visual-qa/manifest.json");
+            const { screenshots, ...identity } = m;
+            const text = JSON.stringify(identity, null, 2);
+            console.log(text);
+            console.log(`screenshots: ${screenshots.length}`);
+          ' | tee -a "$GITHUB_STEP_SUMMARY"
+
       # Separate from the `battlefield-visual-qa` artifact above, which keeps its original
       # contents. This one carries the browsable gallery, so the contact sheet is still
       # obtainable even while the Pages site is not enabled (see publish-gallery below).
