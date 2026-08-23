@@ -58,3 +58,36 @@
 > follow-up runs, the production database will report `rightsStatus: placeholder` for
 > `ashen-blade` even though this repository's canonical `seed.ts` and this doc both record it as
 > FINAL APPROVED - the same operational data-sync gap already documented above for Card 01.
+
+## Card 03
+
+- **Slug:** `keeper-of-smoldering-embers`
+- **Name:** Хранитель Тлеющих Углей
+- **Faction:** SHADOW
+- **Rarity:** RARE
+- **Artwork:** `apps/web/public/art/cards/keeper-of-smoldering-embers.webp` (reserved path — file
+  not yet in the repository)
+- **Dimensions:** 1024×1536 (2:3, per the pack default)
+- **Status:** **CONCEPT APPROVED / ART PENDING INTAKE**
+
+## Visual review
+
+Not yet performed — the approved image file has not reached the repository, so none of the five
+surfaces can be judged.
+
+- Raw artwork — pending
+- CardView 3:4 — pending
+- Card Detail 4:5 — pending
+- Hand Preview 7:9 — pending
+- Battlefield CreatureSlot 3:4 — pending
+- SHADOW family differentiation — pending
+
+**Approval:** visual concept approved by the owner; the asset itself is still outstanding. The
+locked concept, the traits that must survive future iterations, and the intake checks are recorded
+in `docs/art-review/keeper-of-smoldering-embers-concept-lock.md`.
+
+> The earlier candidate transport on `assets/keeper-of-smoldering-embers-candidate-source` remains
+> unusable - its final chunk is a placeholder, leaving the file 1,324 bytes short of its
+> RIFF-declared length, and it decodes to a blank grey frame. See
+> `docs/art-review/keeper-of-smoldering-embers.md`. `seed.ts` still carries no `artworkUrl` or
+> `rightsStatus` for this card, and this entry does not change that.

@@ -5,6 +5,11 @@ gameplay, rarity, stats, faction or balance value is touched by this document. I
 next generation pass produces a candidate that can actually be approved, instead of a fourth
 variation on the same SHADOW silhouette.
 
+> The approved concept is now recorded in
+> [`keeper-of-smoldering-embers-concept-lock.md`](./keeper-of-smoldering-embers-concept-lock.md),
+> which is the canonical statement of what must be preserved. This brief remains the generation-side
+> detail: prompt, negative prompt, and the crop maths behind those constraints.
+
 ## What this brief is based on
 
 The owner has an approved-direction variant of the Keeper outside the repository: a heavy dark
