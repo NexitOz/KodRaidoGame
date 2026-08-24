@@ -57,6 +57,15 @@ const REVIEW_TARGETS: ReviewTarget[] = [
     referenceLabel: 'ART PACK 02 — APPROVED 03',
     reviewArtworkUrl: '/art/cards/keeper-of-smoldering-embers.webp',
   },
+  // Card 04 is a RUNE, not a CHARACTER - the first non-character entry here. It exercises the
+  // `hasBoardSlot` path below: a rune never occupies a Battlefield slot, so its row shows four
+  // surfaces instead of five. Deliberately without `reviewArtworkUrl`, so the row resolves to the
+  // gitignored local candidate file until an approved master is promoted.
+  {
+    slug: 'rune-of-the-echoing-dusk',
+    faction: 'SHADOW',
+    referenceLabel: 'ART PACK 02 — CANDIDATE 04',
+  },
 ];
 
 function FlagshipRow({
@@ -99,18 +108,25 @@ function FlagshipRow({
     displayArtworkUrl === card.artworkUrl ? card : { ...card, artworkUrl: displayArtworkUrl };
   const usingReviewArtwork = Boolean(reviewArtworkUrl);
   const usingCandidate = Boolean(candidateUrl);
+  // Only CHARACTER cards ever occupy a Battlefield board slot, so the CreatureSlot panel is only a
+  // real surface for them. A RUNE/EVENT/TRACK never renders its artwork on the board at all - the
+  // Rune zone draws a glyph (see components/battlefield/RuneZone.tsx) and the play reveal draws an
+  // icon - so showing it here would review a surface that does not exist, with a meaningless 0/0
+  // stat block stubbed in from the missing attack/health.
+  const hasBoardSlot = displayCard.type === 'CHARACTER';
   // Stub unit for the Battlefield board-slot check only - never a real match, never persisted.
-  // All six flagships are CHARACTER cards, so 'attack'/'health' are always present.
-  const stubUnit: UnitInstanceView = {
-    instanceId: `art-review-stub-${slug}`,
-    card: displayCard,
-    attack: 'attack' in displayCard ? displayCard.attack : 0,
-    health: 'health' in displayCard ? displayCard.health : 0,
-    maxHealth: 'health' in displayCard ? displayCard.health : 0,
-    statuses: [],
-    summonedThisTurn: false,
-    attackedThisTurn: false,
-  };
+  const stubUnit: UnitInstanceView | null = hasBoardSlot
+    ? {
+        instanceId: `art-review-stub-${slug}`,
+        card: displayCard,
+        attack: 'attack' in displayCard ? displayCard.attack : 0,
+        health: 'health' in displayCard ? displayCard.health : 0,
+        maxHealth: 'health' in displayCard ? displayCard.health : 0,
+        statuses: [],
+        summonedThisTurn: false,
+        attackedThisTurn: false,
+      }
+    : null;
 
   return (
     <section className="rounded-panel border border-white/10 bg-raido-graphite/60 p-4">
@@ -157,7 +173,12 @@ function FlagshipRow({
         </p>
       ) : null}
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+      <div
+        className={clsx(
+          'grid grid-cols-2 gap-4 sm:grid-cols-3',
+          hasBoardSlot ? 'lg:grid-cols-5' : 'lg:grid-cols-4',
+        )}
+      >
         <div className="flex flex-col items-center gap-1">
           <p className="text-[11px] uppercase tracking-wide text-raido-mist">Raw master art</p>
           <img
@@ -223,6 +244,7 @@ function FlagshipRow({
           </button>
         </div>
 
+        {stubUnit ? (
         <div className="flex flex-col items-center gap-1">
           <p className="text-[11px] uppercase tracking-wide text-raido-mist">
             Battlefield board slot (CreatureSlot, 3:4)
@@ -231,6 +253,7 @@ function FlagshipRow({
             <CreatureSlot unit={stubUnit} />
           </div>
         </div>
+        ) : null}
       </div>
     </section>
   );
