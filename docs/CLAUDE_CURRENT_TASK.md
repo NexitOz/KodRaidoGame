@@ -33,6 +33,8 @@ Do not modify code, gameplay data, seed data, assets, database, workflows, or ca
 Do not create a branch or PR.
 Do not generate or commit an image yet.
 
+The required GitHub handoff report is the **only permitted repository write** for this task.
+
 ## Delivery
 
 Return only a concise proposed visual concept for owner review, covering:
@@ -42,4 +44,20 @@ Return only a concise proposed visual concept for owner review, covering:
 - mechanic readability
 - one short generation-prompt core
 
-Stop after the concept and wait for owner approval before any implementation or asset work.
+Then create and push the repository handoff report at:
+
+`docs/agent-reports/2026-08-24-shadow-card-04-concept-review.md`
+
+Use the repository handoff protocol in `CLAUDE.md`. The report must include:
+
+- task and final status
+- branch and exact final HEAD SHA
+- exact changed files (`handoff report only`; no implementation files)
+- repository sources reviewed
+- the proposed Card 04 visual concept
+- verification that no code, gameplay data, assets, database or workflows were changed
+- recommended next action: wait for owner concept approval before generating or implementing art
+
+After pushing the report, fetch it back from GitHub and verify that it exists. The task is not complete until this verification passes.
+
+In chat, keep the reply short: give the concept, then the report path and final HEAD SHA. Stop and wait for owner approval before any implementation or asset work.
