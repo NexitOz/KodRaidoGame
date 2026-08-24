@@ -3,6 +3,21 @@
 Permanent instructions for Claude Code working in `KodRaidoGame`. These apply to every session
 and outlive any individual chat.
 
+# Repository bootstrap
+
+`docs/AGENT_STATE.md` is the canonical cross-agent handoff pointer.
+
+At the start of every session or resumed task:
+
+1. Read `docs/AGENT_STATE.md` first.
+2. Read the `docs/CLAUDE_CURRENT_TASK.md` referenced by it.
+3. Read the latest handoff report or PR referenced by `docs/AGENT_STATE.md`.
+4. Resolve the current branch/HEAD from GitHub before acting.
+5. Treat repository state as authoritative over chat summaries when they differ.
+
+This bootstrap exists so Claude, ChatGPT, Codex or another agent can resume work from GitHub without
+the owner manually copying previous reports between chats.
+
 # Agent Handoff Protocol
 
 The chat window is **not** the record of what happened. Chat scrolls away, gets truncated, and
@@ -83,38 +98,69 @@ use that exception to change code, assets, data, workflows or any other task out
 The report must be committed/pushed to GitHub. A local-only report does not satisfy the handoff
 requirement.
 
-## C) Keep the chat reply short
+## C) Update the canonical state pointer
 
-Once the report is in GitHub, the reply in chat is a pointer to it, not a duplicate of it. Roughly:
+After the PR report/comment or no-PR report has been written and pushed, update:
+
+```
+docs/AGENT_STATE.md
+```
+
+This is mandatory after every completed task and is always permitted as handoff metadata, even when
+the task otherwise forbids repository modifications.
+
+The state file must point to the latest authoritative record and include at minimum:
+
+- current phase / task
+- status
+- current task path
+- latest report path or PR number
+- latest task-result commit SHA
+- branch / PR
+- exact scope of changes
+- open blockers / owner decisions
+- recommended next action
+
+`latest task-result commit` means the commit containing the actual task result or handoff report,
+not the later metadata-only commit that updates `docs/AGENT_STATE.md`.
+
+Update `docs/AGENT_STATE.md` **last**, then fetch it back from GitHub and verify its contents before
+declaring completion.
+
+## D) Keep the chat reply short
+
+Once the report and `docs/AGENT_STATE.md` are in GitHub, the reply in chat is a pointer to them, not
+a duplicate of the full report. Roughly:
 
 ```
 Completed.
-PR: #XX
-HEAD: <sha>
-CI: green / status
-Full report: PR comment / report path
-Merged: NO
+PR: #XX / none
+Task-result commit: <sha>
+Full report: <PR comment or report path>
+State: docs/AGENT_STATE.md
+Merged: YES / NO / n/a
 ```
 
 About 5–8 short lines. Expand only if the user explicitly asks for the full report in chat.
 
-## D) GitHub is canonical
+## E) GitHub is canonical
 
-Never treat a chat message as the task history. If it is not in the PR comment or in
-`docs/agent-reports/`, it is effectively lost.
+Never treat a chat message as the task history. If it is not in the PR comment, in
+`docs/agent-reports/`, or referenced by `docs/AGENT_STATE.md`, it is effectively lost.
 
-## E) Never commit large QA artifacts
+## F) Never commit large QA artifacts
 
 Do not commit screenshot matrices, PNG/JPG QA output, or other large binaries. Use GitHub Actions
 artifacts and the existing Visual QA infrastructure
 (`.github/workflows/battlefield-visual-qa.yml`) instead. `artifacts/` is gitignored — keep it that
 way.
 
-## F) Verify before declaring completion
+## G) Verify before declaring completion
 
 Do not report success on the strength of having _intended_ to do these. Check each one:
 
 1. The PR comment (or report file) was actually created and pushed to GitHub — fetch it back and confirm.
-2. State its GitHub location in the reply.
-3. Verify the branch name and head SHA are what you claim.
-4. Verify no unrelated files changed (`git status`, `git diff --check`, read the diff).
+2. `docs/AGENT_STATE.md` was updated last, pushed, fetched back and confirmed.
+3. State the GitHub report location and state-file path in the reply.
+4. Verify the branch name and task-result SHA are what you claim.
+5. Verify no unrelated files changed (`git status`, `git diff --check`, read the diff).
