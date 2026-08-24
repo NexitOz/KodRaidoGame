@@ -4,7 +4,7 @@ import { execFileSync } from 'node:child_process';
 
 import { PrismaClient, RightsStatus } from '@prisma/client';
 
-const REQUIRED_SOURCE_COMMIT = 'e5263567c201029cf69759599f1ef1eb132c5693';
+const REQUIRED_SOURCE_COMMIT = 'd40e034eaacac6d86c8ccefa384322f432a98c5d';
 const TARGET_SLUGS = [
   'necromancer-of-the-twilight-order',
   'high-warden-of-the-white-rune',
@@ -14,6 +14,7 @@ const TARGET_SLUGS = [
   'lord-of-the-stellar-stream',
   'whisper-of-the-forgotten',
   'ashen-blade',
+  'keeper-of-smoldering-embers',
 ] as const;
 
 type Mode = 'check' | 'apply';
