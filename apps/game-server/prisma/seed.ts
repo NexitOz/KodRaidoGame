@@ -752,6 +752,9 @@ const SHADOW_CARDS: SeedCard[] = [
     attack: 2,
     health: 3,
     abilityText: 'При выходе: призовите Эхо-Тень 1/1.',
+    // Art Pack 02 Card 03 - owner-approved production artwork.
+    artworkUrl: '/art/cards/keeper-of-smoldering-embers.webp',
+    rightsStatus: 'owned',
     effectJson: [
       {
         trigger: 'ON_PLAY',
