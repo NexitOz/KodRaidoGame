@@ -772,6 +772,9 @@ const SHADOW_CARDS: SeedCard[] = [
     tags: ['Shadow'],
     abilityText:
       'Когда любое ваше существо погибает, призовите на его место Эхо-Тень 1/1.',
+    // Art Pack 02 Card 04 - owner-approved production artwork.
+    artworkUrl: '/art/cards/rune-of-the-echoing-dusk.webp',
+    rightsStatus: 'owned',
     effectJson: [
       {
         trigger: 'ON_DEATH',

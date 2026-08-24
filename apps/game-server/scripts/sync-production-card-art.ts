@@ -4,6 +4,12 @@ import { execFileSync } from 'node:child_process';
 
 import { PrismaClient, RightsStatus } from '@prisma/client';
 
+// Pinned to the merged `main` commit whose seed.ts is the source of truth for the target slugs.
+// STALE FOR CARD 04: this still names the Card 03 merge. Card 04 (`rune-of-the-echoing-dusk`) was
+// added to TARGET_SLUGS below, but its seed.ts entry and artwork file do not exist at this commit,
+// so a dispatch now fails the workflow's immutable-source check by design. Repoint this and the
+// workflow's REQUIRED_SOURCE_COMMIT/SOURCE_COMMIT at the Card 04 merge commit before dispatching -
+// that SHA cannot exist until the Card 04 PR merges, which is why it is not set here.
 const REQUIRED_SOURCE_COMMIT = 'd40e034eaacac6d86c8ccefa384322f432a98c5d';
 const TARGET_SLUGS = [
   'necromancer-of-the-twilight-order',
@@ -15,6 +21,7 @@ const TARGET_SLUGS = [
   'whisper-of-the-forgotten',
   'ashen-blade',
   'keeper-of-smoldering-embers',
+  'rune-of-the-echoing-dusk',
 ] as const;
 
 type Mode = 'check' | 'apply';
