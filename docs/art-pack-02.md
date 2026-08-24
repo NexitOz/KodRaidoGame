@@ -65,29 +65,34 @@
 - **Name:** Хранитель Тлеющих Углей
 - **Faction:** SHADOW
 - **Rarity:** RARE
-- **Artwork:** `apps/web/public/art/cards/keeper-of-smoldering-embers.webp` (reserved path — file
-  not yet in the repository)
-- **Dimensions:** 1024×1536 (2:3, per the pack default)
-- **Status:** **CONCEPT APPROVED / ART PENDING INTAKE**
+- **Artwork:** `apps/web/public/art/cards/keeper-of-smoldering-embers.webp`
+- **Dimensions:** 1024×1536
+- **File size:** 603,054 bytes
+- **SHA-256:** `e8f46d8c98369529e94c8685abbd70ca27565df713636febd0ad125deb6842ce`
+- **Status:** **FINAL APPROVED**
 
 ## Visual review
 
-Not yet performed — the approved image file has not reached the repository, so none of the five
-surfaces can be judged.
+- Raw artwork — **PASS**
+- CardView 3:4 — **PASS**
+- Card Detail 4:5 — **PASS**
+- Hand Preview 7:9 — **PASS**
+- Battlefield CreatureSlot 3:4 — **PASS**
+- Mobile 390x844 — **PASS**
+- SHADOW family differentiation — **PASS**
 
-- Raw artwork — pending
-- CardView 3:4 — pending
-- Card Detail 4:5 — pending
-- Hand Preview 7:9 — pending
-- Battlefield CreatureSlot 3:4 — pending
-- SHADOW family differentiation — pending
+**Approval:** owner visual approval of the Art Pack 02 production candidate, re-verified through
+`/admin/art-review` against the real production path (`artworkUrl`), not a local candidate file.
 
-**Approval:** visual concept approved by the owner; the asset itself is still outstanding. The
-locked concept, the traits that must survive future iterations, and the intake checks are recorded
-in `docs/art-review/keeper-of-smoldering-embers-concept-lock.md`.
+Integrity of the master was verified independently before promotion: SHA-256, byte size, WebP
+RIFF-declared total and decoded dimensions all matched the recorded values, and the container is
+plain `VP8 ` like every other approved illustration in this pack.
 
-> The earlier candidate transport on `assets/keeper-of-smoldering-embers-candidate-source` remains
-> unusable - its final chunk is a placeholder, leaving the file 1,324 bytes short of its
-> RIFF-declared length, and it decodes to a blank grey frame. See
-> `docs/art-review/keeper-of-smoldering-embers.md`. `seed.ts` still carries no `artworkUrl` or
-> `rightsStatus` for this card, and this entry does not change that.
+> The production database is intentionally **not** updated as part of this PR, for the same reason
+> documented for Card 02: `apps/game-server/scripts/sync-production-card-art.ts` pins its
+> source-of-truth read to an already-merged `main` commit SHA and hardcodes its target slugs.
+> Extending it to cover this card requires a commit naming *this* card's now-approved `seed.ts`
+> state by its own already-merged `main` commit SHA, which cannot exist before this PR merges.
+> Until that follow-up runs, the production database will report `rightsStatus: placeholder` for
+> `keeper-of-smoldering-embers` even though this repository's canonical `seed.ts` and this doc both
+> record it as FINAL APPROVED.

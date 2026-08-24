@@ -51,16 +51,11 @@ const REVIEW_TARGETS: ReviewTarget[] = [
     referenceLabel: 'ART PACK 02 — APPROVED 02',
     reviewArtworkUrl: '/art/cards/ashen-blade.webp',
   },
-  // Candidate-only, deliberately without `reviewArtworkUrl`: this row resolves to the gitignored
-  // local candidate file, so it shows the shipped placeholder until someone drops a real
-  // apps/web/public/art-review-candidates/keeper-of-smoldering-embers.webp in place. The card has
-  // no production artworkUrl yet (see seed.ts) and this page must not give it one.
-  // The committed candidate source is currently unusable - see
-  // docs/art-review/keeper-of-smoldering-embers.md.
   {
     slug: 'keeper-of-smoldering-embers',
     faction: 'SHADOW',
-    referenceLabel: 'ART PACK 02 — CANDIDATE / AWAITING VALID SOURCE',
+    referenceLabel: 'ART PACK 02 — APPROVED 03',
+    reviewArtworkUrl: '/art/cards/keeper-of-smoldering-embers.webp',
   },
 ];
 
