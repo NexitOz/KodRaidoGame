@@ -1,88 +1,60 @@
-# CURRENT TASK — SHADOW Card 04 approved integration
+# CURRENT TASK — SHADOW Card 04 production synchronization
 
 ## Goal
 
-Integrate the owner-approved Card 04 master for **Рунный Страж Эха** — `rune-of-the-echoing-dusk`, `RUNE`, `EPIC`, cost `3`, ally death -> summon `shadow-echo-token` 1/1.
+Complete the final production synchronization for owner-approved **Рунный Страж Эха** — `rune-of-the-echoing-dusk` — only after explicit owner authorization.
 
-The artwork has already passed owner visual approval and independent integrity / surface QA. This task is mechanical repository integration and final validation.
+Card 04 integration is merged into `main` and the controlled ten-card production sync is pinned to the immutable merge source.
 
-## Approved source
+## Canonical repository state
 
-Use **only** the verified replacement candidate:
+- PR #34: **MERGED**
+- PR head before merge: `6eb44cf46497f5303de433dae2d717a9f843d1c6`
+- merge commit / immutable source: `23e83c9978a9045059d3009eb1983b17f005d1d3`
+- workflow pin update: `216ba3ff2cca050890b4bba56485db14e809af3a`
+- sync-script pin update: `5dc0fd80e3e72db20c7953800924515b0c4389b6`
+- current production-art target count: `10`
+- confirmation string: `SYNC-10-CARD-ART-PRODUCTION`
 
-- branch: `assets/rune-of-the-echoing-dusk-candidate-v2`
-- candidate HEAD: `941fe2381a97e72406f6ba4809c455088c231cf0`
-- master: `art-source/rune-of-the-echoing-dusk.webp`
-- SHA-256: `319bdccc4dad399e3f048bf4aa095910c1fd255f453387a8604e1022734eb858`
-- size: `351690` bytes
-- dimensions: `1024x1536`
-- WebP container: `RIFF` / `WEBP` / `VP8 `
+Both `.github/workflows/production-card-art-sync.yml` and `apps/game-server/scripts/sync-production-card-art.ts` now use `23e83c9978a9045059d3009eb1983b17f005d1d3` as the immutable source commit. The only repository changes after that merge commit are the two pin-only operational edits, so the workflow's immutable seed/art checks remain valid.
 
-Do **not** use the superseded branch `assets/rune-of-the-echoing-dusk-candidate` @ `f702bd2`; it is known-invalid non-image data.
+## Required work after owner authorization
 
-Owner approval is recorded on PR #34 in comment `5401140209`. The two known caveats are accepted and are not blockers.
+Do not dispatch anything until the owner explicitly authorizes the production mutation with the exact confirmation string:
 
-## Integration branch / PR
+`SYNC-10-CARD-ART-PRODUCTION`
 
-Continue from the existing review-support PR:
+After authorization:
 
-- PR #34
-- branch: `claude/card-04-rune-review-support`
-- current reviewed head before integration: `b4ecdc259febb747fe7f17a8fdd932a070d94a61`
+1. Resolve current `main` HEAD directly from GitHub and verify no changes after the immutable source touched:
+   - `apps/game-server/prisma/seed.ts`
+   - `apps/game-server/prisma/schema.prisma`
+   - `apps/web/public/art/cards`
+2. Dispatch the existing `production-card-art-sync.yml` workflow with exact confirmation `SYNC-10-CARD-ART-PRODUCTION`.
+3. Inspect the read-only production scope and PRE-WRITE results before relying on APPLY results.
+4. Require all workflow safety signals:
+   - immutable source SHA verified
+   - production scope verified
+   - artwork files `10/10`
+   - target rows `10`
+   - unique slugs `10`
+   - PRE-WRITE snapshot present
+   - `ROWS_REQUIRING_MUTATION` within `0..10`
+5. If APPLY runs, require:
+   - transaction started and committed
+   - `TARGET_ROWS_FINAL=10`
+   - `SOURCE_OF_TRUTH_MATCH=10/10`
+   - `NON_TARGET_FIELD_CHANGES=0`
+6. Require independent POST-WRITE verification with `ROWS_REQUIRING_MUTATION=0` and `SOURCE_OF_TRUTH_MATCH=10/10`.
+7. Record workflow run/job IDs and mutation count in the repository handoff.
+8. Update `docs/AGENT_STATE.md` last and verify it back from GitHub.
 
-Do not open a duplicate PR unless there is a concrete repository reason that makes continuing PR #34 unsafe.
+## Hard stop
 
-## Required work
+Until the owner supplies the exact confirmation string:
 
-1. Copy the verified v2 master byte-for-byte to:
-   `apps/web/public/art/cards/rune-of-the-echoing-dusk.webp`
-   Then independently verify the production-path file still matches the approved SHA-256, size, RIFF total and dimensions.
+- production sync must **not** be dispatched
+- production DB must **not** be mutated
+- no unrelated code or card data may be changed
 
-2. Update only the canonical `rune-of-the-echoing-dusk` entry in `apps/game-server/prisma/seed.ts`:
-   - set its `artworkUrl` to `/art/cards/rune-of-the-echoing-dusk.webp`
-   - set `rightsStatus` to `owned`
-   Do not change gameplay, cost, rarity, type, faction, text or effect data.
-
-3. Keep the non-CHARACTER `/admin/art-review` support already delivered in PR #34. Preserve CHARACTER behavior unchanged.
-
-4. Reseed the local/dev database as required and re-capture / re-check the four live RUNE surfaces against the **production artwork path**, not the gitignored candidate slot:
-   - Collection / hand `CardView` 3:4
-   - `CardDetailDrawer` 4:5
-   - `HandCardPreview` 7:9
-   - `CardView size="xs"` / 92 px
-   Confirm the same two accepted caveats only; flag any new regression.
-
-5. Update `docs/art-pack-02.md` so Card 04 is recorded as **FINAL APPROVED**, with the final production artwork path and the verified integrity values.
-
-6. Extend the controlled production card-art synchronization from **9 -> 10** targets for this card, following the existing immutable/invariant pattern in the repository. Update only the required sync script/workflow/test expectations. Do **not** dispatch or mutate production yet.
-
-7. Run the full relevant validation gates: lint, typecheck, tests, build, `git diff --check`, and any production-sync dry/preflight validation that does not mutate production.
-
-## Scope / stop point
-
-- Do not dispatch the production card-art sync.
-- Do not mutate the production database.
-- Do not merge PR #34.
-- Do not touch unrelated cards, gameplay, balance, Battlefield layout, Railway or Vercel configuration.
-
-After the integration diff, production-path visual QA and all gates are green, STOP and report the PR for final repository review before merge / production synchronization.
-
-## Delivery
-
-Use the permanent handoff protocol in `CLAUDE.md`.
-
-Update PR #34 with a new `## AGENT HANDOFF — FINAL REPORT` that supersedes prior reports and includes:
-
-- exact changed files
-- base/head SHAs
-- proof the production-path master is byte-identical to the approved v2 candidate
-- seed change for this card only
-- production-path visual QA results
-- lint/typecheck/tests/build results
-- sync 9 -> 10 invariant/preflight results
-- CI/workflow IDs if any
-- confirmed untouched areas
-- explicit `Merged: NO`
-- explicit `Production sync dispatched: NO`
-
-Finally update `docs/AGENT_STATE.md`, fetch it back from GitHub and verify it before declaring completion.
+The repository integration itself is complete; only the controlled production synchronization remains.
