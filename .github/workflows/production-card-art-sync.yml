@@ -21,8 +21,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      REQUIRED_SOURCE_COMMIT: d40e034eaacac6d86c8ccefa384322f432a98c5d
-      SOURCE_COMMIT: d40e034eaacac6d86c8ccefa384322f432a98c5d
+      REQUIRED_SOURCE_COMMIT: 23e83c9978a9045059d3009eb1983b17f005d1d3
+      SOURCE_COMMIT: 23e83c9978a9045059d3009eb1983b17f005d1d3
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
     steps:
