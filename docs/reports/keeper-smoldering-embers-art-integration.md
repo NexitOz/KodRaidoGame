@@ -6,7 +6,7 @@ The artwork itself is good and was reviewed on every surface. What is missing is
 the *file*: the copy available here is a platform-transcoded derivative whose SHA-256 does not match
 the hash the owner recorded. Per the standing rule for this card, no substitute was promoted.
 
-Date: 2026-08-23 · Branch: `claude/integrate-keeper-of-smoldering-embers-art` · Base: `fa464ef`
+Date: 2026-08-23, updated 2026-08-24 · Branch: `claude/integrate-keeper-of-smoldering-embers-art` · Base: `fa464ef`
 
 ## Status of the three pre-integration checks
 
@@ -35,6 +35,31 @@ That copy carries the marks of a transcode rather than the original export:
 - 316,336 bytes, self-consistent, but not the owner's byte sequence.
 
 So the pipeline re-encoded the upload in transit. The picture survived; the exact bytes did not.
+
+#### Confirmed by the master's real size
+
+A later hand-off recorded the true master as **603,054 bytes**. The recovered copy is **316,336
+bytes** — 48 % smaller, for the same 1024×1536 image. That settles any doubt about whether the
+transcode was cosmetic: roughly half the encoded data is gone, so promoting it would have shipped a
+visibly degraded second-generation file under the master's name. Holding promotion was correct.
+
+### Attempt 3 — ZIP transport (2026-08-24)
+
+The owner then supplied `keeper-of-smoldering-embers-approved.zip` as the canonical byte-exact
+transport, with expected SHA-256 `e8f46d8c…`, size 603,054 bytes, 1024×1536, RIFF total 603,054.
+
+**The archive never reached this session.** Checked, exhaustively:
+
+- no `*.zip` anywhere on the container filesystem, and no file named `*keeper*` created recently;
+- the session transcript contains **zero** non-image attachment payloads — the document never
+  entered the conversation as data, only as a filename in the message text;
+- no `.zip` and no `apps/web/public/art/cards/keeper-of-smoldering-embers.webp` in the tree of any
+  remote branch;
+- no GitHub releases on the repository;
+- no new comment or attachment on PR #32.
+
+This is the same class of failure as attempt 2, one step earlier: attachments to chat messages do
+not materialise as files in this remote container. Nothing was verified, nothing was promoted.
 
 ### Why that blocks promotion but not review
 
@@ -155,8 +180,36 @@ database in this container, not production, and `seed.ts` itself was not edited.
 
 ## To finish the integration
 
-One thing is needed: **the byte-exact `.webp`**, ideally committed straight to a branch rather than
-attached, since attachments are re-encoded in transit. Once it is in the repo:
+One thing is needed: **the byte-exact `.webp`, inside the git repository.**
+
+Three transports have now been tried and two distinct failure modes are established:
+
+| # | Transport | Result |
+| --- | --- | --- |
+| 1 | chunked base64 on `assets/…-candidate-source` | truncated — final chunk was the literal `PLACEHOLDER`, 1,324 bytes short |
+| 2 | image attached to a chat message | re-encoded in transit — 316,336 bytes instead of 603,054, hash mismatch |
+| 3 | `keeper-of-smoldering-embers-approved.zip` attached to a chat message | never materialised — no file, no payload in the transcript, nothing on any branch |
+
+The common factor in 2 and 3: **chat attachments do not become files in this remote container.**
+Repeating that route will keep failing regardless of the archive format.
+
+What does work is git — the repository is fully reachable from here. From a machine that has the
+master:
+
+```sh
+git checkout -b assets/keeper-of-smoldering-embers-approved
+mkdir -p art-source
+cp /path/to/keeper-of-smoldering-embers.webp art-source/
+sha256sum art-source/keeper-of-smoldering-embers.webp   # expect e8f46d8c…
+git add art-source/keeper-of-smoldering-embers.webp
+git commit -m "art(source): approved Keeper master"
+git push -u origin assets/keeper-of-smoldering-embers-approved
+```
+
+603 KB is an ordinary binary for git; no chunking, no archive, no encoding step that can silently
+alter it. Dropping it straight into `apps/web/public/art/cards/` on a branch works equally well.
+
+Once it is in the repo:
 
 1. `sha256sum` == `e8f46d8c98369529e94c8685abbd70ca27565df713636febd0ad125deb6842ce`, and RIFF-declared
    length == file size.
