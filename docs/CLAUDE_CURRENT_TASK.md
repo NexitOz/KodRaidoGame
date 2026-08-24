@@ -1,86 +1,86 @@
-# CURRENT TASK — Keeper production art sync 8 → 9
+# CURRENT TASK — Run 9-card production art sync
 
 ## Goal
 
-Extend the existing controlled production card-art sync from 8 to 9 cards by adding `keeper-of-smoldering-embers`.
+Execute the already-reviewed and merged production card-art sync for 9 cards, including `keeper-of-smoldering-embers`.
 
-This task prepares code/workflow only. **Do not run production APPLY. Do not mutate production DB. Do not merge.**
+This is an **operations-only** task. Do not edit code, do not create a branch/PR, and do not make any repository changes.
 
-## Canonical source
+## Baseline
 
-Merged source commit:
+Latest merged `main` must contain PR #33 and merge commit:
 
-`d40e034eaacac6d86c8ccefa384322f432a98c5d`
+`8feda41a5cc2c9ce8c0164535e909804f60939d8`
 
-Keeper production state at that commit:
+The workflow must be:
 
-- slug: `keeper-of-smoldering-embers`
-- artwork: `apps/web/public/art/cards/keeper-of-smoldering-embers.webp`
-- `artworkUrl: '/art/cards/keeper-of-smoldering-embers.webp'`
-- `rightsStatus: 'owned'`
-- SHA-256: `e8f46d8c98369529e94c8685abbd70ca27565df713636febd0ad125deb6842ce`
-- size / RIFF total: `603054`
-- dimensions: `1024x1536`
+`.github/workflows/production-card-art-sync.yml`
 
-Before editing, verify these values directly from the merged source commit. Stop if any invariant differs.
+Before dispatching, verify from `origin/main` that it is the 9-card version and that:
 
-## Required implementation
+- confirmation input is `SYNC-9-CARD-ART-PRODUCTION`
+- `REQUIRED_SOURCE_COMMIT` = `d40e034eaacac6d86c8ccefa384322f432a98c5d`
+- `SOURCE_COMMIT` = `d40e034eaacac6d86c8ccefa384322f432a98c5d`
+- Keeper is present in the 9 artwork slugs
+- PRE-WRITE / APPLY / POST-WRITE assertions are all 9-card assertions
 
-Start from latest clean `origin/main` and create a fresh feature branch.
+If any of these differ, STOP and report the mismatch. Do not dispatch.
 
-Change only what is needed in:
+## Execute
 
-1. `apps/game-server/scripts/sync-production-card-art.ts`
-2. `.github/workflows/production-card-art-sync.yml`
+Dispatch `production-card-art-sync.yml` on `main` with the exact input:
 
-### Script
+`confirmation = SYNC-9-CARD-ART-PRODUCTION`
 
-- Set `REQUIRED_SOURCE_COMMIT` to `d40e034eaacac6d86c8ccefa384322f432a98c5d`.
-- Keep all existing 8 targets unchanged.
-- Add `keeper-of-smoldering-embers` exactly once, for 9 total targets.
-- Preserve all existing safeguards: immutable source read, `--check`, snapshot-gated `--apply`, Serializable transaction, row invariants, non-target fingerprints, card-count invariant, post-write verification.
-- Do not alter `seed.ts`, gameplay data, schema, migrations, artwork files, or any other card.
+Wait for the workflow to complete. Do not start a second run while the first is active.
 
-### Workflow
+## Required verification
 
-Convert the existing 8-card workflow to 9-card:
+Inspect the actual workflow run, jobs and logs. Confirm all of the following:
 
-- confirmation: `SYNC-9-CARD-ART-PRODUCTION`
-- update display text from eight to nine
-- `REQUIRED_SOURCE_COMMIT` and `SOURCE_COMMIT` → `d40e034eaacac6d86c8ccefa384322f432a98c5d`
-- add Keeper to the committed-artwork file check
+- exact manual confirmation passed
+- immutable source SHA verification passed
 - `ARTWORK_FILES_PRESENT=9/9`
-- pre-write: `TARGET_ROWS=9`, `UNIQUE_SLUGS=9`, mutation count `0..9`
-- apply: `TARGET_ROWS_FINAL=9`, `SOURCE_OF_TRUTH_MATCH=9/9`, `NON_TARGET_FIELD_CHANGES=0`
-- post-write: `TARGET_ROWS=9`, `UNIQUE_SLUGS=9`, `ROWS_REQUIRING_MUTATION=0`, `SOURCE_OF_TRUTH_MATCH=9/9`
+- Railway token present
+- production project/environment/database scope verification passed
+- read-only connectivity preflight passed
+- PRE-WRITE: `TARGET_ROWS=9`, `UNIQUE_SLUGS=9`
+- record `ROWS_REQUIRING_MUTATION` and `PRE_WRITE_SNAPSHOT`
+- if mutation was required, Atomic APPLY completed with:
+  - `TRANSACTION_STARTED=YES`
+  - `TRANSACTION_COMMITTED=YES`
+  - `TARGET_ROWS_FINAL=9`
+  - `SOURCE_OF_TRUTH_MATCH=9/9`
+  - `NON_TARGET_FIELD_CHANGES=0`
+- if no mutation was required, confirm `DATABASE_ALREADY_SYNCHRONIZED=YES`
+- independent POST-WRITE:
+  - `TARGET_ROWS=9`
+  - `UNIQUE_SLUGS=9`
+  - `ROWS_REQUIRING_MUTATION=0`
+  - `SOURCE_OF_TRUTH_MATCH=9/9`
 
-Keep manual confirmation, Railway scope verification, read-only preflight, concurrency protection, snapshot-gated APPLY, already-synchronized path, and independent post-write verification.
+For `keeper-of-smoldering-embers`, confirm the final production values are:
 
-## Validation
+- `artworkUrl = /art/cards/keeper-of-smoldering-embers.webp`
+- `rightsStatus = owned`
 
-Run:
+Do not expose Railway tokens, DB credentials, connection strings, or other secrets in the report/chat.
 
-- `git diff --check`
-- lint
-- typecheck
-- tests, expected baseline `349/349`
-- build
+## Stop conditions
 
-Also verify statically:
-
-- both files use the same required source commit
-- 9 unique target slugs
-- Keeper appears exactly once
-- all 9 artwork files exist at the required source commit
-- all 9 seed entries at that commit resolve to `/art/cards/<slug>.webp` with `rightsStatus: owned`
-- no stale `SYNC-8-CARD-ART-PRODUCTION`, `TARGET_ROWS=8`, `UNIQUE_SLUGS=8`, `8/8`, or equivalent eight-card assertions remain in the two scoped files
-
-**Do not dispatch the production workflow in this task, even if credentials are available.**
+If the workflow fails at any step, do not retry automatically and do not make manual DB changes. Report the failed step, run ID and relevant safe log lines, then stop.
 
 ## Delivery
 
-Open a PR to `main`. Do not merge.
+No repository changes are expected from this task.
 
-Use the repository handoff protocol from `CLAUDE.md`: publish `## AGENT HANDOFF — FINAL REPORT` as the PR comment with branch, base/head SHAs, exact changed files, validations, CI/workflow IDs, confirmation string, and explicit `production mutation = NO` / `Merged: NO`.
+Return a short operator summary only:
 
-Chat reply should be only the short pointer summary required by `CLAUDE.md`.
+- workflow run ID / URL
+- conclusion
+- rows requiring mutation
+- rows changed
+- post-write source-of-truth result
+- Keeper final production state
+
+Do not merge or modify anything else.
