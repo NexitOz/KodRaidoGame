@@ -10,26 +10,26 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 
 ## Current project state
 
-- **Phase:** SHADOW Art Pack 02 — Card 04 integrated, awaiting final repository review
-- **Status:** INTEGRATION COMPLETE — artwork promoted in-repo, sync extended 9 -> 10, all gates green. NOT merged, sync NOT dispatched, production DB NOT mutated.
+- **Phase:** SHADOW Art Pack 02 — Card 04 merged; production sync awaiting explicit authorization
+- **Status:** REPOSITORY INTEGRATION COMPLETE — PR #34 merged, immutable ten-card sync source pinned. Production sync NOT dispatched; production DB NOT mutated.
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
-- **Latest handoff report:** PR #34 comment `5401303175` (`## AGENT HANDOFF — FINAL REPORT`, supersedes `5400625933` and `5401067896`)
+- **Latest handoff report:** PR #34 comment `5401303175`
 - **Owner visual approval:** PR #34 comment `5401140209`
-- **Integration PR:** #34 — `claude/card-04-rune-review-support` @ `6eb44cf46497f5303de433dae2d717a9f843d1c6`, OPEN / NOT MERGED
-- **Reviewed head before integration:** `b4ecdc259febb747fe7f17a8fdd932a070d94a61`
-- **Approved concept:** `docs/agent-reports/2026-08-24-shadow-card-04-concept-review.md`
-- **Verified candidate branch:** `assets/rune-of-the-echoing-dusk-candidate-v2`
-- **Verified candidate HEAD:** `941fe2381a97e72406f6ba4809c455088c231cf0` (blob `794c3b22`)
-- **Superseded / DO NOT USE:** `assets/rune-of-the-echoing-dusk-candidate` @ `f702bd2` — invalid non-image data
-- **Candidate asset:** `art-source/rune-of-the-echoing-dusk.webp`
-- **Target production artwork path:** `apps/web/public/art/cards/rune-of-the-echoing-dusk.webp`
-- **PR:** #34
-- **Promotion:** in-repo promotion DONE on the PR branch (`artworkUrl` + `rightsStatus: 'owned'` for this card only). Not on `main` until PR #34 merges.
-- **Production sync:** target list extended to **10** in PR #34, **not dispatched**. Production DB untouched; it still reports `placeholder` for this card.
+- **PR #34:** **MERGED**
+- **Merged PR head:** `6eb44cf46497f5303de433dae2d717a9f843d1c6`
+- **Merge commit / immutable source:** `23e83c9978a9045059d3009eb1983b17f005d1d3`
+- **Workflow pin commit:** `216ba3ff2cca050890b4bba56485db14e809af3a`
+- **Sync-script pin commit:** `5dc0fd80e3e72db20c7953800924515b0c4389b6`
+- **Task transition commit:** `c84fe448bc9fe8b162d569a0275bb4b281809291`
+- **Production artwork:** `apps/web/public/art/cards/rune-of-the-echoing-dusk.webp`
+- **Production sync target count:** `10`
+- **Required confirmation:** `SYNC-10-CARD-ART-PRODUCTION`
 
-## Approved candidate integrity — VERIFIED 5/5
+## Card 04 final repository result
 
-The owner-approved v2 master was independently verified from git:
+Card 04 `rune-of-the-echoing-dusk` / «Рунный Страж Эха» is fully integrated into the repository and marked FINAL APPROVED.
+
+Approved master integrity:
 
 - SHA-256: `319bdccc4dad399e3f048bf4aa095910c1fd255f453387a8604e1022734eb858`
 - file size: `351690` bytes
@@ -37,46 +37,57 @@ The owner-approved v2 master was independently verified from git:
 - dimensions: `1024x1536`
 - container: WebP `VP8 `
 
-## Owner decision — FINAL VISUAL APPROVAL
+The merged integration includes:
 
-The owner approved Card 04 for integration on 2026-08-24.
+- owner-approved Card 04 artwork at the production path
+- `artworkUrl: '/art/cards/rune-of-the-echoing-dusk.webp'`
+- `rightsStatus: 'owned'`
+- correct non-CHARACTER RUNE path in `/admin/art-review`
+- `docs/art-pack-02.md` Card 04 FINAL APPROVED
+- production sync extended from 9 to 10 targets
 
-Accepted non-blocking caveats:
+Production-path QA passed on Collection/hand `CardView` 3:4, `CardDetailDrawer` 4:5, `HandCardPreview` 7:9, 92 px `xs`, `/admin/art-review`, mobile 390×844, and the real Collection page. The two previously owner-accepted visual caveats remain non-blocking and no new regression was found.
 
-1. The fractured crown tip is clipped in the 4:5 Card Detail crop; no essential information is lost.
-2. At 92 px the mask is not individually legible, but the monolith silhouette plus dead-blue/crimson two-tone remains distinctive and readable enough for the hand fan.
+## Immutable source pin — COMPLETE
 
-These caveats are accepted and must not be treated as blockers unless a new regression appears after promotion to the production artwork path.
+After merge, both operational sync locations were repointed to the merge commit `23e83c9978a9045059d3009eb1983b17f005d1d3`:
 
-## Integration result — COMPLETE on PR #34
+- `.github/workflows/production-card-art-sync.yml`
+  - `REQUIRED_SOURCE_COMMIT`
+  - `SOURCE_COMMIT`
+- `apps/game-server/scripts/sync-production-card-art.ts`
+  - `REQUIRED_SOURCE_COMMIT`
 
-All seven required steps done; every gate green.
+Verification from GitHub confirms all three values are identical. A compare from the immutable source commit to the pin-complete main state shows only the workflow and sync script changed after the merge, so seed/schema/art remained immutable as required by the workflow gate.
 
-- Master copied byte-for-byte out of git and re-verified at the production path: sha256 `319bdccc…`, 351,690 bytes, RIFF total 351,690, 1024×1536, container plain `VP8 `. `cmp` against the candidate blob reports IDENTICAL.
-- `seed.ts`: three lines in the `rune-of-the-echoing-dusk` entry only — `artworkUrl` + `rightsStatus: 'owned'`. No other card; none of this card's own gameplay data changed.
-- `/admin/art-review`: Card 04 promoted to `APPROVED 04` with `reviewArtworkUrl`; the non-CHARACTER `hasBoardSlot` support is preserved and CHARACTER behaviour is unchanged.
-- `docs/art-pack-02.md`: Card 04 recorded **FINAL APPROVED**.
-- Production sync extended **9 → 10** targets; **not dispatched**.
-- Gates: lint 0, typecheck 0, **349/349** tests, build 0, `git diff --check` clean.
-- Sync preflight (non-mutating): 10 unique slugs in script and workflow with the two lists identical, 10/10 artwork files present, 10/10 seed entries resolving to `/art/cards/<slug>.webp` with `owned`, no stale nine-card assertion, all safeguards intact.
+## Remaining work
 
-## Production-path visual QA — PASS
+Only the controlled production synchronization remains.
 
-The gitignored candidate file was deleted before QA so the surfaces could only resolve through the production path. Collection / hand `CardView` 3:4, `CardDetailDrawer` 4:5, `HandCardPreview` 7:9, 92 px `xs`, `/admin/art-review` (4 panels, no `CreatureSlot`), mobile 390×844 and the real `/collection` page all PASS; CHARACTER rows still render 5 panels.
+**Do not dispatch until the owner explicitly supplies the exact confirmation string:**
 
-Proven by a network trace showing the only URL requested for this card was `/art/cards/rune-of-the-echoing-dusk.webp` with zero candidate-slot requests, and by the badge reading `rightsStatus: owned` / `PRODUCTION ASSET — REVIEW`. Only the two owner-accepted caveats remain; **no new regression**.
+`SYNC-10-CARD-ART-PRODUCTION`
 
-## Required follow-up before the sync can run
+After authorization, run the existing production workflow and require:
 
-`REQUIRED_SOURCE_COMMIT` in both the script and the workflow still names the Card 03 merge (`d40e034`). Card 04's seed entry and artwork do not exist at that commit, so dispatching today fails the workflow's immutable-source check **by design** — a safe, loud failure rather than a silent one. The correct SHA cannot exist until PR #34 merges. A comment at the constant and a note in `docs/art-pack-02.md` both record this. After merge: repoint both, then dispatch with confirmation `SYNC-10-CARD-ART-PRODUCTION`.
+- immutable source verification
+- production scope verification
+- artwork files `10/10`
+- target rows `10`
+- unique slugs `10`
+- PRE-WRITE snapshot
+- APPLY transaction success if mutation is needed
+- `TARGET_ROWS_FINAL=10`
+- `SOURCE_OF_TRUTH_MATCH=10/10`
+- `NON_TARGET_FIELD_CHANGES=0`
+- POST-WRITE `ROWS_REQUIRING_MUTATION=0`
 
 ## Hard stop
 
-- PR #34 is **NOT merged**. Awaiting final repository review.
-- Production card-art sync **NOT dispatched**. Confirmation string is now `SYNC-10-CARD-ART-PRODUCTION`.
-- Production database **NOT mutated**; it still reports `placeholder` for this card.
-- No unrelated card, gameplay, balance or infrastructure was altered.
+- Production sync: **NOT dispatched**
+- Production DB: **NOT mutated by this final merge/pin task**
+- Await exact owner confirmation before production mutation
 
 ## Reader protocol
 
-Read this file, then `docs/CLAUDE_CURRENT_TASK.md`, then PR #34 and its latest handoff / owner-approval comments. Resolve current `main` HEAD and PR head directly from GitHub before making changes.
+Read this file, then `docs/CLAUDE_CURRENT_TASK.md`. Resolve current `main` HEAD directly from GitHub before acting. Do not rely on stale PR state: PR #34 is merged.
