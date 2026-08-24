@@ -96,3 +96,47 @@ plain `VP8 ` like every other approved illustration in this pack.
 > Until that follow-up runs, the production database will report `rightsStatus: placeholder` for
 > `keeper-of-smoldering-embers` even though this repository's canonical `seed.ts` and this doc both
 > record it as FINAL APPROVED.
+
+## Card 04
+
+- **Slug:** `rune-of-the-echoing-dusk`
+- **Name:** Рунный Страж Эха
+- **Faction:** SHADOW
+- **Type / rarity / cost:** RUNE / EPIC / 3
+- **Artwork:** `apps/web/public/art/cards/rune-of-the-echoing-dusk.webp`
+- **Dimensions:** 1024×1536
+- **File size / RIFF total:** 351,690 bytes
+- **SHA-256:** `319bdccc4dad399e3f048bf4aa095910c1fd255f453387a8604e1022734eb858`
+- **Status:** **FINAL APPROVED**
+
+## Visual review
+
+- Raw artwork — **PASS**
+- CardView 3:4 — **PASS**
+- Card Detail 4:5 — **PASS**
+- Hand Preview 7:9 — **PASS**
+- `CardView size="xs"` / 92 px hand legibility — **PASS**
+- Mobile 390×844 — **PASS**
+- SHADOW family differentiation — **PASS**
+
+**Battlefield CreatureSlot is deliberately not a surface for this card.** A RUNE never renders its
+artwork on the board: `RuneZone` draws a 24 px glyph and `CardPlayReveal` draws an icon. The
+`/admin/art-review` page was extended in PR #34 with a `hasBoardSlot` check so non-CHARACTER targets
+skip that panel instead of showing a meaningless 0/0 slot.
+
+**Approval:** owner visual approval recorded on PR #34, comment `5401140209`. Integrity of the master
+was verified independently from git before promotion — SHA-256, byte size, WebP RIFF-declared total
+and decoded dimensions all matched, container plain `VP8 ` like every other approved illustration in
+this pack.
+
+Two caveats were accepted by the owner as non-blocking: the fractured crown tip is clipped in the
+4:5 Card Detail crop with no essential information lost, and at 92 px the carved mask is not
+individually legible while the monolith silhouette plus dead-blue/crimson two-tone stays distinctive.
+
+> The production database is intentionally **not** updated as part of this PR, for the same reason
+> documented for Cards 02 and 03: `apps/game-server/scripts/sync-production-card-art.ts` pins its
+> source-of-truth read to an already-merged `main` commit SHA and hardcodes its target slugs, so
+> extending it requires a commit naming *this* card's approved `seed.ts` state by its own merged SHA
+> — which cannot exist before this PR merges. The sync target list is extended to ten in this PR but
+> **not dispatched**; `REQUIRED_SOURCE_COMMIT` must be repointed at the merge commit in a follow-up
+> before it can run. Until then production reports `rightsStatus: placeholder` for this card.

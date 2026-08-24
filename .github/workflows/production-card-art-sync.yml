@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       confirmation:
-        description: Type SYNC-9-CARD-ART-PRODUCTION to authorize the controlled production sync
+        description: Type SYNC-10-CARD-ART-PRODUCTION to authorize the controlled production sync
         required: true
         type: string
 
@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   sync-production-card-art:
-    name: Verify and synchronize nine production card artwork records
+    name: Verify and synchronize ten production card artwork records
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
@@ -30,7 +30,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "${{ inputs.confirmation }}" = "SYNC-9-CARD-ART-PRODUCTION"
+          test "${{ inputs.confirmation }}" = "SYNC-10-CARD-ART-PRODUCTION"
 
       - name: Check out the reviewed workflow revision
         uses: actions/checkout@v4
@@ -56,7 +56,7 @@ jobs:
           echo "IMMUTABLE_SOURCE_SHA_VERIFIED=$REQUIRED_SOURCE_COMMIT"
           echo "CURRENT_MAIN_SHA=$actual_main"
 
-      - name: Verify all nine committed artwork files
+      - name: Verify all ten committed artwork files
         shell: bash
         run: |
           set -euo pipefail
@@ -70,11 +70,12 @@ jobs:
             whisper-of-the-forgotten
             ashen-blade
             keeper-of-smoldering-embers
+            rune-of-the-echoing-dusk
           )
           for slug in "${slugs[@]}"; do
             git cat-file -e "$REQUIRED_SOURCE_COMMIT:apps/web/public/art/cards/$slug.webp"
           done
-          echo "ARTWORK_FILES_PRESENT=9/9"
+          echo "ARTWORK_FILES_PRESENT=10/10"
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -118,13 +119,13 @@ jobs:
             npm exec -- tsx apps/game-server/scripts/sync-production-card-art.ts --check \
             | tee /tmp/prewrite.log
           grep -qx 'PRODUCTION_SCOPE_VERIFIED=YES' /tmp/prewrite.log
-          grep -qx 'TARGET_ROWS=9' /tmp/prewrite.log
-          grep -qx 'UNIQUE_SLUGS=9' /tmp/prewrite.log
+          grep -qx 'TARGET_ROWS=10' /tmp/prewrite.log
+          grep -qx 'UNIQUE_SLUGS=10' /tmp/prewrite.log
           snapshot="$(sed -n 's/^PRE_WRITE_SNAPSHOT=//p' /tmp/prewrite.log)"
           test "$(printf '%s' "$snapshot" | wc -c)" -eq 64
           rows_requiring_mutation="$(sed -n 's/^ROWS_REQUIRING_MUTATION=//p' /tmp/prewrite.log)"
           test "$rows_requiring_mutation" -ge 0
-          test "$rows_requiring_mutation" -le 9
+          test "$rows_requiring_mutation" -le 10
           echo "snapshot=$snapshot" >> "$GITHUB_OUTPUT"
           echo "rows_requiring_mutation=$rows_requiring_mutation" >> "$GITHUB_OUTPUT"
 
@@ -140,8 +141,8 @@ jobs:
           grep -qx 'PRODUCTION_SCOPE_VERIFIED=YES' /tmp/apply.log
           grep -qx 'TRANSACTION_STARTED=YES' /tmp/apply.log
           grep -qx 'TRANSACTION_COMMITTED=YES' /tmp/apply.log
-          grep -qx 'TARGET_ROWS_FINAL=9' /tmp/apply.log
-          grep -qx 'SOURCE_OF_TRUTH_MATCH=9/9' /tmp/apply.log
+          grep -qx 'TARGET_ROWS_FINAL=10' /tmp/apply.log
+          grep -qx 'SOURCE_OF_TRUTH_MATCH=10/10' /tmp/apply.log
           grep -qx 'NON_TARGET_FIELD_CHANGES=0' /tmp/apply.log
 
       - name: Report already synchronized state
@@ -158,7 +159,7 @@ jobs:
             npm exec -- tsx apps/game-server/scripts/sync-production-card-art.ts --check \
             | tee /tmp/postwrite.log
           grep -qx 'PRODUCTION_SCOPE_VERIFIED=YES' /tmp/postwrite.log
-          grep -qx 'TARGET_ROWS=9' /tmp/postwrite.log
-          grep -qx 'UNIQUE_SLUGS=9' /tmp/postwrite.log
+          grep -qx 'TARGET_ROWS=10' /tmp/postwrite.log
+          grep -qx 'UNIQUE_SLUGS=10' /tmp/postwrite.log
           grep -qx 'ROWS_REQUIRING_MUTATION=0' /tmp/postwrite.log
-          grep -qx 'SOURCE_OF_TRUTH_MATCH=9/9' /tmp/postwrite.log
+          grep -qx 'SOURCE_OF_TRUTH_MATCH=10/10' /tmp/postwrite.log

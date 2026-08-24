@@ -59,12 +59,12 @@ const REVIEW_TARGETS: ReviewTarget[] = [
   },
   // Card 04 is a RUNE, not a CHARACTER - the first non-character entry here. It exercises the
   // `hasBoardSlot` path below: a rune never occupies a Battlefield slot, so its row shows four
-  // surfaces instead of five. Deliberately without `reviewArtworkUrl`, so the row resolves to the
-  // gitignored local candidate file until an approved master is promoted.
+  // surfaces instead of five.
   {
     slug: 'rune-of-the-echoing-dusk',
     faction: 'SHADOW',
-    referenceLabel: 'ART PACK 02 — CANDIDATE 04',
+    referenceLabel: 'ART PACK 02 — APPROVED 04',
+    reviewArtworkUrl: '/art/cards/rune-of-the-echoing-dusk.webp',
   },
 ];
 
