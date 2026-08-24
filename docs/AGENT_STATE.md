@@ -10,11 +10,13 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 
 ## Current project state
 
-- **Phase:** SHADOW Art Pack 02 — Card 04 merged; ten-card production sync AUTHORIZED
-- **Status:** OWNER AUTHORIZED PRODUCTION SYNC — repository integration complete, immutable source pinned, dispatch pending execution. Production sync has not yet been dispatched from this bridge; production DB has not yet been mutated by this step.
+- **Phase:** SHADOW Art Pack 02 — Card 04 COMPLETE end to end (approved, integrated, merged, live in production)
+- **Status:** PRODUCTION SYNC EXECUTED — run 32778836668 succeeded, one row mutated, final source-of-truth 10/10. Authorization consumed.
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
 - **Current task authorization commit:** `bb367de1e075860c56ad4bdf00b74eef31ecb7e0`
-- **Latest integration handoff:** PR #34 comment `5401303175`
+- **Latest handoff report:** `docs/agent-reports/2026-08-25-card-04-production-sync-executed.md`
+- **Prior integration handoff:** PR #34 comment `5401303175`
+- **Production sync run:** `32778836668` — https://github.com/NexitOz/KodRaidoGame/actions/runs/32778836668 (job `97596072990`), conclusion **success**
 - **Owner visual approval:** PR #34 comment `5401140209`
 - **PR #34:** **MERGED**
 - **Merged PR head:** `6eb44cf46497f5303de433dae2d717a9f843d1c6`
@@ -23,7 +25,7 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 - **Sync-script pin commit:** `5dc0fd80e3e72db20c7953800924515b0c4389b6`
 - **Production artwork:** `apps/web/public/art/cards/rune-of-the-echoing-dusk.webp`
 - **Production sync target count:** `10`
-- **Owner confirmation supplied:** `SYNC-10-CARD-ART-PRODUCTION`
+- **Owner confirmation used:** `SYNC-10-CARD-ART-PRODUCTION` — **consumed by run 32778836668**; a future sync needs a fresh confirmation and a repointed `REQUIRED_SOURCE_COMMIT`
 
 ## Card 04 final repository result
 
@@ -60,51 +62,35 @@ All three production sync pins resolve to the merge commit `23e83c9978a9045059d3
 
 The immutable source commit contains the approved ten-card seed/art state. Post-merge operational changes did not alter `seed.ts`, Prisma schema, or `apps/web/public/art/cards`.
 
-## Owner authorization — ACTIVE FOR ONE DISPATCH
+## Production sync result — EXECUTED, SUCCESS
 
-The owner explicitly supplied the exact production confirmation string on 2026-08-25:
+Run `32778836668` (job `97596072990`) on `main` @ `3b6d54a5d094a6139d2c416e9d3662df8980270d`, conclusion **success**, ~40 s. All 14 functional steps passed; `Report already synchronized state` correctly skipped because a mutation was required.
 
-`SYNC-10-CARD-ART-PRODUCTION`
+Gate evidence, verbatim from the job log:
 
-Do not ask the owner to repeat it.
-
-Authorization scope: one controlled dispatch of `.github/workflows/production-card-art-sync.yml` on `main` using that exact input.
-
-## Required execution
-
-Read `docs/CLAUDE_CURRENT_TASK.md` and execute the authorized production workflow exactly as written there.
-
-Before dispatch, independently verify current `main`, the three immutable-source pins, and that no post-source change touched:
-
-- `apps/game-server/prisma/seed.ts`
-- `apps/game-server/prisma/schema.prisma`
-- `apps/web/public/art/cards`
-
-Then dispatch only the ten-card production artwork sync and inspect the actual run to completion.
-
-Required final signals include:
-
-- exact manual confirmation accepted
-- immutable source SHA verified
+- `IMMUTABLE_SOURCE_SHA_VERIFIED=23e83c9978a9045059d3009eb1983b17f005d1d3`
 - `ARTWORK_FILES_PRESENT=10/10`
 - `RAILWAY_TOKEN_PRESENT=YES`
-- all production-scope checks PASS
-- PRE-WRITE `TARGET_ROWS=10`, `UNIQUE_SLUGS=10`, mutation count and snapshot captured
-- APPLY transaction committed if needed
-- `TARGET_ROWS_FINAL=10`
-- `SOURCE_OF_TRUTH_MATCH=10/10`
-- `NON_TARGET_FIELD_CHANGES=0`
-- POST-WRITE `ROWS_REQUIRING_MUTATION=0`
-- POST-WRITE `SOURCE_OF_TRUTH_MATCH=10/10`
+- `TOKEN_PROJECT_ID_VERIFIED=YES`, `TOKEN_ENVIRONMENT_ID_VERIFIED=YES`, `GAME_SERVER_DB_LINK_VERIFIED=YES`, `PRODUCTION_SCOPE_VERIFIED=YES`, `READ_ONLY_DB_PREFLIGHT=YES`
+- PRE-WRITE: `TARGET_ROWS=10`, `UNIQUE_SLUGS=10`, `ROWS_REQUIRING_MUTATION=1`, `SOURCE_OF_TRUTH_MATCH=9/10`, `NON_TARGET_FINGERPRINTS=10`, snapshot `58a2ff701b7968123ec715ec031547a5bc43904fdd30ecd6f789c6daaaaab7c7`
+- APPLY: `TRANSACTION_STARTED=YES`, `TRANSACTION_COMMITTED=YES`, `ROWS_CHANGED=1`, `TARGET_ROWS_FINAL=10`, `SOURCE_OF_TRUTH_MATCH=10/10`, `NON_TARGET_FIELD_CHANGES=0`
+- POST-WRITE (independent re-read): `TARGET_ROWS=10`, `UNIQUE_SLUGS=10`, `ROWS_REQUIRING_MUTATION=0`, `SOURCE_OF_TRUTH_MATCH=10/10`
 
-If any gate fails, stop and report it. Do not automatically retry and do not use an alternate production mutation path.
+### The one mutated row
+
+`rune-of-the-echoing-dusk` (`930910a7-1c21-4c82-8b93-21affee07213`): generated placeholder SVG / `rightsStatus: placeholder` → `/art/cards/rune-of-the-echoing-dusk.webp` / `owned`.
+
+The other nine targets reported `needsChange=NO` and were not written. Non-target fingerprints matched before and after inside the Serializable transaction.
 
 ## Current hard status
 
-- Owner authorization: **YES**
-- Production sync dispatched from this bridge: **NO**
-- Production DB mutated by this authorization step: **NO**
-- Next action: execute the authorized workflow, verify all gates, write the final GitHub handoff, then update this file last.
+- Owner authorization: **CONSUMED** by run `32778836668`
+- Production sync dispatched: **YES** — exactly once
+- Production DB mutated: **YES** — one row (`rune-of-the-echoing-dusk`), artwork fields only
+- Non-target field changes: **0**
+- Final production source-of-truth: **10/10**
+- Repository code changed by this task: **none** (handoff report + this state file only)
+- Next action: nothing outstanding for Card 04. Optional cleanup — delete the dead candidate branches `assets/rune-of-the-echoing-dusk-candidate` (invalid non-image data) and `assets/keeper-of-smoldering-embers-candidate-source` (truncated transport) so no later agent reconstructs from either. A future card needs a fresh owner confirmation string and a repointed `REQUIRED_SOURCE_COMMIT`.
 
 ## Reader protocol
 
