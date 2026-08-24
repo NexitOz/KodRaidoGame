@@ -1,63 +1,75 @@
-# CURRENT TASK — SHADOW Card 04 concept review
+# CURRENT TASK — SHADOW Card 04 candidate verification
 
 ## Goal
 
-Prepare the next SHADOW Card 04 visual concept for owner review only.
+Continue Card 04 from the generated master candidate already committed by the cross-agent bridge.
 
-Canonical card: **Рунный Страж Эха** — `Rune`, `Epic`, cost `3`. Its reactive gameplay identity is: when any ally dies, summon an **Эхо-Тень 1/1**. Use the repository card definitions, Art Pack 02, art bible, and already approved SHADOW cards as the source of truth.
+Canonical card: **Рунный Страж Эха** — `rune-of-the-echoing-dusk`, `RUNE`, `EPIC`, cost `3`, ally death -> summon `shadow-echo-token` 1/1.
 
-## Art direction
+## Candidate source
 
-Create a strong silhouette break from the existing humanoid SHADOW cards.
+Review branch:
+`assets/rune-of-the-echoing-dusk-candidate`
 
-Core concept:
+Candidate HEAD:
+`f702bd2ab60eae32d0fdbd2bf91504995f75c48f`
 
-- ancient obsidian rune / ritual stone seal / vertical idol-artifact
-- faceless guardian mask carved into the stone; it is part of the artifact, not a living character
-- cold violet-silver, ash and dead-blue light inside the fractures
-- faint silhouettes of fallen shadows within the cracks
-- a small Echo-Shadow visibly being summoned from the lower seal
-- underground gothic temple atmosphere with stairs, chains, dust and dim funerary lights
+Master:
+`art-source/rune-of-the-echoing-dusk.webp`
 
-The image should visually communicate:
+Source note:
+`docs/art-sources/2026-08-24-shadow-card-04-master-prompt.md`
 
-`ally dies -> seal activates -> Echo-Shadow is summoned`
+Recorded integrity:
 
-Keep the established cinematic, realistic production direction. Avoid bright orange, dominant red, fire-heavy treatment, another warrior silhouette, anime/cartoon styling, or generic MMO dark fantasy.
+- dimensions: `1024x1536`
+- format: WebP (`VP8 `)
+- file size: `351690` bytes
+- RIFF-declared total: `351690` bytes
+- SHA-256: `319bdccc4dad399e3f048bf4aa095910c1fd255f453387a8604e1022734eb858`
 
-## Scope
+The approved concept and owner palette decision remain canonical in:
+`docs/agent-reports/2026-08-24-shadow-card-04-concept-review.md` § `Owner decision`.
 
-**CONCEPT REVIEW ONLY.**
+## Required work
 
-Do not modify code, gameplay data, seed data, assets, database, workflows, or card files.
-Do not create a branch or PR.
-Do not generate or commit an image yet.
+Start from the candidate branch and verify the master independently.
 
-The required GitHub handoff report is the **only permitted repository write** for this task.
+Then prepare the minimum code/support needed to review a `RUNE` correctly in `/admin/art-review`: the current CHARACTER-only `CreatureSlot` panel must not render a meaningless 0/0 slot for this card. Preserve CHARACTER behavior unchanged.
+
+Review the actual live artwork surfaces for a RUNE:
+
+- Collection / hand `CardView` 3:4
+- `CardDetailDrawer` 4:5
+- `HandCardPreview` 7:9
+- smallest binding legibility at `CardView size="xs"` / 92 px
+
+`CreatureSlot` is not a live artwork surface for this card; `RuneZone` renders a glyph, not the illustration.
+
+## Scope and stop point
+
+Do **not** promote `artworkUrl` or `rightsStatus` yet.
+Do **not** update production DB or run production sync.
+Do **not** extend sync 9 -> 10 yet.
+Do **not** merge.
+
+The goal of this task is to make the RUNE review path valid, verify the candidate and present it for owner visual approval.
+
+After visual QA is ready, STOP and wait for owner approval before any promotion.
 
 ## Delivery
 
-Return only a concise proposed visual concept for owner review, covering:
+Open a PR to `main` containing only the minimal review-support change plus any review metadata needed for Card 04. Do not merge.
 
-- composition / silhouette
-- palette / lighting
-- mechanic readability
-- one short generation-prompt core
+Use the permanent handoff protocol in `CLAUDE.md`:
 
-Then create and push the repository handoff report at:
+- full `## AGENT HANDOFF — FINAL REPORT` as a PR comment
+- exact changed files
+- branch/base/head SHAs
+- integrity verification results
+- visual QA surfaces/results
+- CI/workflow IDs
+- confirmed untouched areas
+- explicit `Merged: NO`
 
-`docs/agent-reports/2026-08-24-shadow-card-04-concept-review.md`
-
-Use the repository handoff protocol in `CLAUDE.md`. The report must include:
-
-- task and final status
-- branch and exact final HEAD SHA
-- exact changed files (`handoff report only`; no implementation files)
-- repository sources reviewed
-- the proposed Card 04 visual concept
-- verification that no code, gameplay data, assets, database or workflows were changed
-- recommended next action: wait for owner concept approval before generating or implementing art
-
-After pushing the report, fetch it back from GitHub and verify that it exists. The task is not complete until this verification passes.
-
-In chat, keep the reply short: give the concept, then the report path and final HEAD SHA. Stop and wait for owner approval before any implementation or asset work.
+Update `docs/AGENT_STATE.md` as the final handoff pointer and verify it back from GitHub before declaring completion.
