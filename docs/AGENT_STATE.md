@@ -14,14 +14,15 @@ Any assistant or coding agent continuing this project should read this file firs
 ## Current project state
 
 - **Phase:** SHADOW Art Pack 02 — Card 04 concept
-- **Status:** CONCEPT APPROVED by the owner (amended: minimal crimson accent) — ready for art generation
+- **Status:** BLOCKED — concept approved, but the master art cannot be generated inside the Claude Code session. Awaiting an owner-supplied master committed to a branch.
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
-- **Latest handoff report:** `docs/agent-reports/2026-08-24-shadow-card-04-concept-review.md`
-- **Latest task-result commit:** `9ed8d71b1a7f718a8932be2697a48e0009a0d3a5`
+- **Latest handoff report:** `docs/agent-reports/2026-08-24-shadow-card-04-generation-blocked.md`
+- **Approved concept + amended prompt core:** `docs/agent-reports/2026-08-24-shadow-card-04-concept-review.md`
+- **Latest task-result commit:** `39c07b5b297e0487796b78ca6660c4e6586f06de`
 - **Branch:** `main`
 - **PR:** none
 - **Implementation changes in latest project task:** none
-- **Repository write in latest project task:** handoff report only
+- **Repository write in latest project task:** handoff report + this state file only. No art, no branch, no PR.
 
 ## Latest result
 
@@ -38,11 +39,11 @@ The amended generation-prompt core is in the handoff report under "Owner decisio
 1. ~~Owner must approve or revise the Card 04 visual concept.~~ **RESOLVED** — approved 2026-08-24 with the minimal-crimson amendment.
 2. ~~The concept drops crimson entirely; family-palette precedent needing an owner decision.~~ **RESOLVED** — crimson reinstated, minimally and confined to the mask glyph, eye-slits and connecting rune channel.
 3. `/admin/art-review` still assumes CHARACTER targets for one review panel (`FlagshipRow` builds a `CreatureSlot` stubUnit) and needs a non-CHARACTER path before a RUNE can be reviewed cleanly. This is now a prerequisite for the review step of the next task, not a blocked item.
-4. Image generation is not available in the Claude Code session itself. The master must be produced by the owner and transported **by committing it to a branch** — chat image attachments are re-encoded in transit and ZIP attachments never reach the container, both established during Card 03.
+4. **BLOCKING NOW.** Image generation is not available in the Claude Code session — re-verified 2026-08-24 when the generation task was attempted, not merely carried forward. The master must be produced by the owner and transported **by committing it to a branch**; chat image attachments are re-encoded in transit and ZIP attachments never reach the container, both established during Card 03. Do not re-issue "generate the Card 04 art" to a Claude Code session: it will block again at the same point. If another agent in the bridge (ChatGPT, Codex, or a session with image tooling) can generate, that agent should produce the master and commit it to a branch, after which a Claude Code session can complete verification, review and promotion unaided.
 
 ## Recommended next action
 
-Art generation is the next task. Generate the Card 04 master against the amended prompt core in the handoff report's "Owner decision" section, then:
+Supply the Card 04 master. Generate it against the amended prompt core in `docs/agent-reports/2026-08-24-shadow-card-04-concept-review.md` § "Owner decision" — outside this session, since Claude Code cannot generate images — then:
 
 1. Commit the `.webp` to a branch (not a chat attachment) and record its sha256, byte size and RIFF-declared length.
 2. Verify integrity: sha256, byte size, RIFF total == file size, dimensions 1024×1536.
