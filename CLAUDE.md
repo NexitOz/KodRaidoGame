@@ -12,7 +12,11 @@ report there, then keep the chat reply short.
 This exists so a human or another agent can pick up work later without anyone re-pasting a long
 report by hand.
 
-## A) Substantial task **with** a Pull Request
+**This protocol applies after every completed task**, including implementation, operations,
+concept-only, analysis-only, review-only, QA-only and no-code tasks. A task is not complete until
+its GitHub handoff record has been written, pushed, fetched back and verified.
+
+## A) Task **with** a Pull Request
 
 Publish the full final implementation report as a **comment on that PR**. Start the comment with
 exactly this heading:
@@ -51,9 +55,9 @@ Rules for the content:
 - Report what actually happened, including failures and anything left undone. A report that hides a
   problem is worse than no report, because the next agent trusts it.
 
-## B) Substantial task **without** a Pull Request
+## B) Task **without** a Pull Request
 
-Save the full report to:
+Always save the handoff report to:
 
 ```
 docs/agent-reports/YYYY-MM-DD-<task-slug>.md
@@ -61,6 +65,23 @@ docs/agent-reports/YYYY-MM-DD-<task-slug>.md
 
 Use `docs/agent-reports/TEMPLATE.md` as the starting structure. See
 `docs/agent-reports/README.md` for details.
+
+For a small concept/review/no-code task, the report may be concise, but it must still include:
+
+- task and status
+- repository branch and current HEAD SHA
+- exact files changed, or `none`
+- what was reviewed / decided / produced
+- verification performed
+- confirmed untouched areas
+- recommended next action
+
+If the task itself says "do not modify repository files", creating or updating this handoff report
+is the **one required exception**, unless the owner explicitly says not to write a report. Do not
+use that exception to change code, assets, data, workflows or any other task output.
+
+The report must be committed/pushed to GitHub. A local-only report does not satisfy the handoff
+requirement.
 
 ## C) Keep the chat reply short
 
@@ -93,7 +114,7 @@ way.
 
 Do not report success on the strength of having _intended_ to do these. Check each one:
 
-1. The PR comment (or report file) was actually created — fetch it back and confirm.
+1. The PR comment (or report file) was actually created and pushed to GitHub — fetch it back and confirm.
 2. State its GitHub location in the reply.
 3. Verify the branch name and head SHA are what you claim.
 4. Verify no unrelated files changed (`git status`, `git diff --check`, read the diff).
