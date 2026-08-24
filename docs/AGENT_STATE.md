@@ -13,11 +13,11 @@ Any assistant or coding agent continuing this project should read this file firs
 
 ## Current project state
 
-- **Phase:** SHADOW Art Pack 02 — Card 04 concept review
-- **Status:** COMPLETE — awaiting owner approval
+- **Phase:** SHADOW Art Pack 02 — Card 04 concept
+- **Status:** CONCEPT APPROVED by the owner (amended: minimal crimson accent) — ready for art generation
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
 - **Latest handoff report:** `docs/agent-reports/2026-08-24-shadow-card-04-concept-review.md`
-- **Latest task-result commit:** `f0abac90fe6db16824e92daab928295c0c7cd45a`
+- **Latest task-result commit:** `9ed8d71b1a7f718a8932be2697a48e0009a0d3a5`
 - **Branch:** `main`
 - **PR:** none
 - **Implementation changes in latest project task:** none
@@ -25,24 +25,32 @@ Any assistant or coding agent continuing this project should read this file firs
 
 ## Latest result
 
-Claude completed the visual concept review for SHADOW Card 04, canonical card `rune-of-the-echoing-dusk` / «Рунный Страж Эха» (`RUNE`, `EPIC`, cost 3, ally death -> summon `shadow-echo-token` 1/1).
+The owner **approved** the SHADOW Card 04 visual concept on 2026-08-24, with one amendment: reintroduce a **minimal crimson accent**. Canonical card is `rune-of-the-echoing-dusk` / «Рунный Страж Эха» (`RUNE`, `EPIC`, cost 3, ally death -> summon `shadow-echo-token` 1/1).
 
-The proposed direction is a non-humanoid ancient obsidian ritual stele / seal with a faceless guardian mask carved into the stone, cold violet-silver and dead-blue fracture light, trapped fallen-shadow silhouettes, and one small Echo-Shadow being summoned from the lower seal. The composition is intentionally designed to avoid silhouette collision with the three already approved SHADOW cards.
+Locked direction: a non-humanoid ancient obsidian ritual stele with a faceless guardian mask carved into the stone at ~40% frame height, cold violet-silver rim, dead-blue light inside the fractures holding trapped fallen-shadow silhouettes, and one small unlit grey Echo-Shadow rising from the lower seal. The composition is deliberately built to avoid silhouette collision with the three approved SHADOW cards, `whisper-of-the-forgotten` in particular.
+
+Locked palette amendment: crimson (`raido.red`/`redGlow`) confined to the mask's carved glyph and eye-slits plus a thin bleed down the rune channel to the base seal. Nothing else warms — fractures stay dead-blue, ash grey, funerary flames pale and cold, Echo-Shadow unlit. This keeps the card inside `docs/art-bible-01.md`'s SHADOW spec, puts the family accent on the only element that survives the binding 92 px `CardView size="xs"` surface, and splits the palette along the mechanic (dead-blue = the held dead, crimson = the trigger firing).
+
+The amended generation-prompt core is in the handoff report under "Owner decision".
 
 ## Open decisions / blockers
 
-1. Owner must approve or revise the Card 04 visual concept before any image generation or implementation.
-2. The concept intentionally drops crimson from the illustration itself; this is a SHADOW family-palette precedent that should be an explicit owner decision.
-3. `/admin/art-review` currently assumes CHARACTER targets for one review panel and needs a non-CHARACTER path before a RUNE can be reviewed cleanly. Do not change it until the owner approves moving from concept to implementation.
+1. ~~Owner must approve or revise the Card 04 visual concept.~~ **RESOLVED** — approved 2026-08-24 with the minimal-crimson amendment.
+2. ~~The concept drops crimson entirely; family-palette precedent needing an owner decision.~~ **RESOLVED** — crimson reinstated, minimally and confined to the mask glyph, eye-slits and connecting rune channel.
+3. `/admin/art-review` still assumes CHARACTER targets for one review panel (`FlagshipRow` builds a `CreatureSlot` stubUnit) and needs a non-CHARACTER path before a RUNE can be reviewed cleanly. This is now a prerequisite for the review step of the next task, not a blocked item.
+4. Image generation is not available in the Claude Code session itself. The master must be produced by the owner and transported **by committing it to a branch** — chat image attachments are re-encoded in transit and ZIP attachments never reach the container, both established during Card 03.
 
 ## Recommended next action
 
-Owner reviews the latest handoff report and either:
+Art generation is the next task. Generate the Card 04 master against the amended prompt core in the handoff report's "Owner decision" section, then:
 
-- approves the concept, then art generation becomes the next task; or
-- requests a focused revision, which becomes the next concept-review task.
+1. Commit the `.webp` to a branch (not a chat attachment) and record its sha256, byte size and RIFF-declared length.
+2. Verify integrity: sha256, byte size, RIFF total == file size, dimensions 1024×1536.
+3. Add a non-CHARACTER path to `/admin/art-review` so a RUNE renders without the meaningless `CreatureSlot` panel.
+4. Review the live surfaces: Collection/hand `CardView` 3:4, `CardDetailDrawer` 4:5, `HandCardPreview` 7:9. `CreatureSlot` is **not** a surface for a RUNE — `RuneZone` renders a 24 px glyph, never the artwork.
+5. Only on PASS: promote `artworkUrl` / `rightsStatus: 'owned'` in `seed.ts` (Keeper-only-style, single card), update `docs/art-pack-02.md` to Card 04 FINAL APPROVED, and extend the production sync 9 -> 10.
 
-Do not generate, integrate, sync, or promote Card 04 art before owner approval.
+Do not promote or sync Card 04 art before the surface review passes.
 
 ## Reader protocol
 
