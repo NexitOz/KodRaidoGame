@@ -10,20 +10,20 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 
 ## Current project state
 
-- **Phase:** SHADOW Art Pack 02 — Card 04 merged; production sync awaiting explicit authorization
-- **Status:** REPOSITORY INTEGRATION COMPLETE — PR #34 merged, immutable ten-card sync source pinned. Production sync NOT dispatched; production DB NOT mutated.
+- **Phase:** SHADOW Art Pack 02 — Card 04 merged; ten-card production sync AUTHORIZED
+- **Status:** OWNER AUTHORIZED PRODUCTION SYNC — repository integration complete, immutable source pinned, dispatch pending execution. Production sync has not yet been dispatched from this bridge; production DB has not yet been mutated by this step.
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
-- **Latest handoff report:** PR #34 comment `5401303175`
+- **Current task authorization commit:** `bb367de1e075860c56ad4bdf00b74eef31ecb7e0`
+- **Latest integration handoff:** PR #34 comment `5401303175`
 - **Owner visual approval:** PR #34 comment `5401140209`
 - **PR #34:** **MERGED**
 - **Merged PR head:** `6eb44cf46497f5303de433dae2d717a9f843d1c6`
 - **Merge commit / immutable source:** `23e83c9978a9045059d3009eb1983b17f005d1d3`
 - **Workflow pin commit:** `216ba3ff2cca050890b4bba56485db14e809af3a`
 - **Sync-script pin commit:** `5dc0fd80e3e72db20c7953800924515b0c4389b6`
-- **Task transition commit:** `c84fe448bc9fe8b162d569a0275bb4b281809291`
 - **Production artwork:** `apps/web/public/art/cards/rune-of-the-echoing-dusk.webp`
 - **Production sync target count:** `10`
-- **Required confirmation:** `SYNC-10-CARD-ART-PRODUCTION`
+- **Owner confirmation supplied:** `SYNC-10-CARD-ART-PRODUCTION`
 
 ## Card 04 final repository result
 
@@ -50,7 +50,7 @@ Production-path QA passed on Collection/hand `CardView` 3:4, `CardDetailDrawer` 
 
 ## Immutable source pin — COMPLETE
 
-After merge, both operational sync locations were repointed to the merge commit `23e83c9978a9045059d3009eb1983b17f005d1d3`:
+All three production sync pins resolve to the merge commit `23e83c9978a9045059d3009eb1983b17f005d1d3`:
 
 - `.github/workflows/production-card-art-sync.yml`
   - `REQUIRED_SOURCE_COMMIT`
@@ -58,36 +58,54 @@ After merge, both operational sync locations were repointed to the merge commit 
 - `apps/game-server/scripts/sync-production-card-art.ts`
   - `REQUIRED_SOURCE_COMMIT`
 
-Verification from GitHub confirms all three values are identical. A compare from the immutable source commit to the pin-complete main state shows only the workflow and sync script changed after the merge, so seed/schema/art remained immutable as required by the workflow gate.
+The immutable source commit contains the approved ten-card seed/art state. Post-merge operational changes did not alter `seed.ts`, Prisma schema, or `apps/web/public/art/cards`.
 
-## Remaining work
+## Owner authorization — ACTIVE FOR ONE DISPATCH
 
-Only the controlled production synchronization remains.
-
-**Do not dispatch until the owner explicitly supplies the exact confirmation string:**
+The owner explicitly supplied the exact production confirmation string on 2026-08-25:
 
 `SYNC-10-CARD-ART-PRODUCTION`
 
-After authorization, run the existing production workflow and require:
+Do not ask the owner to repeat it.
 
-- immutable source verification
-- production scope verification
-- artwork files `10/10`
-- target rows `10`
-- unique slugs `10`
-- PRE-WRITE snapshot
-- APPLY transaction success if mutation is needed
+Authorization scope: one controlled dispatch of `.github/workflows/production-card-art-sync.yml` on `main` using that exact input.
+
+## Required execution
+
+Read `docs/CLAUDE_CURRENT_TASK.md` and execute the authorized production workflow exactly as written there.
+
+Before dispatch, independently verify current `main`, the three immutable-source pins, and that no post-source change touched:
+
+- `apps/game-server/prisma/seed.ts`
+- `apps/game-server/prisma/schema.prisma`
+- `apps/web/public/art/cards`
+
+Then dispatch only the ten-card production artwork sync and inspect the actual run to completion.
+
+Required final signals include:
+
+- exact manual confirmation accepted
+- immutable source SHA verified
+- `ARTWORK_FILES_PRESENT=10/10`
+- `RAILWAY_TOKEN_PRESENT=YES`
+- all production-scope checks PASS
+- PRE-WRITE `TARGET_ROWS=10`, `UNIQUE_SLUGS=10`, mutation count and snapshot captured
+- APPLY transaction committed if needed
 - `TARGET_ROWS_FINAL=10`
 - `SOURCE_OF_TRUTH_MATCH=10/10`
 - `NON_TARGET_FIELD_CHANGES=0`
 - POST-WRITE `ROWS_REQUIRING_MUTATION=0`
+- POST-WRITE `SOURCE_OF_TRUTH_MATCH=10/10`
 
-## Hard stop
+If any gate fails, stop and report it. Do not automatically retry and do not use an alternate production mutation path.
 
-- Production sync: **NOT dispatched**
-- Production DB: **NOT mutated by this final merge/pin task**
-- Await exact owner confirmation before production mutation
+## Current hard status
+
+- Owner authorization: **YES**
+- Production sync dispatched from this bridge: **NO**
+- Production DB mutated by this authorization step: **NO**
+- Next action: execute the authorized workflow, verify all gates, write the final GitHub handoff, then update this file last.
 
 ## Reader protocol
 
-Read this file, then `docs/CLAUDE_CURRENT_TASK.md`. Resolve current `main` HEAD directly from GitHub before acting. Do not rely on stale PR state: PR #34 is merged.
+Read this file, then `docs/CLAUDE_CURRENT_TASK.md`. Resolve current `main` HEAD directly from GitHub before acting. PR #34 is merged; do not rely on stale pre-merge PR text.
