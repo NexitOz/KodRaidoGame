@@ -4,7 +4,14 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 
 Any assistant or coding agent continuing this project should read this file first, then follow the referenced task/report/PR. GitHub is the source of truth; chat history is secondary.
 
-## Current state
+## Bridge status
+
+- **Cross-agent bridge:** ACTIVE
+- **Permanent bootstrap rules:** `CLAUDE.md`
+- **Bridge rules commit:** `2a08a984607f0e5a73ed023b10a804f150630abd`
+- **Protocol:** every agent reads this file first; every completed task updates this file last and verifies it from GitHub
+
+## Current project state
 
 - **Phase:** SHADOW Art Pack 02 — Card 04 concept review
 - **Status:** COMPLETE — awaiting owner approval
@@ -13,8 +20,8 @@ Any assistant or coding agent continuing this project should read this file firs
 - **Latest task-result commit:** `f0abac90fe6db16824e92daab928295c0c7cd45a`
 - **Branch:** `main`
 - **PR:** none
-- **Implementation changes in latest task:** none
-- **Repository write in latest task:** handoff report only
+- **Implementation changes in latest project task:** none
+- **Repository write in latest project task:** handoff report only
 
 ## Latest result
 
