@@ -8,7 +8,8 @@ Base SHA: `3169fbf6f9a53f9d5a5c18c1b1ace37d749ce8e0`
 Head SHA: the commit that adds this file, which becomes `main` HEAD on push. A report cannot contain
 its own commit hash, so the exact final SHA is stated in the chat reply and is verifiable with
 `git log -1 --format=%H -- docs/agent-reports/2026-08-24-shadow-card-04-concept-review.md`.
-Status: **COMPLETE — concept delivered, awaiting owner approval.** No implementation performed.
+Status: **CONCEPT APPROVED** by the owner on 2026-08-24, with one amendment: add a minimal crimson
+accent. See "Owner decision" below for the locked palette. No implementation performed.
 
 ## Scope
 
@@ -111,16 +112,76 @@ None. No image was generated, downloaded or committed, per the task's explicit s
 
 ## Known issues
 
-1. **Palette precedent needs an owner decision.** This is the first Art Pack 02 card to drop crimson
-   entirely. `docs/art-bible-01.md` names `raido.red`/`redGlow` as SHADOW's accent and forbids
-   "bright/saturated non-crimson accent colour." Dead-blue is neither bright nor saturated, and
-   EPIC's violet frame will harmonise with it — but it sets a family precedent and should be an
-   explicit call rather than a quiet drift. Card 03 already took one approved exception (amber).
+1. ~~**Palette precedent needs an owner decision.**~~ **RESOLVED 2026-08-24** — the owner approved the
+   concept with a minimal crimson accent, so the illustration no longer drops crimson and stays
+   reconciled with `docs/art-bible-01.md`'s SHADOW spec. See "Owner decision" for the locked palette.
 2. **`/admin/art-review` cannot cleanly review a RUNE yet.** `FlagshipRow` builds a `stubUnit` for the
    `CreatureSlot` panel and its own comment assumes every target is a CHARACTER. It will not crash —
    `attack`/`health` fall back to 0 — but it would render a meaningless 0/0 creature slot for a rune.
    Skipping that panel for non-CHARACTER targets is a prerequisite for the eventual review step. Left
    untouched here, as the task forbids code changes.
+
+## Owner decision — approved with a minimal crimson accent (2026-08-24)
+
+The concept above is **approved**. One amendment: reintroduce crimson, minimally. This closes the
+palette-precedent question, and the illustration now stays inside the art bible's SHADOW spec rather
+than taking a second exception after Card 03's amber.
+
+### Where the crimson goes
+
+**Confined to the activation, and nowhere else:** the mask's carved glyph and eye-slits, plus a thin
+crimson bleed running down the rune channel from the mask to the base seal. `raido.red` / `redGlow`.
+
+Everything else is unchanged: the fractures holding the fallen shadows stay **dead-blue**, the rim
+light stays cold violet-silver, the ash stays grey, the funerary flames stay pale and cold, and the
+Echo-Shadow stays unlit grey.
+
+### Why this placement rather than a general warm-up
+
+Three reasons, in order of weight:
+
+1. **It is the smallest possible footprint that still reads.** One focal element, ≤ ~5 % of frame
+   area. Spreading crimson into the flames, ash or background would make it a dominant red, which
+   the task brief explicitly forbids.
+2. **It puts the family colour on the only mark that survives the smallest surface.** At `CardView`
+   `size="xs"` (92 px, hand fan) the lit mask is the sole legible element. Making that element
+   crimson means the one readable pixel-cluster carries SHADOW's signature accent — maximum identity
+   per pixel, at zero cost to the composition.
+3. **It splits the palette along the mechanic.** Dead-blue now means *the held dead* — passive,
+   inside the cracks. Crimson means *the trigger firing* — active, at the seal. The two-tone
+   hierarchy states `ally dies → seal activates` in colour alone, which a single-hue treatment could
+   not do. The amendment improves the card's storytelling rather than merely satisfying a rule.
+
+Warm-on-cool also gives the focal point more separation than blue-on-blue would, which matters
+precisely at the 92 px size.
+
+### Optional, still minimal
+
+A faint crimson rim-light *falling on* the Echo-Shadow from the seal below — lighting cast by the
+source, not the token glowing on its own. It ties the summon to what summoned it and does not
+increase the emissive footprint. The Echo-Shadow itself stays grey, secondary and unlit.
+
+### Palette guard-rails for generation
+
+- Crimson only in the mask glyph, eye-slits, and the connecting rune channel.
+- No crimson in the funerary flames, ash, stairs, chains or background fog.
+- No orange drift — `raido.red`/`redGlow`, not fire.
+- Dead-blue remains the fracture light; cold violet-silver remains the rim.
+
+### Amended generation-prompt core
+
+> Vertical 2:3 dark fantasy key art, cinematic realistic painted illustration, premium collectible
+> card game quality. An ancient obsidian ritual stele stands in a ruined underground gothic temple:
+> a heavy stepped plinth narrowing to a fractured crown, no human anatomy, a faceless guardian mask
+> carved into the stone at chest height. The mask's carved glyph and eye-slits burn a deep crimson,
+> and a thin crimson line bleeds down the rune channel from the mask to a seal at the base — this is
+> the only warm light in the frame. Dead-blue light glows inside the stone's fractures, where faint
+> silhouettes of fallen shadows are held suspended. At the base the seal is activating and a single
+> small grey Echo-Shadow figure rises half-formed out of it, secondary and unlit, catching a faint
+> crimson rim from the seal below. Descending stone stairs, hanging chains and drifting ash behind;
+> small pale cold funerary flames in wall niches. Near-black obsidian, cold violet-silver rim light,
+> grey ash. Chiaroscuro, volumetric dust, fine stone material detail. No orange, no fire, no armour,
+> no human figure. No text, no logo, no UI, no card frame.
 
 ## Confirmed untouched
 
@@ -132,9 +193,10 @@ which the task designates as the sole permitted write.
 
 ## Recommended next action
 
-**Wait for owner approval of this concept before generating or implementing any art.**
+**Approval received.** The concept is locked as amended; the next task is art generation against the
+amended prompt core in "Owner decision".
 
-On approval, the sequence is: generate against the prompt core → verify the master's integrity
+The sequence is: generate against the amended prompt core → verify the master's integrity
 (sha256, byte size, RIFF-declared length, 1024×1536) → review through `/admin/art-review` after
 adding non-CHARACTER support to that page → only then promote `artworkUrl` / `rightsStatus: 'owned'`
 and update `docs/art-pack-02.md`. Transport the file by committing it to a branch; chat attachments
