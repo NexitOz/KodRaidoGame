@@ -10,6 +10,18 @@ Head SHA: `2c8639a81214749b1f4c7eb19a3a7e6d1278df56`
 Status: COMPLETE — brief written and handed off for owner review. No artwork generated, integrated,
 promoted or synced, as required.
 
+> **AMENDMENT 2026-08-27 — light armor (commit `5614d818`).** The owner resolved open decision #2
+> below in favour of holding the art bible's "armor, not robes" rule strictly. §3 of the brief now
+> specifies real but **light, plain, standard-issue** armor — a smooth undecorated white/silver
+> cuirass, plain gorget, two small matching pauldrons, vambraces on both forearms, a short ivory
+> tabard to mid-thigh, over a plain high-collared under-tunic; brushed satin matte metal, not
+> mirror-polished; bare hands, no gauntlets. The COMMON rank read now comes from _how little armor
+> there is and how undecorated it is_, not from swapping armor for cloth. Per the owner's explicit
+> scope instruction the change was confined to four sections — §3, the generation prompt (§13), the
+> negative prompt (§14), and the production acceptance checklist (§15). See "Amendment follow-up"
+> at the end of this report for the three cross-references this left stale, which the owner has not
+> yet authorised changing.
+
 ## Scope
 
 Produce exactly one new file — `docs/art-review/acolyte-of-the-white-rune-master-art-brief.md` — a
@@ -233,3 +245,22 @@ dimensions 1024×1536, SHA-256 recorded — then reviewed through `/admin/art-re
 
 Promotion, seed changes and the production sync remain **unauthorised** and must stay that way until
 a candidate is owner-approved.
+
+## Amendment follow-up — three stale cross-references
+
+The light-armor amendment (commit `5614d818`) was deliberately confined to §3, §13, §14 and §15 on
+the owner's explicit instruction. Three places elsewhere in the brief still describe the superseded
+cloth-first costume and were **left unchanged on purpose**, not overlooked:
+
+1. **§12, forbidden-drift item 4** — "Full plate armour — breastplate, gauntlets, greaves, faulds"
+   is listed as an automatic reject. §3 now _requires_ a light cuirass, so as written the brief
+   forbids what it also mandates. This is the one that can actually cause a wrongly-rejected
+   candidate; the intended rule is "no _full_ harness", not "no breastplate".
+2. **§8, hierarchy table, "Armour" row** — still reads "Gorget, one half-pauldron, bracers — over
+   cloth" against the Warden's full plate.
+3. **§6 palette table and §11 thumbnail-legibility paragraph** — both still name the "cassock" as
+   the dominant white garment; under the amendment that garment is the cuirass and tabard, with the
+   tunic reduced to an under-layer.
+
+None of the three changes the direction — they are terminology catching up with the decision.
+Fixing all three is a small, mechanical edit whenever the owner authorises it.
