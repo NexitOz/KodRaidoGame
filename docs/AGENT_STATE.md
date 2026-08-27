@@ -11,23 +11,63 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** Card 01 candidate GENERATED — READY FOR REPOSITORY VISUAL QA
+- **Status:** Card 01 candidate v1 **REJECTED — truncated file. Re-transport required.**
 - **Current target:** `acolyte-of-the-white-rune` / «Послушник Белой Руны»
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
-- **Current task commit:** `2bdb69b9828b3ae1ce1374c65e60741e7420d28f`
-- **Latest generation handoff:** `docs/agent-reports/2026-08-27-art-pack-03-card-01-candidate-generated.md`
-- **Generation handoff commit:** `911a9206b527fff1868d1d891fc9b45dde1f4443`
+- **Latest handoff:** `docs/agent-reports/2026-08-27-art-pack-03-card-01-candidate-rejected.md`
+- **Superseded generation handoff:** `docs/agent-reports/2026-08-27-art-pack-03-card-01-candidate-generated.md` — its
+  reported integrity values describe the generator's **local** file, not the blob that reached git
 - **Branch:** `main`
-- **PR:** none for the generation handoff
+- **PR:** none
 
-## Candidate source
-
-The external master candidate is committed on an unmerged branch:
+## Candidate source — v1 REJECTED, DO NOT USE
 
 - branch: `assets/acolyte-of-the-white-rune-candidate`
 - candidate commit: `1652efaa1bc47771a08246bb9b498d9b737b7092`
 - candidate path: `art-source/acolyte-of-the-white-rune.webp`
 - source note: `docs/art-sources/2026-08-27-purification-card-01-master-prompt.md`
+
+**This candidate failed independent byte verification and must not be used, staged, promoted or
+merged.**
+
+| Check                      | Expected    | Actual                              | Result   |
+| -------------------------- | ----------- | ----------------------------------- | -------- |
+| Container fourcc           | `VP8 `      | `VP8 `                              | PASS     |
+| Dimensions                 | 1024 × 1536 | 1024 × 1536                         | PASS     |
+| RIFF-declared == byte size | 214,378     | declared 214,378, actual **15,042** | **FAIL** |
+| SHA-256                    | `cb766584…` | `7822d32a…`                         | **FAIL** |
+| Full decode                | succeeds    | `could not create decoder object`   | **FAIL** |
+
+Only 7.0% of the file arrived. The truncation is baked into the commit: `git cat-file -s` returns
+15042, GitHub's API reports the blob as 15042, and the commit diffstat records
+`Bin 0 -> 15042 bytes`. Not a fetch artifact.
+
+**The art itself is fine — do not regenerate.** The surviving RIFF header declares exactly 214,378,
+matching the source note, which confirms the export was real and complete. Only the transport failed.
+
+**No visual judgement of the artwork has been made.** The five review surfaces and the §15 checklist
+were not run — there is no decodable image — so brief compliance remains unknown.
+
+### Second ~15 KB truncation on this project
+
+SHADOW Card 04 v1 was 14,999 bytes; this is 15,042. Two uploads landing within 43 bytes of each
+other is a repeatable size cap in the upload path, not random corruption. Card 04 was recovered by
+switching routes to a `-v2` branch; do the same here.
+
+### Required fix
+
+1. Do not regenerate. On the machine holding the real file, confirm `sha256sum` prints `cb766584…`.
+2. Commit with the **git CLI from local disk** — not a web-UI upload, not an API create-file call,
+   not a base64 payload.
+3. **Before pushing:** `git cat-file -s HEAD:art-source/acolyte-of-the-white-rune.webp` must print
+   `214378`. This reads the size back out of the object git actually stored; run before either
+   truncation it would have caught both.
+4. Push to `assets/acolyte-of-the-white-rune-candidate-v2`. Leave the broken branch as evidence; do
+   not force-push over it.
+
+When v2 lands, walk §15 strictly against the real file — the generator recorded that its refinement
+prompt was not a byte-for-byte copy of §13/§14, so compliance must not be inferred from prompt text.
+
 - branch vs main at creation: ahead by 1, behind by 0
 - changed files vs main: exactly 2
 - merged: **NO**
