@@ -11,11 +11,12 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** Card 02 accepted master **RE-TRANSPORT AVAILABLE VIA FIRESTORAGE — INTEGRITY + CANDIDATE-V2 + VISUAL QA NEXT**
+- **Status:** Card 02 **BLOCKED — firestorage.ai denied by egress policy; master still not in the repository**
 - **Current target:** `seal-of-the-curse` / «Печать Проклятия»
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
 - **Current task commit:** `2a08ffc4fc744b98ecbce06a3dff4ea0c1cb955e`
-- **Latest handoff:** `docs/agent-reports/2026-08-27-art-pack-03-card-02-candidate-rejected.md`
+- **Latest handoff:** `docs/agent-reports/2026-08-27-art-pack-03-card-02-firestorage-transport-blocked.md`
+- **Prior handoff:** `docs/agent-reports/2026-08-27-art-pack-03-card-02-candidate-rejected.md`
 - **Branch:** `main`
 
 ## Card 01 — COMPLETE END TO END
@@ -83,30 +84,63 @@ Expected exact values:
 
 Any mismatch is **REJECTED / BLOCKED**. Do not repair, re-encode, resize, regenerate, or substitute.
 
-## New machine-to-machine transport
+## Transport attempt 2 — firestorage: BLOCKED by egress policy
 
-The exact local accepted master was uploaded by ChatGPT to firestorage.ai. firestorage independently reported:
+The accepted master was uploaded by ChatGPT to `https://firestorage.ai/ja/f/UbtC6RJp2_Ok`
+(firestorage independently reported 326,508 bytes, `image/webp`, retained through 2026-09-10).
 
-- file: `seal-of-the-curse.webp`
-- size: `326508` bytes
-- MIME: `image/webp`
-- retention through 2026-09-10
+**Claude Code cannot reach that host.** The agent proxy denies it:
 
-Share URL for agent retrieval:
+```
+curl: (56) CONNECT tunnel failed, response 403
+host: firestorage.ai:443
+detail: gateway answered 403 to CONNECT (policy denial or upstream failure)
+```
 
-`https://firestorage.ai/ja/f/UbtC6RJp2_Ok`
+This is an organization egress-policy denial for this session. The proxy documentation requires such
+failures be reported rather than retried or routed around, so no retry, alternate route or setting
+change was attempted.
 
-This replaces manual user file handling. The user is not required to download or upload the artwork.
+**Nothing was downloaded, so this is not another truncation and implies nothing about the artwork.**
+No candidate-v2 branch was created, nothing was staged, `/admin/art-review` was untouched, and **no
+visual judgement of the artwork has been made.**
 
-Claude must download the file locally, independently verify all canonical integrity values, then create a fresh branch:
+Verified there is no usable copy anywhere reachable: `transport/seal-of-the-curse-v2` carries no
+artwork (it is just commit `181ba28`), no 326,508-byte blob exists in any ref, and no such file
+exists on local disk.
 
-`assets/seal-of-the-curse-candidate-v2`
+### Reachable hosts — probed, not assumed
 
-using normal git CLI from local disk. Before push and again after fetching the remote branch, verify exact byte size and SHA from committed bytes.
+Only firestorage is denied. `api.github.com` (200), `raw.githubusercontent.com` (301),
+`objects.githubusercontent.com` (404), `github.com` (400) and `codeload.github.com` (400) all
+resolve and respond — a real HTTP status means the request reached the host.
 
-## Current task
+### Recommended: GitHub Release asset
 
-Execute `docs/CLAUDE_CURRENT_TASK.md` @ `2a08ffc4fc744b98ecbce06a3dff4ea0c1cb955e`.
+Release assets upload as **binary multipart POST** to `uploads.github.com` rather than base64 inside
+a JSON body — which is exactly the mechanism that truncated the previous three attempts. So this
+route avoids the failure mode by construction, needs no policy change, and its download side is
+reachable from here.
+
+1. ChatGPT uploads `seal-of-the-curse.webp` as a release asset on `NexitOz/KodRaidoGame`.
+2. It reports the asset id / download URL plus canonical size and SHA-256.
+3. Claude Code downloads with `Accept: application/octet-stream`, verifies canonical integrity, and
+   proceeds with candidate-v2 exactly as the current task specifies.
+
+Alternatives: allowlist `firestorage.ai` in the environment's network policy, or commit the master
+directly with the git CLI from whatever machine holds it.
+
+### Still worth reconciling
+
+The 27-byte fragment's RIFF header declared **313,964** bytes against the canonical **326,508**.
+Firestorage's independently reported 326,508 supports the canonical figure, but one `wc -c` +
+`sha256sum` on the real local master would settle it before the next attempt — otherwise a correct
+file could fail the gate on stale expected values.
+
+## Current task — BLOCKED at Step 1
+
+`docs/CLAUDE_CURRENT_TASK.md` @ `2a08ffc4fc744b98ecbce06a3dff4ea0c1cb955e` stands unchanged and runs
+as written **once the master is reachable**. Its Step 1 download is what failed.
 
 Only after integrity and remote re-verification pass, perform real surface QA on:
 
@@ -148,6 +182,6 @@ Do not use connected GitHub text/binary content tooling to transport generated m
 ## Art Pack 03 remaining cards
 
 - Card 01 `acolyte-of-the-white-rune` — COMPLETE END TO END, live in production
-- Card 02 `seal-of-the-curse` — accepted master available via firestorage; integrity/candidate-v2/QA next
+- Card 02 `seal-of-the-curse` — brief complete; accepted master **still not in the repository** (candidate 01 truncated to 27 bytes; firestorage relay blocked by egress policy)
 - Card 03 `warden-of-the-barrier` — not started
 - Card 04 `rune-of-curse-breaking` — not started

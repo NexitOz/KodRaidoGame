@@ -1,5 +1,50 @@
 # CURRENT TASK — Art Pack 03 Card 02: firestorage re-transport → candidate-v2 → visual QA
 
+## BLOCKED 2026-08-27 — firestorage.ai denied by egress policy
+
+**Step 1 could not run.** `firestorage.ai` is not permitted by this session's organization egress
+policy:
+
+```
+curl: (56) CONNECT tunnel failed, response 403
+```
+
+The agent proxy records it explicitly — `host: firestorage.ai:443`,
+`gateway answered 403 to CONNECT (policy denial or upstream failure)`. The proxy documentation states
+that this class of failure must be reported rather than retried or routed around, so it was not
+retried and no setting was weakened.
+
+**This is not another truncation and says nothing about the artwork** — no bytes were retrieved at
+all. No candidate-v2 was created, nothing was staged, `/admin/art-review` was untouched, and **no
+visual judgement of the artwork has been made.**
+
+Verified there is no usable copy anywhere reachable: `transport/seal-of-the-curse-v2` contains no
+artwork (it is just commit `181ba28`), no 326,508-byte blob exists in any ref, and no such file
+exists on local disk.
+
+### Reachable alternatives — probed, not guessed
+
+Only firestorage is denied. `api.github.com`, `raw.githubusercontent.com`,
+`objects.githubusercontent.com`, `github.com` and `codeload.github.com` are all reachable.
+
+**Recommended: a GitHub Release asset.** Release assets upload as binary multipart to
+`uploads.github.com` rather than base64-in-JSON, so they avoid the exact mechanism that truncated the
+last three attempts — and the download side works from here. Alternatively, allowlist
+`firestorage.ai` in the environment's network policy, or commit the master directly with the git CLI
+from whatever machine holds it.
+
+### Still worth reconciling
+
+The 27-byte fragment's RIFF header declared **313,964** bytes while the canonical value is
+**326,508**. Firestorage independently reported 326,508 for the uploaded object, which supports the
+canonical figure — but one `wc -c` + `sha256sum` on the real local master would settle it for good
+before the next attempt.
+
+Full analysis:
+`docs/agent-reports/2026-08-27-art-pack-03-card-02-firestorage-transport-blocked.md`.
+
+Everything below is unchanged and runs as written once the master is reachable.
+
 ## Goal
 
 Recover the owner-accepted `seal-of-the-curse` master from the new machine-to-machine transport, prove byte integrity, create a clean candidate-v2 with normal git, then run the existing real surface QA. Stop for owner approval. No promotion.
