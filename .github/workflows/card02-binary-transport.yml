@@ -1,0 +1,181 @@
+name: Card02 Binary Transport
+
+on:
+  push:
+    branches:
+      - transport/card02-github-actions
+    paths:
+      - .github/workflows/card02-binary-transport.yml
+
+permissions:
+  contents: write
+
+jobs:
+  transport:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout transport branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolve WeTransfer, download exact master, and verify source bytes
+        env:
+          WT_LINK: https://we.tl/t-vzhG3rXsXM3TQ7Jr
+          EXPECTED_SIZE: "326508"
+          EXPECTED_SHA256: 699db6b797effe04c2fd2b8642391af62da506d9e290374369bd842630258261
+          EXPECTED_GIT_BLOB_SHA: 95940017577f7152a28bf76122912c37e548c7e0
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import hashlib
+          import io
+          import json
+          import os
+          import re
+          import urllib.parse
+          import urllib.request
+          import zipfile
+
+          link = os.environ["WT_LINK"]
+          expected_size = int(os.environ["EXPECTED_SIZE"])
+          expected_sha = os.environ["EXPECTED_SHA256"].lower()
+          expected_blob_sha = os.environ["EXPECTED_GIT_BLOB_SHA"].lower()
+          ua = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/151 Safari/537.36"
+
+          req = urllib.request.Request(link, headers={"User-Agent": ua})
+          with urllib.request.urlopen(req, timeout=30) as resp:
+              final_url = resp.geturl()
+              _ = resp.read(1024)
+
+          print(f"RESOLVED_URL={final_url}")
+          parsed = urllib.parse.urlparse(final_url)
+          marker = "/downloads/"
+          if marker not in parsed.path:
+              raise SystemExit(f"Could not resolve WeTransfer download path: {final_url}")
+          tail = parsed.path.split(marker, 1)[1].strip("/")
+          parts = [p for p in tail.split("/") if p]
+          if len(parts) < 2:
+              raise SystemExit(f"Unexpected WeTransfer path: {parsed.path}")
+
+          transfer_id = parts[0]
+          security_hash = parts[-1]
+          body = {"security_hash": security_hash, "intent": "entire_transfer"}
+          if len(parts) >= 3:
+              body["recipient_id"] = parts[-2]
+
+          api_url = f"https://wetransfer.com/api/v4/transfers/{transfer_id}/download"
+          api_req = urllib.request.Request(
+              api_url,
+              data=json.dumps(body).encode("utf-8"),
+              method="POST",
+              headers={
+                  "User-Agent": ua,
+                  "x-requested-with": "XMLHttpRequest",
+                  "Content-Type": "application/json",
+              },
+          )
+          with urllib.request.urlopen(api_req, timeout=30) as resp:
+              payload = json.loads(resp.read().decode("utf-8"))
+
+          direct = payload.get("direct_link") or payload.get("download_url")
+          if not direct:
+              raise SystemExit(f"WeTransfer API returned no direct link: {payload}")
+
+          file_req = urllib.request.Request(direct, headers={"User-Agent": ua})
+          with urllib.request.urlopen(file_req, timeout=120) as resp:
+              downloaded = resp.read()
+              disposition = resp.headers.get("Content-Disposition", "")
+              content_type = resp.headers.get("Content-Type", "")
+
+          print(f"TRANSFER_HTTP_BYTES={len(downloaded)}")
+          print(f"TRANSFER_CONTENT_TYPE={content_type}")
+          print(f"TRANSFER_CONTENT_DISPOSITION={disposition}")
+
+          data = downloaded
+          bio = io.BytesIO(downloaded)
+          if zipfile.is_zipfile(bio):
+              with zipfile.ZipFile(bio) as zf:
+                  names = [n for n in zf.namelist() if not n.endswith("/")]
+                  print(f"TRANSFER_ZIP_ENTRIES={names}")
+                  exact = [n for n in names if n.rsplit("/", 1)[-1] == "seal-of-the-curse.webp"]
+                  if len(exact) != 1:
+                      raise SystemExit(f"Expected exactly one seal-of-the-curse.webp in transfer, found: {names}")
+                  data = zf.read(exact[0])
+
+          size = len(data)
+          sha = hashlib.sha256(data).hexdigest()
+          git_blob_sha = hashlib.sha1(f"blob {size}\0".encode("ascii") + data).hexdigest()
+          riff_total = int.from_bytes(data[4:8], "little") + 8 if len(data) >= 16 and data[:4] == b"RIFF" else -1
+          fourcc = data[12:16] if len(data) >= 16 else b""
+
+          print(f"MASTER_SIZE={size}")
+          print(f"MASTER_SHA256={sha}")
+          print(f"MASTER_GIT_BLOB_SHA={git_blob_sha}")
+          print(f"MASTER_RIFF_TOTAL={riff_total}")
+          print(f"MASTER_FOURCC={fourcc!r}")
+
+          if size != expected_size:
+              raise SystemExit(f"SIZE MISMATCH: {size} != {expected_size}")
+          if sha != expected_sha:
+              raise SystemExit(f"SHA256 MISMATCH: {sha} != {expected_sha}")
+          if git_blob_sha != expected_blob_sha:
+              raise SystemExit(f"GIT BLOB SHA MISMATCH: {git_blob_sha} != {expected_blob_sha}")
+          if riff_total != expected_size:
+              raise SystemExit(f"RIFF TOTAL MISMATCH: {riff_total} != {expected_size}")
+          if fourcc != b"VP8 ":
+              raise SystemExit(f"FOURCC MISMATCH: {fourcc!r}")
+
+          with open("/tmp/seal-of-the-curse.webp", "wb") as f:
+              f.write(data)
+          print("SOURCE_INTEGRITY_GATE=PASS")
+          PY
+
+      - name: Create candidate-v2 from fresh main and verify Git object before and after push
+        env:
+          EXPECTED_SIZE: "326508"
+          EXPECTED_SHA256: 699db6b797effe04c2fd2b8642391af62da506d9e290374369bd842630258261
+          EXPECTED_GIT_BLOB_SHA: 95940017577f7152a28bf76122912c37e548c7e0
+          TARGET_BRANCH: assets/seal-of-the-curse-candidate-v2
+          TARGET_PATH: art-source/seal-of-the-curse.webp
+        run: |
+          set -euo pipefail
+          git fetch origin main
+          if git ls-remote --exit-code --heads origin "$TARGET_BRANCH" >/dev/null 2>&1; then
+            echo "Target branch already exists; refusing to overwrite it."
+            exit 1
+          fi
+
+          git switch --detach origin/main
+          git switch -c "$TARGET_BRANCH"
+          mkdir -p art-source
+          cp /tmp/seal-of-the-curse.webp "$TARGET_PATH"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$TARGET_PATH"
+          git commit -m "art: add exact Seal of the Curse candidate v2"
+
+          LOCAL_SIZE="$(git cat-file -s "HEAD:$TARGET_PATH")"
+          LOCAL_SHA="$(git show "HEAD:$TARGET_PATH" | sha256sum | awk '{print $1}')"
+          LOCAL_BLOB="$(git rev-parse "HEAD:$TARGET_PATH")"
+          echo "LOCAL_GIT_SIZE=$LOCAL_SIZE"
+          echo "LOCAL_GIT_SHA256=$LOCAL_SHA"
+          echo "LOCAL_GIT_BLOB_SHA=$LOCAL_BLOB"
+          test "$LOCAL_SIZE" = "$EXPECTED_SIZE"
+          test "$LOCAL_SHA" = "$EXPECTED_SHA256"
+          test "$LOCAL_BLOB" = "$EXPECTED_GIT_BLOB_SHA"
+
+          git push origin "HEAD:refs/heads/$TARGET_BRANCH"
+          git fetch origin "refs/heads/$TARGET_BRANCH:refs/remotes/origin/$TARGET_BRANCH"
+
+          REMOTE_SIZE="$(git cat-file -s "origin/$TARGET_BRANCH:$TARGET_PATH")"
+          REMOTE_SHA="$(git show "origin/$TARGET_BRANCH:$TARGET_PATH" | sha256sum | awk '{print $1}')"
+          REMOTE_BLOB="$(git rev-parse "origin/$TARGET_BRANCH:$TARGET_PATH")"
+          echo "REMOTE_GIT_SIZE=$REMOTE_SIZE"
+          echo "REMOTE_GIT_SHA256=$REMOTE_SHA"
+          echo "REMOTE_GIT_BLOB_SHA=$REMOTE_BLOB"
+          test "$REMOTE_SIZE" = "$EXPECTED_SIZE"
+          test "$REMOTE_SHA" = "$EXPECTED_SHA256"
+          test "$REMOTE_BLOB" = "$EXPECTED_GIT_BLOB_SHA"
+          echo "CANDIDATE_V2_REMOTE_INTEGRITY=PASS"
