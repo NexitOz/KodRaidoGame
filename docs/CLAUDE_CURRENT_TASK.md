@@ -1,58 +1,29 @@
-# CURRENT TASK — Art Pack 03 Card 02: verify and visually review accepted candidate
-
-## BLOCKED 2026-08-27 — candidate REJECTED at the integrity gate
-
-`assets/seal-of-the-curse-candidate` @ `6f0e00f` **must not be used.**
-
-`git cat-file -s 6f0e00f:art-source/seal-of-the-curse.webp` prints **27**, not `326508`. The
-committed file is 27 bytes: the RIFF header, the `VP8 ` chunk header and the first four bytes of the
-VP8 keyframe, ending before the width/height fields. **0.0086%** of the declared length arrived, and
-it does not decode. GitHub reports the blob as 27 bytes and the commit diffstat records
-`Bin 0 -> 27 bytes`, so the truncation is baked into the commit, not a fetch artifact.
-
-**A second, separate problem:** the surviving RIFF header declares **313,964** bytes, while the
-provenance note claims **326,508**. They differ by 12,544 and cannot both describe the same file. So
-unlike Card 01 — where the header corroborated the note — here the recorded expected size and SHA do
-**not** describe the file whose header arrived.
-
-Visual QA was not started. Nothing was staged, `/admin/art-review` was untouched, and **no visual
-judgement of the artwork has been made.**
-
-### Required fix
-
-1. Do not regenerate — nothing suggests the accepted image is bad, only that no usable bytes arrived.
-2. **First resolve the size discrepancy.** On the machine holding the master, run `wc -c` and
-   `sha256sum` on the exact file to be uploaded and reconcile against 326,508 / `699db6b7…`. Correct
-   the provenance note if they disagree; the gate is meaningless if its expected values describe a
-   different file.
-3. Commit with the **git CLI from local disk** — not the connected GitHub tooling, which has now
-   truncated binaries three times (14,999 / 15,042 / 27 bytes).
-4. **Before pushing:** `git cat-file -s HEAD:art-source/seal-of-the-curse.webp` must match the real
-   byte size.
-5. Push to a fresh branch `assets/seal-of-the-curse-candidate-v2`; leave the broken branch as
-   evidence.
-
-Full analysis: `docs/agent-reports/2026-08-27-art-pack-03-card-02-candidate-rejected.md`.
-
-Everything below is unchanged and applies to the v2 candidate, with the branch and commit
-substituted.
+# CURRENT TASK — Art Pack 03 Card 02: firestorage re-transport → candidate-v2 → visual QA
 
 ## Goal
 
-Verify the owner-accepted PURIFICATION Card 02 candidate byte-for-byte, then run real surface QA. Stop for owner approval. No promotion.
+Recover the owner-accepted `seal-of-the-curse` master from the new machine-to-machine transport, prove byte integrity, create a clean candidate-v2 with normal git, then run the existing real surface QA. Stop for owner approval. No promotion.
 
 Card:
 
-- `seal-of-the-curse` / «Печать Проклятия»
+- slug: `seal-of-the-curse`
+- name: «Печать Проклятия»
 - PURIFICATION / EVENT / RARE / cost 2
-- candidate branch: `assets/seal-of-the-curse-candidate`
-- candidate commit: `6f0e00fca98b7452c4c1f987165cf3157753dccb`
-- candidate path: `art-source/seal-of-the-curse.webp`
-- provenance: `docs/art-sources/2026-08-27-purification-card-02-master-candidate.md`
 
-## Integrity gate — MUST PASS BEFORE QA
+## Source transport — use this, not the broken candidate branch
 
-Read the committed bytes from the exact candidate commit and independently verify:
+firestorage share:
+
+`https://firestorage.ai/ja/f/UbtC6RJp2_Ok`
+
+Uploaded object metadata already reported by firestorage:
+
+- file: `seal-of-the-curse.webp`
+- size: `326508` bytes
+- mime: `image/webp`
+- retention: through 2026-09-10
+
+Canonical expected integrity:
 
 - byte size: `326508`
 - SHA-256: `699db6b797effe04c2fd2b8642391af62da506d9e290374369bd842630258261`
@@ -61,31 +32,48 @@ Read the committed bytes from the exact candidate commit and independently verif
 - FourCC: plain `VP8 `
 - full image decode: PASS
 
-Also run:
+The old branch `assets/seal-of-the-curse-candidate` @ `6f0e00f...` is broken evidence only and MUST NOT be reused.
 
-`git cat-file -s 6f0e00fca98b7452c4c1f987165cf3157753dccb:art-source/seal-of-the-curse.webp`
+## Step 1 — download and integrity gate
 
-It must print exactly `326508`.
+Download the exact WebP from the firestorage share to local disk.
 
-If any value differs: **STOP — REJECTED / BLOCKED**. Do not repair, re-encode, resize, regenerate, or substitute another file.
+Independently verify all canonical values above with local tools (`wc -c`, `sha256sum`, RIFF/FourCC inspection, dimensions, full decode).
 
-## Candidate staging
+If ANY value differs: **STOP — REJECTED / BLOCKED**. Do not repair, re-encode, resize, regenerate, or substitute.
 
-Stage the exact verified candidate locally at the existing gitignored review path:
+## Step 2 — create clean candidate-v2 with normal git
+
+From fresh `main`, create:
+
+`assets/seal-of-the-curse-candidate-v2`
+
+Add only:
+
+`art-source/seal-of-the-curse.webp`
+
+plus the existing provenance note if it must be amended only to record the successful firestorage transport. Do not alter the accepted artwork bytes.
+
+Commit with normal git CLI from local disk. BEFORE PUSHING verify:
+
+- `git cat-file -s HEAD:art-source/seal-of-the-curse.webp` == `326508`
+- SHA-256 of the committed blob materialized from HEAD == canonical SHA above
+
+Push the branch, fetch it back from GitHub, and independently repeat size + SHA verification from the fetched branch. If remote differs: STOP.
+
+## Step 3 — local review staging only
+
+Stage the exact verified candidate at the existing gitignored review path:
 
 `apps/web/public/art-review-candidates/seal-of-the-curse.webp`
 
-Do not change the production artwork path or card data.
+Do not change production artwork path or card data.
 
-## `/admin/art-review`
+If `seal-of-the-curse` is not already registered in `/admin/art-review`, add only the smallest review-target registration required. Candidate loading must remain local/gitignored and must not alter production `artworkUrl` or `rightsStatus`.
 
-If `seal-of-the-curse` is not registered as a review target, add only the smallest target registration required for this card. Candidate loading must remain local/gitignored and must not alter production `artworkUrl` or `rightsStatus`.
+## Step 4 — required real visual QA
 
-No other review target or UI redesign is allowed.
-
-## Required visual QA
-
-This is an EVENT. `CreatureSlot` is **not** a relevant surface and must not be invented as one.
+This is an EVENT. `CreatureSlot` is NOT a review surface.
 
 Review the exact candidate on:
 
@@ -94,51 +82,47 @@ Review the exact candidate on:
 3. `CardDetailDrawer` 4:5;
 4. `HandCardPreview` 7:9;
 5. `/admin/art-review` desktop;
-6. `/admin/art-review` at 390px mobile;
+6. `/admin/art-review` at 390px;
 7. 92px thumbnail;
-8. 92px grayscale / value-only readability check.
+8. 92px grayscale/value-only.
 
 Use the real app/components, not mock screenshots.
 
-## Visual questions
+Explicitly verify every reject/acceptance item in:
 
-Explicitly answer:
+`docs/art-review/seal-of-the-curse-master-art-brief.md`
 
-- Does the event instantly read as **an attack physically sealed**, not damage/corruption/spellcasting?
-- Is the white/silver rune clamp clearly the primary focal point and the dark weapon hand secondary?
-- Does the dark enemy arm read as dark material rather than SHADOW-like dramatic lighting?
-- Is the enemy visually faction-neutral?
-- Is the weapon still readable enough that the blocked attack is obvious?
-- Are hand/finger/weapon/guard geometries anatomically and mechanically coherent?
-- Does the clamp look solid and physically locked around hand + guard/hilt rather than floating magic?
-- Are rune lines engraved/material-bound, cold pale blue-white, controlled, and not brighter than necessary?
-- Any forbidden corruption language: crimson/red/violet/magenta/orange, rot, veins, tendrils, void haze, embers, ash?
-- Any open-hand caster, beam, projectile, explosion, generic magical shield, or SHADOW/VEIL drift?
-- Does the RARE read sit clearly above Common `acolyte-of-the-white-rune` but below Legendary `high-warden-of-the-white-rune`?
-- Does the 92px grayscale test preserve strong tonal separation between seal and dark hand?
-- Does every essential story element remain safe in 3:4, 7:9, and especially 4:5?
-- Enforce the brief's stricter working safe zone: nothing essential above y≈260 or below y≈1280.
+Key visual gates:
 
-Walk every automatic reject condition and final acceptance item in `docs/art-review/seal-of-the-curse-master-art-brief.md`.
+- reads instantly as an attack physically sealed, not damage/corruption/spellcasting;
+- white/silver rune clamp is primary focal point; dark weapon hand secondary;
+- enemy arm is dark by material, not SHADOW-style lighting;
+- enemy remains faction-neutral;
+- weapon/hand/guard geometry is coherent;
+- clamp reads solid and physically locked around hand + guard/hilt, not floating magic;
+- no crimson/red/violet/magenta/orange, rot, veins, tendrils, void haze, embers, ash;
+- no caster, beam, projectile, explosion, generic shield, SHADOW/VEIL drift;
+- essential story survives 3:4, 7:9 and especially 4:5;
+- nothing essential above y≈260 or below y≈1280;
+- 92px grayscale preserves strong tonal separation.
 
-## Comparison
+At 92px compare side-by-side:
 
-At 92px, compare side-by-side with:
+- Common `acolyte-of-the-white-rune`
+- Rare Event `seal-of-the-curse`
+- Legendary `high-warden-of-the-white-rune`
 
-- Common PURIFICATION: `acolyte-of-the-white-rune`
-- Legendary PURIFICATION: `high-warden-of-the-white-rune`
-
-The hierarchy must read: Common < Rare Event < Legendary without relying only on the UI rarity frame.
+Hierarchy must read Common < Rare < Legendary without relying only on frame rarity.
 
 ## Validation if review code changes
 
-If `/admin/art-review` changes, run:
+Run:
 
 - `git diff --check`
 - Prettier on changed files
 - lint
 - typecheck
-- existing test baseline
+- existing tests
 - production build
 - real visual QA
 
@@ -148,21 +132,20 @@ Do NOT:
 
 - change `apps/game-server/prisma/seed.ts`;
 - change Prisma schema/migrations;
-- change gameplay, balance, card text, effects, cost, rarity, faction, stats;
+- change gameplay/balance/card data;
 - write to `apps/web/public/art/cards/`;
 - change production `artworkUrl` or `rightsStatus`;
-- merge the candidate branch;
-- promote the asset;
+- merge/promote the candidate;
 - touch Battlefield gameplay/layout;
-- touch production sync scripts/workflows;
+- touch production sync workflows/scripts;
 - access Railway/Vercel/production DB;
-- dispatch any workflow;
+- dispatch workflows;
 - begin Card 03.
 
 ## Delivery
 
-1. Create a durable report under `docs/agent-reports/` with exact integrity results and all visual QA findings.
-2. If review code changed, use a narrow branch/PR containing only the required review-target support plus documentation/state changes.
+1. Create a durable report under `docs/agent-reports/` containing transport source, exact integrity results, candidate-v2 branch/commit, remote re-verification, and all visual QA findings.
+2. If review code changed, use a narrow branch/PR containing only review-target support + docs/state.
 3. Update `docs/AGENT_STATE.md` last and fetch it back from GitHub to verify.
 4. Final status must be exactly one of:
    - **READY FOR OWNER VISUAL APPROVAL**
