@@ -6,92 +6,125 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 
 - **Cross-agent bridge:** ACTIVE
 - **Permanent rules:** `CLAUDE.md`
-- **Protocol:** read this file first; after each completed task update it last and verify it from GitHub
+- **Protocol:** read this file first; then `docs/CLAUDE_CURRENT_TASK.md`; after each completed task update this file last and verify it from GitHub
 
 ## Current project state
 
-- **Phase:** SHADOW Art Pack 02 — Card 04 COMPLETE end to end (approved, integrated, merged, live in production)
-- **Status:** PRODUCTION SYNC EXECUTED — run 32778836668 succeeded, one row mutated, final source-of-truth 10/10. Authorization consumed.
+- **Phase:** Art Pack 03 — PURIFICATION
+- **Status:** Card 01 master-art brief READY FOR AGENT EXECUTION
+- **Current target:** `acolyte-of-the-white-rune` / «Послушник Белой Руны»
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
-- **Current task authorization commit:** `bb367de1e075860c56ad4bdf00b74eef31ecb7e0`
-- **Latest handoff report:** `docs/agent-reports/2026-08-25-card-04-production-sync-executed.md`
-- **Prior integration handoff:** PR #34 comment `5401303175`
-- **Production sync run:** `32778836668` — https://github.com/NexitOz/KodRaidoGame/actions/runs/32778836668 (job `97596072990`), conclusion **success**
-- **Owner visual approval:** PR #34 comment `5401140209`
-- **PR #34:** **MERGED**
-- **Merged PR head:** `6eb44cf46497f5303de433dae2d717a9f843d1c6`
-- **Merge commit / immutable source:** `23e83c9978a9045059d3009eb1983b17f005d1d3`
-- **Workflow pin commit:** `216ba3ff2cca050890b4bba56485db14e809af3a`
-- **Sync-script pin commit:** `5dc0fd80e3e72db20c7953800924515b0c4389b6`
-- **Production artwork:** `apps/web/public/art/cards/rune-of-the-echoing-dusk.webp`
-- **Production sync target count:** `10`
-- **Owner confirmation used:** `SYNC-10-CARD-ART-PRODUCTION` — **consumed by run 32778836668**; a future sync needs a fresh confirmation and a repointed `REQUIRED_SOURCE_COMMIT`
+- **Current task-result commit:** `8e97d32d4bd83299ae397eba11d10edba1ea3f96`
+- **Latest handoff report:** `docs/agent-reports/2026-08-27-art-pack-03-card-01-task-transition.md`
+- **Latest handoff report commit:** `3f8248f00aa854dcbf28f66dd1b25955cd6be339`
+- **Branch:** `main`
+- **PR:** none for the task transition
 
-## Card 04 final repository result
+## Current task scope
 
-Card 04 `rune-of-the-echoing-dusk` / «Рунный Страж Эха» is fully integrated into the repository and marked FINAL APPROVED.
+The next task is deliberately short and documentation-only:
 
-Approved master integrity:
+Prepare `docs/art-review/acolyte-of-the-white-rune-master-art-brief.md` for PURIFICATION Card 01.
 
+The brief must carry forward the locked PURIFICATION language from `docs/art-bible-01.md` while making the card read as a COMMON acolyte rather than a miniature copy of the LEGENDARY `high-warden-of-the-white-rune`.
+
+Required brief content includes:
+
+- visual/card role
+- silhouette and pose
+- costume/materials
+- architecture/environment
+- lighting and palette
+- rune/VFX language
+- hierarchy difference vs. High Warden
+- differentiation vs. SHADOW
+- 1024×1536 master crop safety through shipped 3:4, 7:9, and 4:5 surfaces
+- mobile/thumbnail readability
+- forbidden drift
+- ready generation prompt + negative prompt
+- production acceptance checklist
+
+**Hard stop:** this task ends after the brief and handoff. No image generation, artwork integration, seed/DB/UI changes, or production sync work in the same task.
+
+## Previous milestone — SHADOW Art Pack 02 COMPLETE
+
+SHADOW Art Pack 02 is complete end to end. Do not reopen it as current work.
+
+Cards 01–04 are FINAL APPROVED:
+
+1. `whisper-of-the-forgotten`
+2. `ashen-blade`
+3. `keeper-of-smoldering-embers`
+4. `rune-of-the-echoing-dusk`
+
+Card 04 production artwork:
+
+- path: `apps/web/public/art/cards/rune-of-the-echoing-dusk.webp`
 - SHA-256: `319bdccc4dad399e3f048bf4aa095910c1fd255f453387a8604e1022734eb858`
-- file size: `351690` bytes
-- RIFF total: `351690` bytes
+- file size / RIFF total: `351690` bytes
 - dimensions: `1024x1536`
-- container: WebP `VP8 `
+- merge / immutable source: `23e83c9978a9045059d3009eb1983b17f005d1d3`
 
-The merged integration includes:
+Production sync run `32778836668` / job `97596072990` succeeded. Final source-of-truth was `10/10`; exactly one row (`rune-of-the-echoing-dusk`) changed from placeholder artwork status to `/art/cards/rune-of-the-echoing-dusk.webp` / `owned`; non-target field changes were `0`.
 
-- owner-approved Card 04 artwork at the production path
-- `artworkUrl: '/art/cards/rune-of-the-echoing-dusk.webp'`
-- `rightsStatus: 'owned'`
-- correct non-CHARACTER RUNE path in `/admin/art-review`
-- `docs/art-pack-02.md` Card 04 FINAL APPROVED
-- production sync extended from 9 to 10 targets
+The one-use confirmation `SYNC-10-CARD-ART-PRODUCTION` is **CONSUMED**. It must never be treated as standing authorization for a future production sync. Any future sync requires a fresh owner confirmation and repointed immutable-source pins.
 
-Production-path QA passed on Collection/hand `CardView` 3:4, `CardDetailDrawer` 4:5, `HandCardPreview` 7:9, 92 px `xs`, `/admin/art-review`, mobile 390×844, and the real Collection page. The two previously owner-accepted visual caveats remain non-blocking and no new regression was found.
+## PURIFICATION canonical starting point
 
-## Immutable source pin — COMPLETE
+The faction already has an owner-approved LEGENDARY flagship:
 
-All three production sync pins resolve to the merge commit `23e83c9978a9045059d3009eb1983b17f005d1d3`:
+- `high-warden-of-the-white-rune` / «Верховная Хранительница Руны»
+- production artwork is live and owned
+- visual language is locked in `docs/art-bible-01.md`
 
-- `.github/workflows/production-card-art-sync.yml`
-  - `REQUIRED_SOURCE_COMMIT`
-  - `SOURCE_COMMIT`
-- `apps/game-server/scripts/sync-production-card-art.ts`
-  - `REQUIRED_SOURCE_COMMIT`
+The unfinished PURIFICATION cards in seed order are:
 
-The immutable source commit contains the approved ten-card seed/art state. Post-merge operational changes did not alter `seed.ts`, Prisma schema, or `apps/web/public/art/cards`.
+1. `acolyte-of-the-white-rune` — CHARACTER / COMMON / cost 1 / 1/3
+2. `seal-of-the-curse` — EVENT / RARE / cost 2
+3. `warden-of-the-barrier` — CHARACTER / RARE / cost 3 / 2/5
+4. `rune-of-curse-breaking` — RUNE / EPIC / cost 3
 
-## Production sync result — EXECUTED, SUCCESS
+The current task covers **only #1's master-art brief**.
 
-Run `32778836668` (job `97596072990`) on `main` @ `3b6d54a5d094a6139d2c416e9d3662df8980270d`, conclusion **success**, ~40 s. All 14 functional steps passed; `Report already synchronized state` correctly skipped because a mutation was required.
+## Locked PURIFICATION direction for Card 01
 
-Gate evidence, verbatim from the job log:
+Carry forward:
 
-- `IMMUTABLE_SOURCE_SHA_VERIFIED=23e83c9978a9045059d3009eb1983b17f005d1d3`
-- `ARTWORK_FILES_PRESENT=10/10`
-- `RAILWAY_TOKEN_PRESENT=YES`
-- `TOKEN_PROJECT_ID_VERIFIED=YES`, `TOKEN_ENVIRONMENT_ID_VERIFIED=YES`, `GAME_SERVER_DB_LINK_VERIFIED=YES`, `PRODUCTION_SCOPE_VERIFIED=YES`, `READ_ONLY_DB_PREFLIGHT=YES`
-- PRE-WRITE: `TARGET_ROWS=10`, `UNIQUE_SLUGS=10`, `ROWS_REQUIRING_MUTATION=1`, `SOURCE_OF_TRUTH_MATCH=9/10`, `NON_TARGET_FINGERPRINTS=10`, snapshot `58a2ff701b7968123ec715ec031547a5bc43904fdd30ecd6f789c6daaaaab7c7`
-- APPLY: `TRANSACTION_STARTED=YES`, `TRANSACTION_COMMITTED=YES`, `ROWS_CHANGED=1`, `TARGET_ROWS_FINAL=10`, `SOURCE_OF_TRUTH_MATCH=10/10`, `NON_TARGET_FIELD_CHANGES=0`
-- POST-WRITE (independent re-read): `TARGET_ROWS=10`, `UNIQUE_SLUGS=10`, `ROWS_REQUIRING_MUTATION=0`, `SOURCE_OF_TRUTH_MATCH=10/10`
+- white / silver / ivory base
+- restrained gold, noticeably quieter than the LEGENDARY flagship on a COMMON card
+- clean pressed armor / cloth edges, never tattered
+- bright diffuse near-shadowless lighting
+- cold light / frost motes only
+- rune magic bound to engraved/material/architectural surfaces instead of open-palm casting
+- no crimson/red or violet accent drift
+- no SHADOW ember language
+- no spectral echo crowd device
+- do not reuse the High Warden's full flagship cathedral-halo dominance
 
-### The one mutated row
+## Confirmed untouched by the task transition
 
-`rune-of-the-echoing-dusk` (`930910a7-1c21-4c82-8b93-21affee07213`): generated placeholder SVG / `rightsStatus: placeholder` → `/art/cards/rune-of-the-echoing-dusk.webp` / `owned`.
+No changes were made to:
 
-The other nine targets reported `needsChange=NO` and were not written. Non-target fingerprints matched before and after inside the Serializable transaction.
+- application source code
+- `apps/game-server/prisma/seed.ts`
+- Prisma schema or migrations
+- gameplay / balance / card text / effects / rarity / cost / stats / faction
+- artwork files
+- `/admin/art-review`
+- Battlefield UI
+- production sync script/workflow
+- Railway / Vercel configuration
+- production database
+- approved Art Pack 01 or Art Pack 02 assets
 
-## Current hard status
+## Recommended next action
 
-- Owner authorization: **CONSUMED** by run `32778836668`
-- Production sync dispatched: **YES** — exactly once
-- Production DB mutated: **YES** — one row (`rune-of-the-echoing-dusk`), artwork fields only
-- Non-target field changes: **0**
-- Final production source-of-truth: **10/10**
-- Repository code changed by this task: **none** (handoff report + this state file only)
-- Next action: nothing outstanding for Card 04. Optional cleanup — delete the dead candidate branches `assets/rune-of-the-echoing-dusk-candidate` (invalid non-image data) and `assets/keeper-of-smoldering-embers-candidate-source` (truncated transport) so no later agent reconstructs from either. A future card needs a fresh owner confirmation string and a repointed `REQUIRED_SOURCE_COMMIT`.
+Execute `docs/CLAUDE_CURRENT_TASK.md` exactly as written. Produce only the PURIFICATION Card 01 master-art brief, write the required GitHub handoff, update this state file last, and stop for owner review before any image generation.
 
 ## Reader protocol
 
-Read this file, then `docs/CLAUDE_CURRENT_TASK.md`. Resolve current `main` HEAD directly from GitHub before acting. PR #34 is merged; do not rely on stale pre-merge PR text.
+1. Read this file.
+2. Read `docs/CLAUDE_CURRENT_TASK.md`.
+3. Read `docs/agent-reports/2026-08-27-art-pack-03-card-01-task-transition.md` if transition context is needed.
+4. Resolve fresh `main` HEAD from GitHub before acting.
+5. Repository state is authoritative over stale chat summaries.
