@@ -11,12 +11,14 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** Card 02 **UNBLOCKED — exact master now available through WeTransfer; integrity + candidate-v2 + visual QA next**
+- **Status:** Card 02 **BLOCKED — WeTransfer denied by egress policy. Root cause now identified: the policy is a GitHub-only allowlist, so NO third-party relay can work. Fix is a GitHub web UI upload.**
 - **Current target:** `seal-of-the-curse` / «Печать Проклятия»
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
 - **Current task commit:** `82a9352c0a4f98c99b75b8f184ab45c2e8253286`
-- **Latest completed handoff:** `docs/agent-reports/2026-08-27-art-pack-03-card-02-github-release-transport-blocked.md`
+- **Latest handoff:** `docs/agent-reports/2026-08-27-art-pack-03-card-02-wetransfer-transport-blocked.md`
+- **Prior handoff:** `docs/agent-reports/2026-08-27-art-pack-03-card-02-github-release-transport-blocked.md`
 - **Branch:** `main`
+- **Open blocker:** the accepted master has still never reached the repository. **Owner action required — upload it via the GitHub web UI, exactly as Card 01 was uploaded. See "Transport attempt 4" below.**
 
 ## Card 01 — COMPLETE END TO END
 
@@ -105,21 +107,57 @@ Rejected after a control test showed long text payload truncation. Do not use Dr
 
 Raw binary upload succeeded and provider metadata reports exact `326508` bytes, but the current personal-Gmail connector cannot create an anonymous `anyone with link` permission for Claude Code.
 
-### CURRENT RELAY — WeTransfer
+### WeTransfer route — DENIED (transport attempt 4)
 
-WeTransfer successfully created a public transfer from the already verified firestorage source:
+`https://we.tl/t-vzhG3rXsXM3TQ7Jr` could not be reached. Both `we.tl:443` and `wetransfer.com:443`
+were rejected at CONNECT with 403. Do not retry this route.
 
-`https://we.tl/t-vzhG3rXsXM3TQ7Jr`
+## Transport attempt 4 — ROOT CAUSE FOUND: the egress policy is a GitHub-only allowlist
 
-Transfer ID:
+The four relay failures are not four separate problems. They are one problem, measured directly:
 
-`8dd7ff4c476d0d8199b2c731e74f273220260827203816`
+**Denied:** `we.tl`, `wetransfer.com`, `firestorage.ai`, `dropbox.com`, `drive.google.com`,
+`transfer.sh`, `file.io`, `0x0.st`, `gist.githubusercontent.com`.
 
-Expires:
+**Reachable:** `github.com`, `api.github.com`, `raw.githubusercontent.com`,
+`objects.githubusercontent.com`, `codeload.github.com`, `uploads.github.com` (plus the npm / PyPI /
+crates / Go registries, which bypass the proxy entirely).
 
-`2026-08-30T20:38:27Z`
+Every general-purpose file-sharing host is blocked; only GitHub infrastructure is allowed.
+**Therefore no third-party relay will ever work from a Claude Code session on this environment, and
+a fifth relay would fail for the same reason as the first four.**
 
-This is the only transport Claude should use now.
+### THE FIX — the route that already worked in this repository
+
+The master does not need a relay. It needs to be **in the GitHub repository**, because GitHub is
+reachable. Card 01's master arrived intact exactly that way:
+
+```
+commit 69e176e41bf2263a7185bd17e4deb5ce822e6f83
+  author    NexitOz <85886242+NexitOz@users.noreply.github.com>
+  committer GitHub <noreply@github.com>
+  message   "Add files via upload"
+
+git cat-file -s 69e176e:art-source/acolyte-of-the-white-rune.webp  ->  214378   (exact, first try)
+```
+
+`committer GitHub <noreply@github.com>` + `Add files via upload` is the **GitHub web UI
+drag-and-drop**. It sends the file as multipart binary, never base64 inside JSON — which is the exact
+mechanism that truncated the Contents-API attempts to 14,999 / 15,042 / 27 bytes.
+
+Owner action, roughly thirty seconds:
+
+1. Open `https://github.com/NexitOz/KodRaidoGame` signed in.
+2. **Add file → Upload files**, selecting "Create a new branch for this commit", named
+   `assets/seal-of-the-curse-candidate-v2`.
+3. Drop in `seal-of-the-curse.webp` at path `art-source/seal-of-the-curse.webp`.
+4. Commit, then tell Claude Code the branch exists.
+
+Equally byte-exact: commit and push with a git CLI from any machine holding the master, verifying
+`git cat-file -s HEAD:art-source/seal-of-the-curse.webp` == `326508` **before** pushing.
+
+Claude Code then fetches the branch, runs the full canonical integrity gate, and — only on a complete
+PASS — performs the visual QA.
 
 ## Current task
 
@@ -127,11 +165,16 @@ Execute `docs/CLAUDE_CURRENT_TASK.md` @ `82a9352c0a4f98c99b75b8f184ab45c2e825328
 
 Required sequence:
 
-1. Download exact WebP from WeTransfer.
-2. Verify all canonical integrity values locally.
-3. Only on PASS create fresh `assets/seal-of-the-curse-candidate-v2` from fresh main.
-4. Commit exact binary with normal git CLI.
-5. Verify committed bytes before push and remote-fetched bytes after push.
+**Step 1 is blocked and its transport must change** — WeTransfer is denied, and per the root-cause
+finding above no third-party relay can work. Steps 3–5 collapse accordingly: once the owner uploads
+the file to `assets/seal-of-the-curse-candidate-v2` via the GitHub web UI, the branch already exists
+and Claude Code verifies the fetched bytes instead of creating and pushing them.
+
+1. ~~Download exact WebP from WeTransfer.~~ **BLOCKED** — obtain the branch via GitHub web UI upload.
+2. Verify all canonical integrity values against the fetched branch bytes.
+3. ~~Create the branch~~ — created by the owner's upload; verify it came from fresh `main`.
+4. ~~Commit exact binary with normal git CLI.~~ — done by the upload.
+5. Verify remote-fetched bytes (`git cat-file -s` == `326508`, SHA-256 == canonical).
 6. Run full real visual QA on raw 2:3, CardView 3:4, CardDetailDrawer 4:5, HandCardPreview 7:9, admin desktop, 390px, 92px, and grayscale.
 7. EVENT does not use `CreatureSlot`.
 8. Walk the full Card 02 master-art brief including y≈260–1280 safe zone and Common < Rare < Legendary comparison.
@@ -145,9 +188,27 @@ Final status must be exactly:
 
 No promotion, seed/Prisma/gameplay change, production artwork path, sync/workflow change, Railway/Vercel/production DB access, workflow dispatch, candidate merge, or Card 03 work is authorized.
 
+## Art transport policy — REVISED, replaces the storage-relay rule
+
+The previous policy ("upload the exact file to a machine-readable storage relay such as
+firestorage.ai") is **withdrawn**. It cannot work: this environment's egress policy allows GitHub
+infrastructure only, so every such relay is denied at CONNECT. Following that rule cost four round
+trips.
+
+**Standing rule for all future master art, Cards 03 and 04 included:**
+
+1. The party holding the master puts it **into the GitHub repository** on a candidate branch —
+   GitHub web UI **Add file → Upload files**, or a git CLI push. Both send binary, not base64.
+2. Never transport master artwork through the GitHub Contents API, base64-in-JSON tooling, chat
+   attachments, or text chunking. Every one of those has truncated a master on this project
+   (14,999 / 15,042 / 27 bytes).
+3. Claude Code fetches the branch and verifies size + SHA-256 + RIFF total + FourCC + dimensions +
+   full decode **before** any staging, QA or promotion.
+4. `git cat-file -s HEAD:<path>` is checked before any push. It has caught three truncations.
+
 ## Art Pack 03 remaining cards
 
 - Card 01 `acolyte-of-the-white-rune` — COMPLETE END TO END, live in production
-- Card 02 `seal-of-the-curse` — exact master available via WeTransfer; integrity/candidate-v2/QA next
+- Card 02 `seal-of-the-curse` — brief complete; master **still not in the repository**; awaiting GitHub web UI upload to `assets/seal-of-the-curse-candidate-v2`
 - Card 03 `warden-of-the-barrier` — not started
 - Card 04 `rune-of-curse-breaking` — not started
