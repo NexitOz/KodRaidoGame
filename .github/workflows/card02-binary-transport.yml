@@ -19,9 +19,12 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Resolve WeTransfer, download exact master, and verify source bytes
+      - name: Download exact master from firestorage file API and verify source bytes
         env:
-          WT_LINK: https://we.tl/t-vzhG3rXsXM3TQ7Jr
+          API_BASE: https://api.firestorage.ai/prod/file
+          SHARE_ID: UbtC6RJp2_Ok
+          EXPECTED_FILE_ID: 01a044b6f15c732c90c67a9d3375965e
+          EXPECTED_NAME: seal-of-the-curse.webp
           EXPECTED_SIZE: "326508"
           EXPECTED_SHA256: 699db6b797effe04c2fd2b8642391af62da506d9e290374369bd842630258261
           EXPECTED_GIT_BLOB_SHA: 95940017577f7152a28bf76122912c37e548c7e0
@@ -29,113 +32,86 @@ jobs:
           set -euo pipefail
           python - <<'PY'
           import hashlib
-          import io
           import json
           import os
-          import urllib.parse
           import urllib.request
-          import zipfile
 
-          link = os.environ["WT_LINK"]
-          expected_size = int(os.environ["EXPECTED_SIZE"])
-          expected_sha = os.environ["EXPECTED_SHA256"].lower()
-          expected_blob_sha = os.environ["EXPECTED_GIT_BLOB_SHA"].lower()
-          ua = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/151 Safari/537.36"
+          api = os.environ['API_BASE'].rstrip('/')
+          share = os.environ['SHARE_ID']
+          expected_file_id = os.environ['EXPECTED_FILE_ID']
+          expected_name = os.environ['EXPECTED_NAME']
+          expected_size = int(os.environ['EXPECTED_SIZE'])
+          expected_sha = os.environ['EXPECTED_SHA256'].lower()
+          expected_blob_sha = os.environ['EXPECTED_GIT_BLOB_SHA'].lower()
+          headers = {'User-Agent':'Mozilla/5.0 Chrome/151','Accept':'application/json,*/*'}
 
-          req = urllib.request.Request(link, headers={"User-Agent": ua})
-          with urllib.request.urlopen(req, timeout=30) as resp:
-              final_url = resp.geturl()
-              _ = resp.read(1024)
+          meta_url = f'{api}/shares/{share}/files?maxResults=1000'
+          with urllib.request.urlopen(urllib.request.Request(meta_url, headers=headers), timeout=30) as r:
+              meta = json.loads(r.read().decode('utf-8'))
+          files = meta.get('files') or []
+          matches = [f for f in files if f.get('fileId') == expected_file_id]
+          if len(matches) != 1:
+              raise SystemExit(f'Expected one fileId {expected_file_id}, found {len(matches)}: {files}')
+          entry = matches[0]
+          print('PROVIDER_FILE_ID=', entry.get('fileId'))
+          print('PROVIDER_NAME=', entry.get('fileName'))
+          print('PROVIDER_TYPE=', entry.get('contentType'))
+          print('PROVIDER_SIZE=', entry.get('sizeBytes'))
+          if entry.get('fileName') != expected_name:
+              raise SystemExit('Provider filename mismatch')
+          if entry.get('contentType') != 'image/webp':
+              raise SystemExit('Provider MIME mismatch')
+          if int(entry.get('sizeBytes', -1)) != expected_size:
+              raise SystemExit('Provider size mismatch')
 
-          print(f"RESOLVED_URL={final_url}")
-          parsed = urllib.parse.urlparse(final_url)
-          marker = "/downloads/"
-          if marker not in parsed.path:
-              raise SystemExit(f"Could not resolve WeTransfer download path: {final_url}")
-          tail = parsed.path.split(marker, 1)[1].strip("/")
-          parts = [p for p in tail.split("/") if p]
-          if len(parts) < 2:
-              raise SystemExit(f"Unexpected WeTransfer path: {parsed.path}")
-
-          transfer_id = parts[0]
-          security_hash = parts[-1]
-          body = {"security_hash": security_hash, "intent": "entire_transfer"}
-          if len(parts) >= 3:
-              body["recipient_id"] = parts[-2]
-
-          api_url = f"https://wetransfer.com/api/v4/transfers/{transfer_id}/download"
-          api_req = urllib.request.Request(
-              api_url,
-              data=json.dumps(body).encode("utf-8"),
-              method="POST",
-              headers={
-                  "User-Agent": ua,
-                  "x-requested-with": "XMLHttpRequest",
-                  "Content-Type": "application/json",
-              },
-          )
-          with urllib.request.urlopen(api_req, timeout=30) as resp:
-              payload = json.loads(resp.read().decode("utf-8"))
-
-          direct = payload.get("direct_link") or payload.get("download_url")
+          dl_api = f'{api}/shares/{share}/files/{expected_file_id}/download'
+          dl_req = urllib.request.Request(dl_api, data=b'', method='POST', headers=headers)
+          with urllib.request.urlopen(dl_req, timeout=30) as r:
+              payload = json.loads(r.read().decode('utf-8'))
+          direct = payload.get('downloadUrl')
           if not direct:
-              raise SystemExit(f"WeTransfer API returned no direct link: {payload}")
+              raise SystemExit(f'No downloadUrl from file API: {payload}')
+          print('DOWNLOAD_URL_ISSUED=YES')
 
-          file_req = urllib.request.Request(
-              direct,
-              headers={"User-Agent": ua, "Range": "bytes=0-"},
-          )
-          with urllib.request.urlopen(file_req, timeout=120) as resp:
-              downloaded = resp.read()
-              status = getattr(resp, "status", None)
-              disposition = resp.headers.get("Content-Disposition", "")
-              content_type = resp.headers.get("Content-Type", "")
-              content_range = resp.headers.get("Content-Range", "")
-
-          print(f"TRANSFER_HTTP_STATUS={status}")
-          print(f"TRANSFER_HTTP_BYTES={len(downloaded)}")
-          print(f"TRANSFER_CONTENT_TYPE={content_type}")
-          print(f"TRANSFER_CONTENT_RANGE={content_range}")
-          print(f"TRANSFER_CONTENT_DISPOSITION={disposition}")
-
-          data = downloaded
-          bio = io.BytesIO(downloaded)
-          if zipfile.is_zipfile(bio):
-              with zipfile.ZipFile(bio) as zf:
-                  names = [n for n in zf.namelist() if not n.endswith("/")]
-                  print(f"TRANSFER_ZIP_ENTRIES={names}")
-                  exact = [n for n in names if n.rsplit("/", 1)[-1] == "seal-of-the-curse.webp"]
-                  if len(exact) != 1:
-                      raise SystemExit(f"Expected exactly one seal-of-the-curse.webp in transfer, found: {names}")
-                  data = zf.read(exact[0])
+          file_req = urllib.request.Request(direct, headers={'User-Agent':'Mozilla/5.0 Chrome/151'})
+          with urllib.request.urlopen(file_req, timeout=120) as r:
+              data = r.read()
+              print('DOWNLOAD_HTTP_STATUS=', getattr(r,'status',None))
+              print('DOWNLOAD_CONTENT_TYPE=', r.headers.get('Content-Type'))
+              print('DOWNLOAD_CONTENT_LENGTH=', r.headers.get('Content-Length'))
 
           size = len(data)
           sha = hashlib.sha256(data).hexdigest()
-          git_blob_sha = hashlib.sha1(f"blob {size}\0".encode("ascii") + data).hexdigest()
-          riff_total = int.from_bytes(data[4:8], "little") + 8 if len(data) >= 16 and data[:4] == b"RIFF" else -1
-          fourcc = data[12:16] if len(data) >= 16 else b""
+          blob_sha = hashlib.sha1(f'blob {size}\0'.encode('ascii') + data).hexdigest()
+          riff_total = int.from_bytes(data[4:8], 'little') + 8 if len(data) >= 30 and data[:4] == b'RIFF' else -1
+          fourcc = data[12:16] if len(data) >= 16 else b''
+          width = height = -1
+          if fourcc == b'VP8 ' and len(data) >= 30 and data[23:26] == b'\x9d\x01\x2a':
+              width = int.from_bytes(data[26:28], 'little') & 0x3fff
+              height = int.from_bytes(data[28:30], 'little') & 0x3fff
 
-          print(f"MASTER_SIZE={size}")
-          print(f"MASTER_SHA256={sha}")
-          print(f"MASTER_GIT_BLOB_SHA={git_blob_sha}")
-          print(f"MASTER_RIFF_TOTAL={riff_total}")
-          print(f"MASTER_FOURCC={fourcc!r}")
+          print('MASTER_SIZE=', size)
+          print('MASTER_SHA256=', sha)
+          print('MASTER_GIT_BLOB_SHA=', blob_sha)
+          print('MASTER_RIFF_TOTAL=', riff_total)
+          print('MASTER_FOURCC=', repr(fourcc))
+          print('MASTER_DIMENSIONS=', f'{width}x{height}')
 
-          if size != expected_size:
-              raise SystemExit(f"SIZE MISMATCH: {size} != {expected_size}")
-          if sha != expected_sha:
-              raise SystemExit(f"SHA256 MISMATCH: {sha} != {expected_sha}")
-          if git_blob_sha != expected_blob_sha:
-              raise SystemExit(f"GIT BLOB SHA MISMATCH: {git_blob_sha} != {expected_blob_sha}")
-          if riff_total != expected_size:
-              raise SystemExit(f"RIFF TOTAL MISMATCH: {riff_total} != {expected_size}")
-          if fourcc != b"VP8 ":
-              raise SystemExit(f"FOURCC MISMATCH: {fourcc!r}")
+          if size != expected_size: raise SystemExit(f'SIZE MISMATCH: {size} != {expected_size}')
+          if sha != expected_sha: raise SystemExit(f'SHA256 MISMATCH: {sha} != {expected_sha}')
+          if blob_sha != expected_blob_sha: raise SystemExit(f'GIT BLOB SHA MISMATCH: {blob_sha} != {expected_blob_sha}')
+          if riff_total != expected_size: raise SystemExit(f'RIFF TOTAL MISMATCH: {riff_total} != {expected_size}')
+          if fourcc != b'VP8 ': raise SystemExit(f'FOURCC MISMATCH: {fourcc!r}')
+          if (width, height) != (1024,1536): raise SystemExit(f'DIMENSIONS MISMATCH: {(width,height)}')
 
-          with open("/tmp/seal-of-the-curse.webp", "wb") as f:
+          with open('/tmp/seal-of-the-curse.webp','wb') as f:
               f.write(data)
-          print("SOURCE_INTEGRITY_GATE=PASS")
+          print('SOURCE_BYTE_INTEGRITY=PASS')
           PY
+
+          ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height -of default=noprint_wrappers=1 /tmp/seal-of-the-curse.webp
+          ffmpeg -v error -i /tmp/seal-of-the-curse.webp -f null -
+          echo "SOURCE_FULL_DECODE=PASS"
 
       - name: Create candidate-v2 from fresh main and verify Git object before and after push
         env:
