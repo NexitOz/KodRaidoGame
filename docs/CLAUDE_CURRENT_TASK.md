@@ -43,6 +43,31 @@ before the next attempt.
 Full analysis:
 `docs/agent-reports/2026-08-27-art-pack-03-card-02-firestorage-transport-blocked.md`.
 
+## ALSO BLOCKED 2026-08-27 — GitHub Release transport cannot be driven from this session
+
+The owner redirected the transport to a GitHub-native draft Release and asked Claude Code to upload
+the master itself. That cannot be done here, for two independent reasons:
+
+1. **The master does not exist in this environment.** A full filesystem search finds no
+   `seal-of-the-curse.webp` and no file of 326,508 bytes anywhere. The only Card 02 binaries present
+   are the two truncated fragments. The Release recommendation always had ChatGPT performing the
+   upload — the receiving agent is only ever the **download** side of that hop.
+2. **This session has no release-write capability.** The GitHub MCP server exposes only
+   `list_releases`, `get_latest_release` and `get_release_by_tag` — all read-only. There is no
+   `create_release`, no `upload_release_asset`, and no `gh` CLI.
+
+Blocker 1 is decisive on its own: release-write access would not help, because there would still be
+nothing to upload.
+
+Per the owner's instruction, no workaround was invented and no excluded route was used — firestorage
+was not contacted, and `assets/seal-of-the-curse-candidate` was not read, reused or repaired.
+
+**The upload must be performed by whoever holds the master.** The download half is confirmed
+reachable, so once the asset exists this task runs unchanged from Step 1.
+
+Full analysis:
+`docs/agent-reports/2026-08-27-art-pack-03-card-02-github-release-transport-blocked.md`.
+
 Everything below is unchanged and runs as written once the master is reachable.
 
 ## Goal

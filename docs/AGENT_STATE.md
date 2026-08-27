@@ -11,15 +11,14 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** Card 02 **BLOCKED — firestorage.ai denied by egress policy; master still not in the repository**
+- **Status:** Card 02 **BLOCKED — no working transport; the accepted master has never reached this session or the repository**
 - **Current target:** `seal-of-the-curse` / «Печать Проклятия»
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
 - **Current task commit:** `2a08ffc4fc744b98ecbce06a3dff4ea0c1cb955e`
-- **Latest handoff:** `docs/agent-reports/2026-08-27-art-pack-03-card-02-firestorage-transport-blocked.md`
-- **Latest task-result commit:** `7672f520f74d9a5bda9395c77df6e75b3ff4bf21` (blocked handoff written), amended by the second-attempt commit below
-- **Prior handoff:** `docs/agent-reports/2026-08-27-art-pack-03-card-02-candidate-rejected.md`
+- **Latest handoff:** `docs/agent-reports/2026-08-27-art-pack-03-card-02-github-release-transport-blocked.md`
+- **Prior handoff:** `docs/agent-reports/2026-08-27-art-pack-03-card-02-firestorage-transport-blocked.md`
 - **Branch:** `main`
-- **Open blocker:** the accepted `seal-of-the-curse` master has never reached the repository. No transport route currently works from this session. **Owner/ChatGPT action is required to unblock — see "Recommended: GitHub Release asset" below.**
+- **Open blocker:** the accepted `seal-of-the-curse` master has never reached this session or the repository. **The remaining step cannot be performed by Claude Code — the upload must come from whoever holds the master. See "Transport attempt 3" below.**
 
 ## Card 01 — COMPLETE END TO END
 
@@ -145,6 +144,41 @@ The 27-byte fragment's RIFF header declared **313,964** bytes against the canoni
 Firestorage's independently reported 326,508 supports the canonical figure, but one `wc -c` +
 `sha256sum` on the real local master would settle it before the next attempt — otherwise a correct
 file could fail the gate on stale expected values.
+
+## Transport attempt 3 — GitHub Release: CANNOT BE PERFORMED BY CLAUDE CODE
+
+The owner redirected the transport to a GitHub-native draft Release, with Claude Code asked to
+upload the master itself. **That cannot be done from this session**, for two independent reasons.
+
+**1. The master does not exist in this environment — decisive.** A full filesystem search finds no
+`seal-of-the-curse.webp` anywhere (only the brief markdown) and no file of 326,508 bytes anywhere.
+The only Card 02 binaries present are the two truncated fragments. The Release recommendation always
+had ChatGPT performing the upload; the receiving agent is only ever the **download** side of that
+hop.
+
+**2. This session has no release-write capability — independent.** The GitHub MCP server exposes only
+`list_releases`, `get_latest_release` and `get_release_by_tag`, all read-only. There is no
+`create_release`, no `upload_release_asset`, and no `gh` CLI.
+
+Blocker 1 stands alone: granting release-write access would not help, because there would still be
+nothing to upload.
+
+Per the owner's instruction, **no workaround was invented**. firestorage was not contacted in this
+attempt, and `assets/seal-of-the-curse-candidate` was not read, reused or repaired.
+
+### What must happen next — owner / ChatGPT action
+
+The **download** half is confirmed reachable and needs no policy change, so this transport is still
+the right design. It needs its upload performed by the party holding the master:
+
+- **Option A — draft Release asset.** ChatGPT or the owner creates a draft release on
+  `NexitOz/KodRaidoGame`, uploads `seal-of-the-curse.webp`, and reports the asset id or download URL
+  plus the size and SHA-256 measured on that machine. Claude Code then downloads with
+  `Accept: application/octet-stream`, runs the integrity gate, and proceeds with candidate-v2.
+- **Option B — direct git CLI commit.** From the machine holding the master, commit it to
+  `assets/seal-of-the-curse-candidate-v2` and push, verifying
+  `git cat-file -s HEAD:art-source/seal-of-the-curse.webp` == `326508` **before** pushing. Claude
+  Code then fetches, re-verifies the remote bytes, and runs the visual QA.
 
 ## Current task — BLOCKED at Step 1
 
