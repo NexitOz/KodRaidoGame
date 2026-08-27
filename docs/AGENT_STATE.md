@@ -11,28 +11,27 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** 11-card production-sync **PREPARED — PR #36 OPEN, NOT MERGED, NOT AUTHORIZED**
-- **Current target:** post-merge controlled production-art sync preparation for `acolyte-of-the-white-rune` / «Послушник Белой Руны»
+- **Status:** 11-card production sync **PREPARED + MERGED — NOT AUTHORIZED, NOT RUN**
+- **Current target:** explicit owner authorization gate for the controlled 11-card production-art sync
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
-- **Current task commit:** `4b8caa44b53857e2789b4b3f8ee24a856bb57a7d`
-- **Latest transition report:** `docs/agent-reports/2026-08-27-art-pack-03-card-01-integration-merged-transition.md`
-- **Transition report commit:** `ec16f77b41783ca0f375f2330583537192621256`
+- **Current task commit:** `088da3d3f6e2c36cee808f3acc60313bb3051c1c`
+- **Latest transition report:** `docs/agent-reports/2026-08-27-art-pack-03-card-01-sync-preparation-merged-transition.md`
+- **Transition report commit:** `484f3ae9e16ed26f4a6442c9c9e11b5783e50291`
 - **Branch:** `main`
-- **Current preparation PR:** #36 — https://github.com/NexitOz/KodRaidoGame/pull/36 (OPEN, **not merged**)
-- **Preparation branch:** `claude/prepare-11-card-production-art-sync` @ `0ef199b`
-- **Preparation handoff:** full final report posted as a comment on PR #36
+- **Open preparation PR:** none; PR #36 is merged
 
-## Card 01 repository integration — MERGED
+## Card 01 — COMPLETE THROUGH REPOSITORY INTEGRATION
 
-PR #35, `Integrate approved PURIFICATION Card 01 production artwork (acolyte-of-the-white-rune)`, was independently reviewed and merged.
+PURIFICATION Card 01:
 
-- reviewed PR head: `7e8778b826924f53b69771d36f8a850dae4462c5`
-- squash merge commit / immutable merged source: `92cc662fb5a43963c934c6c5f0aa4f1d0e8269e9`
-- GitHub Actions CI on reviewed head: PASS (`33076310764`)
-- Vercel status on reviewed head: PASS
-- changed files in integration PR: exactly 4
+- slug: `acolyte-of-the-white-rune`
+- name: «Послушник Белой Руны»
+- CHARACTER / COMMON / cost 1 / 1/3
+- status: **FINAL APPROVED**
+- integration PR #35: MERGED
+- integration merge commit / immutable artwork+seed source: `92cc662fb5a43963c934c6c5f0aa4f1d0e8269e9`
 
-Integrated production art:
+Production artwork:
 
 - path: `apps/web/public/art/cards/acolyte-of-the-white-rune.webp`
 - dimensions: `1024 × 1536`
@@ -40,140 +39,102 @@ Integrated production art:
 - container: plain `VP8 `
 - SHA-256: `cb76658416628f91b721c826a451342319bcfe39ff3b5f770a5f8ca73ba499fe`
 
-`apps/game-server/prisma/seed.ts` now records only this card's approved production art fields:
+All required visual surfaces and the full acceptance checklist passed. Durable record: `docs/art-pack-03.md`.
 
-- `artworkUrl: '/art/cards/acolyte-of-the-white-rune.webp'`
-- `rightsStatus: 'owned'`
+Owner-accepted caveats:
 
-`docs/art-pack-03.md` records Card 01 as FINAL APPROVED. `/admin/art-review` now reviews the production path rather than the candidate path.
+1. ~2–4 px head clearance under the current 4:5 crop; current shipped crops pass, but any tighter future crop must re-check this card.
+2. Rendering is more photographic than the older painterly baseline; this exact image was explicitly accepted.
 
-## Card 01 visual QA — COMPLETE
+## 11-card controlled production-sync preparation — MERGED
 
-All required surfaces passed against the exact approved master:
+PR #36, `Prepare controlled production card-art sync 10 → 11 (Art Pack 03 Card 01)`, was independently reviewed and merged.
 
-- raw master
-- `CardView` 3:4
-- `CardDetailDrawer` 4:5
-- `HandCardPreview` 7:9
-- `CreatureSlot` 3:4
-- `/admin/art-review` desktop
-- `/admin/art-review` 390 px mobile
-- 92 px thumbnail
-- COMMON-vs-LEGENDARY hierarchy vs. `high-warden-of-the-white-rune`
+- reviewed PR head: `0ef199b5f389e6811a0dcd74711d67ea37bb2fb6`
+- squash merge commit: `a3810c4bbc91c1a4c684e79b64433cfa7c1e51c4`
+- changed files: exactly 3
+- reviewed-head CI: PASS, run `33077874418`
+- reviewed-head Vercel status: PASS
 
-The §15 checklist passed in full.
+Merged sync configuration:
 
-Owner-accepted caveats remain documented:
+- immutable source pin: `92cc662fb5a43963c934c6c5f0aa4f1d0e8269e9`
+- target slugs: 11
+- new target: `acolyte-of-the-white-rune`
+- confirmation gate: `SYNC-11-CARD-ART-PRODUCTION`
+- all workflow target counts/assertions: 11
+- script/workflow slug sets and order: matched during offline review
 
-1. head clearance under the binding 4:5 crop is only ~2–4 px; current shipped crops pass, but any tighter future crop must re-check this card;
-2. rendering is more photographic than the older painterly baseline; the exact image was explicitly accepted.
+The source pin intentionally remains the Card 01 integration merge commit. Later docs/config-only commits are allowed by the workflow's guarded-path immutability check; drift in `seed.ts`, Prisma schema, or committed card artwork after that source pin would block the workflow.
 
-## Current task — PREPARE CONTROLLED SYNC 10 → 11 ONLY
+## Production authorization boundary — HARD STOP
 
-Execute `docs/CLAUDE_CURRENT_TASK.md` exactly as written.
+The 11-card configuration is merged, but **no 11-card production sync has been authorized or run**.
 
-The preparation must use this exact immutable merged source:
+The string `SYNC-11-CARD-ART-PRODUCTION` existing in the workflow is a dormant gate value only. It is not standing authorization.
 
-`92cc662fb5a43963c934c6c5f0aa4f1d0e8269e9`
+Independent review confirmed no new production card-art workflow dispatch occurred during Claude's preparation. The latest production card-art dispatch remains the previously authorized ten-card run:
 
-Required preparation scope:
+- run: `32778836668`
+- date: 2026-08-24
+- result: success
 
-- extend `apps/game-server/scripts/sync-production-card-art.ts` from 10 to 11 targets by adding `acolyte-of-the-white-rune`
-- repoint `REQUIRED_SOURCE_COMMIT` to the merge commit above
-- extend `.github/workflows/production-card-art-sync.yml` to the same 11-card target set
-- update `SOURCE_COMMIT` to the same immutable SHA
-- move every controlled target-count assertion from 10 to 11
-- replace the consumed old confirmation gate with the fresh dormant string `SYNC-11-CARD-ART-PRODUCTION`
-- open a dedicated preparation PR with full handoff
+Until the owner separately gives fresh explicit authorization, agents must NOT:
 
-### Critical authorization boundary
-
-This task is **configuration preparation only**.
-
-The new confirmation string being present in the workflow is **not authorization to use it**.
-
-The agent must NOT:
-
+- dispatch `production-card-art-sync.yml`
 - connect to Railway production
-- run the production scope command
-- run a production `--check`
+- execute the production-scope command
+- use a production `DATABASE_URL`
+- run production `--check`
 - run `--apply`
-- query the production DB, even read-only
-- dispatch the workflow
+- query the production database, including read-only queries
 - mutate the production database
 
-After the preparation PR is reviewed and merged, the owner must separately provide fresh explicit authorization before any production sync run.
+Current task is therefore a waiting gate, not an execution task.
 
-## Current controlled production-sync state before preparation
+## Expected later authorized run
 
-The repository still contains the already-executed ten-card configuration:
+Only after explicit owner authorization should the repository transition to execution. Normal expected PRE-WRITE state is `ROWS_REQUIRING_MUTATION=1`, because only `acolyte-of-the-white-rune` should be stale in production.
 
-- source pin: `23e83c9978a9045059d3009eb1983b17f005d1d3`
-- ten target slugs
-- confirmation string: `SYNC-10-CARD-ART-PRODUCTION`
+If the PRE-WRITE mutation count is greater than 1, stop and investigate drift before APPLY.
 
-That old confirmation is **CONSUMED** and grants nothing for future runs.
+Later successful-run gates:
 
-## Previous milestones
+- `TARGET_ROWS=11`
+- `UNIQUE_SLUGS=11`
+- `TRANSACTION_COMMITTED=YES` if an APPLY occurs
+- `TARGET_ROWS_FINAL=11`
+- `SOURCE_OF_TRUTH_MATCH=11/11`
+- `NON_TARGET_FIELD_CHANGES=0`
+- independent POST-WRITE `ROWS_REQUIRING_MUTATION=0`
 
-### SHADOW Art Pack 02 — COMPLETE
+## Art Pack 03 remaining cards
 
-Cards 01–04 are FINAL APPROVED and the prior controlled ten-card production sync completed successfully. Do not reopen it as current work.
-
-### PURIFICATION Art Pack 03
-
-- Card 01 `acolyte-of-the-white-rune` — FINAL APPROVED, repository integration MERGED
+- Card 01 `acolyte-of-the-white-rune` — FINAL APPROVED, integrated, 11-card sync prepared
 - Card 02 `seal-of-the-curse` — not started
 - Card 03 `warden-of-the-barrier` — not started
 - Card 04 `rune-of-curse-breaking` — not started
 
-Do not begin Card 02 inside the sync-preparation task.
+Do not begin Card 02 as part of the authorization-wait task. A separate new task should move the project there when appropriate.
 
-## 11-card sync preparation — DONE, awaiting review
+## Previous milestone
 
-PR #36 on `claude/prepare-11-card-production-art-sync` (`0ef199b`) prepares the 10 → 11 extension.
-Three files: the sync script (pin repointed, 11th slug added), the workflow (pins, slug list,
-wording and **every** count assertion moved 10 → 11, fresh confirmation string), and
-`docs/art-pack-03.md`.
-
-- **New immutable pin:** `92cc662fb5a43963c934c6c5f0aa4f1d0e8269e9` — the merged Card 01 integration
-- **Target slugs:** 11, with `acolyte-of-the-white-rune` appended
-- **Fresh confirmation:** `SYNC-11-CARD-ART-PRODUCTION`
-
-**Nothing was executed.** No production connection, no workflow dispatch, no `--check`, no
-`--apply`, no database mutation. The production database is unchanged.
-
-**The confirmation string in the workflow is NOT authorization.** It stays dormant until the owner
-supplies it separately, after PR #36 is reviewed and merged. `SYNC-10-CARD-ART-PRODUCTION` is
-consumed and is now absent from the workflow entirely.
-
-Verified offline against the pinned commit: all 11 seed definitions carry the expected `artworkUrl`
-and `rightsStatus: 'owned'`; all 11 WebP files exist; script and workflow slug lists are identical
-and in the same order; the script's real `deriveDesiredValues` (run with `PrismaClient` stripped out,
-so it cannot connect) produces exactly 11 correct targets; and the workflow's own immutability guard
-passes, since only docs commits have landed on `main` since the pin.
-
-Two notes carried forward: the repo's `lint`/`typecheck` do **not** cover `scripts/`, so the sync
-script was checked with ESLint and `tsc` directly; and the script was deliberately not run through
-`prettier --write`, because it was already Prettier-dirty on `main` and a write would reformat 37
-unrelated lines in a file that must stay reviewable line-by-line.
+SHADOW Art Pack 02 remains complete end to end. Its prior ten-card production sync was executed successfully. `SYNC-10-CARD-ART-PRODUCTION` is consumed and grants no future authorization.
 
 ## Recommended next action
 
-1. Review and merge PR #36.
-2. **Separately and explicitly**, supply `SYNC-11-CARD-ART-PRODUCTION` to authorize the actual sync
-   run. That is a distinct decision — PR #36 does not request it, and no part of the preparation
-   task obtained it.
+Await a separate owner decision:
 
-On that run, expect `ROWS_REQUIRING_MUTATION=1` (only `acolyte-of-the-white-rune` should differ),
-`SOURCE_OF_TRUTH_MATCH=11/11` and `NON_TARGET_FIELD_CHANGES=0`. A higher mutation count means
-production has drifted from the pinned source of truth and deserves a look before proceeding.
+- either explicitly authorize the 11-card production sync with the fresh one-use confirmation, then create an execution task;
+- or leave production untouched and create a separate task to begin PURIFICATION Card 02.
+
+Do not infer either choice from this state file.
 
 ## Reader protocol
 
 1. Read this file.
 2. Read `docs/CLAUDE_CURRENT_TASK.md`.
-3. Read `docs/agent-reports/2026-08-27-art-pack-03-card-01-integration-merged-transition.md` for the post-merge transition.
+3. Read `docs/agent-reports/2026-08-27-art-pack-03-card-01-sync-preparation-merged-transition.md`.
 4. Read `docs/art-pack-03.md` for the durable Card 01 record.
-5. Resolve fresh `main` and verify merge commit `92cc662fb5a43963c934c6c5f0aa4f1d0e8269e9` before acting.
+5. Resolve fresh `main` before acting.
 6. Repository state is authoritative over stale chat summaries.
