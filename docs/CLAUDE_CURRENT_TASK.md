@@ -1,160 +1,66 @@
-# CURRENT TASK — Art Pack 03 Card 01: prepare controlled production-art sync 10 → 11
+# CURRENT TASK — 11-card production art sync: WAIT FOR OWNER AUTHORIZATION
+
+## State
+
+The 10 → 11 controlled production-art sync preparation is complete and merged.
+
+- preparation PR: #36
+- reviewed head: `0ef199b5f389e6811a0dcd74711d67ea37bb2fb6`
+- preparation merge commit: `a3810c4bbc91c1a4c684e79b64433cfa7c1e51c4`
+- immutable artwork/seed source pin used by the sync: `92cc662fb5a43963c934c6c5f0aa4f1d0e8269e9`
+- target count: 11
+- new target: `acolyte-of-the-white-rune`
+- dormant confirmation gate: `SYNC-11-CARD-ART-PRODUCTION`
+
+Transition record:
+
+`docs/agent-reports/2026-08-27-art-pack-03-card-01-sync-preparation-merged-transition.md`
 
 ## Goal
 
-Prepare the repository changes required to extend the controlled production card-art sync from ten cards to eleven by adding the already-approved and already-merged PURIFICATION Card 01.
+**Do nothing operational until the owner gives fresh explicit authorization for the actual 11-card production sync.**
 
-**This task is PREPARATION ONLY. Do not connect to production, dispatch the workflow, run a production `--check`, run `--apply`, or mutate the production database.**
+This file is intentionally a hard waiting gate. The presence of `SYNC-11-CARD-ART-PRODUCTION` in the workflow is not authorization by itself.
 
-## Immutable source
+## Forbidden until explicit owner authorization
 
-Card 01 repository integration is already merged on `main`.
+Do not:
 
-Use this exact immutable production source commit:
+- dispatch `.github/workflows/production-card-art-sync.yml`
+- connect to Railway production
+- run the production-scope command
+- use a production `DATABASE_URL`
+- run a production `--check`
+- run `--apply`
+- query the production database, including read-only queries
+- mutate the production database
+- create another authorization or dispatch on the owner's behalf
 
-`92cc662fb5a43963c934c6c5f0aa4f1d0e8269e9`
+Do not begin PURIFICATION Card 02 inside this waiting task unless a separate new task explicitly moves the project there.
 
-It contains the approved production asset and matching `seed.ts` source of truth for:
+## When authorization is eventually supplied
 
-- slug: `acolyte-of-the-white-rune`
-- artwork: `/art/cards/acolyte-of-the-white-rune.webp`
-- rights: `owned`
-
-Post-merge transition record:
-
-`docs/agent-reports/2026-08-27-art-pack-03-card-01-integration-merged-transition.md`
-
-Durable Art Pack 03 record:
-
-`docs/art-pack-03.md`
-
-## Current controlled-sync state
-
-Before changing anything, read fresh versions of:
-
-- `apps/game-server/scripts/sync-production-card-art.ts`
-- `.github/workflows/production-card-art-sync.yml`
-
-The current configuration is intentionally still the previously executed ten-card version:
-
-- `REQUIRED_SOURCE_COMMIT = 23e83c9978a9045059d3009eb1983b17f005d1d3`
-- 10 target slugs
-- workflow confirmation `SYNC-10-CARD-ART-PRODUCTION`
-- all workflow file/count assertions use 10
-
-That old confirmation string is **CONSUMED**. It is not standing authorization.
-
-## Required work
-
-Create a dedicated branch and PR from fresh `main`. Change only the controlled sync configuration and the minimal durable documentation/handoff required by protocol.
-
-### 1. Sync script
-
-In `apps/game-server/scripts/sync-production-card-art.ts`:
-
-- repoint `REQUIRED_SOURCE_COMMIT` to:
-  `92cc662fb5a43963c934c6c5f0aa4f1d0e8269e9`
-- add `acolyte-of-the-white-rune` to `TARGET_SLUGS`
-- preserve all existing safety properties:
-  - desired values derived only from the immutable pinned `seed.ts`
-  - exact target-row invariant
-  - pre-write snapshot gate
-  - Serializable transaction
-  - non-target-field fingerprints
-  - post-write source-of-truth verification
-- update comments that explicitly say "ten" so they accurately say eleven where applicable
-- do not change card data or general sync semantics beyond the 10 → 11 extension
-
-### 2. Workflow
-
-In `.github/workflows/production-card-art-sync.yml`, move the complete configuration together:
-
-- `REQUIRED_SOURCE_COMMIT` → `92cc662fb5a43963c934c6c5f0aa4f1d0e8269e9`
-- `SOURCE_COMMIT` → the same SHA
-- add `acolyte-of-the-white-rune` to the committed-artwork verification slug list
-- update the job/step wording from ten to eleven where it describes the target count
-- update **every** numerical assertion from 10 to 11 where it is asserting the controlled target set, including:
-  - artwork-files-present result
-  - `TARGET_ROWS`
-  - `UNIQUE_SLUGS`
-  - maximum `ROWS_REQUIRING_MUTATION`
-  - `TARGET_ROWS_FINAL`
-  - `SOURCE_OF_TRUTH_MATCH`
-  - independent POST-WRITE assertions
-
-Use the fresh one-use confirmation string:
+Fresh owner authorization must be a separate explicit decision after this merged preparation. The required one-use confirmation value is:
 
 `SYNC-11-CARD-ART-PRODUCTION`
 
-Update both the workflow input description and exact manual-confirmation gate to that value.
+Only after that explicit authorization should the repository be transitioned to an execution task. The execution must retain the existing controlled workflow gates and independently inspect the PRE-WRITE report. Expected normal state is one row requiring mutation, but that is an expectation, not permission to continue blindly: if `ROWS_REQUIRING_MUTATION` is greater than 1, stop and investigate production drift before any APPLY.
 
-**Important:** placing this string in the workflow does not authorize its use. It remains dormant until the owner separately gives that exact confirmation after this preparation PR is reviewed and merged.
+Successful completion criteria for the later authorized run remain:
 
-### 3. Documentation
-
-Update `docs/art-pack-03.md` only as needed to state that the eleven-card production sync is PREPARED / AWAITING OWNER AUTHORIZATION once the PR work is complete. Do not claim the production DB has been changed.
-
-Do not mark Card 02 started as part of this task.
-
-## Validation — repository/local only
-
-Validation must not require production credentials or production connectivity.
-
-At minimum:
-
-- `git diff --check`
-- Prettier on changed text/config files where applicable
-- lint / typecheck for the game-server script if repository commands support it
-- inspect the pinned commit with local git and prove all 11 target seed definitions contain the required production `artworkUrl` and `rightsStatus: owned`
-- prove all 11 committed WebP paths exist at the pinned source commit
-- static audit that every workflow target-count assertion moved consistently from 10 → 11
-- static audit that the old confirmation string is absent from the prepared workflow and the new string appears only where expected
-- run any safe unit/static test that does not connect to production
-
-**Forbidden during validation:**
-
-- Railway production scope command
-- production `DATABASE_URL`
-- production `--check`
-- `--apply`
-- workflow dispatch
-- any production DB query, including read-only connectivity checks
-
-## Hard scope exclusions
-
-Do not modify:
-
-- `apps/game-server/prisma/seed.ts`
-- any artwork file
-- any `artworkUrl` / `rightsStatus`
-- Prisma schema or migrations
-- gameplay / balance / card text / stats / rarity / faction / effects
-- Battlefield or player-facing UI
-- Railway / Vercel configuration
-- production database
-- Art Pack 01 / 02 approved assets
-
-Do not begin Card 02 artwork work in this task.
-
-## Delivery
-
-Open a dedicated PR. Follow the permanent `CLAUDE.md` Agent Handoff Protocol and post the full final report on the PR under:
-
-`## AGENT HANDOFF — FINAL REPORT`
-
-The handoff must explicitly include:
-
-- base and head SHA
-- exact changed files
-- the new pinned immutable source SHA
-- final 11-slug list
-- every updated count assertion
-- the fresh confirmation string
-- validation results
-- explicit confirmation that **no production connection, workflow dispatch, `--check`, `--apply`, or database mutation occurred**
+- `TARGET_ROWS=11`
+- `UNIQUE_SLUGS=11`
+- expected `ROWS_REQUIRING_MUTATION=1` before APPLY if only Card 01 is stale
+- `TRANSACTION_COMMITTED=YES` if APPLY is needed
+- `TARGET_ROWS_FINAL=11`
+- `SOURCE_OF_TRUTH_MATCH=11/11`
+- `NON_TARGET_FIELD_CHANGES=0`
+- independent POST-WRITE `ROWS_REQUIRING_MUTATION=0`
 
 ## Stop condition
 
-Stop with the preparation PR open for review.
+Stop immediately with status:
 
-Do **not** merge the preparation PR automatically unless separately authorized, and under no circumstances dispatch the production sync as part of this task.
+**AWAITING EXPLICIT OWNER AUTHORIZATION — PRODUCTION SYNC NOT RUN.**
+
+Do not make repository changes merely to restate this waiting status.
