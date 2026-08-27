@@ -1,5 +1,42 @@
 # CURRENT TASK — Art Pack 03 Card 02: verify and visually review accepted candidate
 
+## BLOCKED 2026-08-27 — candidate REJECTED at the integrity gate
+
+`assets/seal-of-the-curse-candidate` @ `6f0e00f` **must not be used.**
+
+`git cat-file -s 6f0e00f:art-source/seal-of-the-curse.webp` prints **27**, not `326508`. The
+committed file is 27 bytes: the RIFF header, the `VP8 ` chunk header and the first four bytes of the
+VP8 keyframe, ending before the width/height fields. **0.0086%** of the declared length arrived, and
+it does not decode. GitHub reports the blob as 27 bytes and the commit diffstat records
+`Bin 0 -> 27 bytes`, so the truncation is baked into the commit, not a fetch artifact.
+
+**A second, separate problem:** the surviving RIFF header declares **313,964** bytes, while the
+provenance note claims **326,508**. They differ by 12,544 and cannot both describe the same file. So
+unlike Card 01 — where the header corroborated the note — here the recorded expected size and SHA do
+**not** describe the file whose header arrived.
+
+Visual QA was not started. Nothing was staged, `/admin/art-review` was untouched, and **no visual
+judgement of the artwork has been made.**
+
+### Required fix
+
+1. Do not regenerate — nothing suggests the accepted image is bad, only that no usable bytes arrived.
+2. **First resolve the size discrepancy.** On the machine holding the master, run `wc -c` and
+   `sha256sum` on the exact file to be uploaded and reconcile against 326,508 / `699db6b7…`. Correct
+   the provenance note if they disagree; the gate is meaningless if its expected values describe a
+   different file.
+3. Commit with the **git CLI from local disk** — not the connected GitHub tooling, which has now
+   truncated binaries three times (14,999 / 15,042 / 27 bytes).
+4. **Before pushing:** `git cat-file -s HEAD:art-source/seal-of-the-curse.webp` must match the real
+   byte size.
+5. Push to a fresh branch `assets/seal-of-the-curse-candidate-v2`; leave the broken branch as
+   evidence.
+
+Full analysis: `docs/agent-reports/2026-08-27-art-pack-03-card-02-candidate-rejected.md`.
+
+Everything below is unchanged and applies to the v2 candidate, with the branch and commit
+substituted.
+
 ## Goal
 
 Verify the owner-accepted PURIFICATION Card 02 candidate byte-for-byte, then run real surface QA. Stop for owner approval. No promotion.
