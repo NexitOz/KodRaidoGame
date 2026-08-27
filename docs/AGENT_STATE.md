@@ -11,40 +11,84 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** Card 01 master-art brief READY FOR AGENT EXECUTION
+- **Status:** Card 01 master-art brief COMPLETE — AWAITING OWNER REVIEW
 - **Current target:** `acolyte-of-the-white-rune` / «Послушник Белой Руны»
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
-- **Current task-result commit:** `8e97d32d4bd83299ae397eba11d10edba1ea3f96`
-- **Latest handoff report:** `docs/agent-reports/2026-08-27-art-pack-03-card-01-task-transition.md`
-- **Latest handoff report commit:** `3f8248f00aa854dcbf28f66dd1b25955cd6be339`
+- **Current task-result commit:** `2c8639a81214749b1f4c7eb19a3a7e6d1278df56`
+- **Latest handoff report:** `docs/agent-reports/2026-08-27-art-pack-03-card-01-master-art-brief.md`
+- **Latest handoff report commit:** `c047016`
 - **Branch:** `main`
-- **PR:** none for the task transition
+- **PR:** none — documentation-only task
 
-## Current task scope
+## Completed task — Card 01 master-art brief
 
-The next task is deliberately short and documentation-only:
+The brief is written and committed:
 
-Prepare `docs/art-review/acolyte-of-the-white-rune-master-art-brief.md` for PURIFICATION Card 01.
+`docs/art-review/acolyte-of-the-white-rune-master-art-brief.md` (459 lines, commit `2c8639a`)
 
-The brief must carry forward the locked PURIFICATION language from `docs/art-bible-01.md` while making the card read as a COMMON acolyte rather than a miniature copy of the LEGENDARY `high-warden-of-the-white-rune`.
+It was derived from three real repository sources: the `acolyte-of-the-white-rune` seed entry
+(`apps/game-server/prisma/seed.ts` lines 815–827, read only), the PURIFICATION and composition
+sections of `docs/art-bible-01.md`, and a direct visual audit of the approved production file
+`apps/web/public/art/cards/high-warden-of-the-white-rune.webp`.
 
-Required brief content includes:
+All fifteen required sections are present: card/visual role, silhouette and pose, costume and
+materials, environment and architecture, lighting, faction palette, VFX and rune language, hierarchy
+differences vs. the High Warden, SHADOW differentiation, crop-safe composition through 3:4/7:9/4:5,
+mobile and thumbnail readability, forbidden drift, generation prompt, negative prompt, and a
+production acceptance checklist.
 
-- visual/card role
-- silhouette and pose
-- costume/materials
-- architecture/environment
-- lighting and palette
-- rune/VFX language
-- hierarchy difference vs. High Warden
-- differentiation vs. SHADOW
-- 1024×1536 master crop safety through shipped 3:4, 7:9, and 4:5 surfaces
-- mobile/thumbnail readability
-- forbidden drift
-- ready generation prompt + negative prompt
-- production acceptance checklist
+### The core direction, in one paragraph
 
-**Hard stop:** this task ends after the brief and handoff. No image generation, artwork integration, seed/DB/UI changes, or production sync work in the same task.
+Hold the flagship's **material** language constant (white/silver/ivory, pressed never-tattered
+edges, bright near-shadowless light, cold frost motes, engraved material-bound rune magic, frontal
+near-symmetrical posture) and invert its **structural** devices: three-quarter framing cut at
+mid-thigh instead of a full-body monument; a narrow vertical column instead of a wide pyramid; a
+bare head with no crown; one small hand-held white-stone rune tablet instead of spear-plus-shield;
+cloth-first costume with minimal silver hardware instead of full plate under a cape; gold capped at
+two hairlines and ~3% of canvas; a modest cloister arcade instead of the cathedral facade with its
+rose-window halo; and no crowd at all.
+
+### Notable design outcome
+
+Because the brief specifies no head ornament and no raised weapon, the flagship's one accepted crop
+loss (spearhead apex trimmed ~5.5–8.3%) is designed out. Card 01 is specified to ship with **zero**
+accepted crop losses, and a candidate returning with a headpiece or raised staff is an automatic
+reject on that ground alone.
+
+### Open decisions for owner review
+
+1. **Framing** — three-quarter length cut at mid-thigh rather than full body. Drives silhouette,
+   crop plan and thumbnail legibility.
+2. **Cloth-first costume** — the art bible says PURIFICATION is "armor, not robes"; a COMMON novice
+   in full plate would not read as junior, so §3 of the brief specifies cloth-first with a gorget,
+   one half-pauldron and bracers, and says so explicitly rather than departing quietly. If the
+   armour rule should hold strictly even for COMMONs, §3 is the only section to revise.
+3. **Gold budget** — two hairlines at ≤ ~3% of canvas, enforced as an automatic reject.
+
+**Hard stop respected:** no image was generated, integrated, promoted or synced. No seed, schema,
+gameplay, artwork, `/admin/art-review`, Battlefield UI, sync script, workflow, Railway/Vercel or
+production database change was made. Validation was documentation-only: `git diff --check` clean and
+Prettier clean (Prettier's first `--check` failed on table padding and emphasis style; corrected with
+`--write` and re-verified).
+
+## Next task — awaiting owner decision
+
+Nothing is authorised beyond owner review of the brief. Once the direction is approved, the natural
+next task is a generation pass producing a 1024×1536 candidate against the brief's §13/§14, committed
+to a candidate branch (the only transport that has ever worked on this project), verified byte-exact
+— plain `VP8 ` container, RIFF-declared size matching actual size, decoded dimensions 1024×1536,
+SHA-256 recorded — then reviewed through `/admin/art-review` at desktop and 390 px mobile widths.
+
+Promotion, seed changes and production sync remain **unauthorised**.
+
+### Standing note for any future Art Pack 03 promotion
+
+`apps/game-server/scripts/sync-production-card-art.ts` is still pinned to
+`REQUIRED_SOURCE_COMMIT = 23e83c9978a9045059d3009eb1983b17f005d1d3` with a ten-entry `TARGET_SLUGS`,
+and `.github/workflows/production-card-art-sync.yml` still requires the confirmation string
+`SYNC-10-CARD-ART-PRODUCTION`. That is correct as of today. Whenever an Art Pack 03 card is
+eventually promoted, the pin, the slug list and **every** count assertion in the workflow must move
+together in one change.
 
 ## Previous milestone — SHADOW Art Pack 02 COMPLETE
 
