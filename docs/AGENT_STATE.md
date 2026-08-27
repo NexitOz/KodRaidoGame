@@ -11,10 +11,10 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** Card 02 candidate 01 **REJECTED / BLOCKED — truncated to 27 bytes; re-transport required**
+- **Status:** Card 02 accepted master **RE-TRANSPORT AVAILABLE VIA FIRESTORAGE — INTEGRITY + CANDIDATE-V2 + VISUAL QA NEXT**
 - **Current target:** `seal-of-the-curse` / «Печать Проклятия»
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
-- **Current task commit:** `a2fa13bd1d23802bb6851ce80197f642f1d3eb58`
+- **Current task commit:** `2a08ffc4fc744b98ecbce06a3dff4ea0c1cb955e`
 - **Latest handoff:** `docs/agent-reports/2026-08-27-art-pack-03-card-02-candidate-rejected.md`
 - **Branch:** `main`
 
@@ -54,27 +54,25 @@ Locked concept:
 - cinematic realistic / semi-realistic premium CCG house style;
 - no SHADOW/VEIL corruption palette or spell-blast language.
 
-## Card 02 — candidate 01 REJECTED, DO NOT USE
+The owner explicitly accepted generated Candidate 01 visually on 2026-08-27. The accepted image itself must not be regenerated or altered during transport recovery.
 
-The owner explicitly accepted generated Candidate 01 on 2026-08-27.
+## Broken transport evidence — DO NOT USE
 
-Candidate branch:
+Old branch:
 
 `assets/seal-of-the-curse-candidate`
 
-Candidate commit:
+Old candidate commit:
 
 `6f0e00fca98b7452c4c1f987165cf3157753dccb`
 
-Candidate asset:
+That committed WebP is only 27 bytes and is permanently rejected as a transport artifact. Leave it as evidence; do not repair or reuse it.
 
-`art-source/seal-of-the-curse.webp`
+No visual QA was performed against the broken file.
 
-Provenance:
+## Canonical accepted master integrity
 
-`docs/art-sources/2026-08-27-purification-card-02-master-candidate.md`
-
-Expected integrity values:
+Expected exact values:
 
 - dimensions: `1024 × 1536`
 - byte size: `326508`
@@ -83,72 +81,73 @@ Expected integrity values:
 - SHA-256: `699db6b797effe04c2fd2b8642391af62da506d9e290374369bd842630258261`
 - full decode: PASS
 
-These values are mandatory. Any mismatch is **REJECTED / BLOCKED**; do not repair or re-encode.
+Any mismatch is **REJECTED / BLOCKED**. Do not repair, re-encode, resize, regenerate, or substitute.
 
-### Integrity gate result — FAILED
+## New machine-to-machine transport
 
-`git cat-file -s 6f0e00f:art-source/seal-of-the-curse.webp` prints **27**, not `326508`.
+The exact local accepted master was uploaded by ChatGPT to firestorage.ai. firestorage independently reported:
 
-| Check                   | Expected    | Actual                            | Result   |
-| ----------------------- | ----------- | --------------------------------- | -------- |
-| Byte size               | 326,508     | **27**                            | **FAIL** |
-| SHA-256                 | `699db6b7…` | `9643136c…`                       | **FAIL** |
-| RIFF-declared total     | 326,508     | **313,964**                       | **FAIL** |
-| declared == actual      | equal       | 313,964 vs 27                     | **FAIL** |
-| Dimensions              | 1024 × 1536 | undeterminable                    | **FAIL** |
-| Full decode             | succeeds    | `could not create decoder object` | **FAIL** |
-| RIFF/WEBP magic, FourCC | —           | `RIFF` / `WEBP` / `VP8 `          | PASS     |
+- file: `seal-of-the-curse.webp`
+- size: `326508` bytes
+- MIME: `image/webp`
+- retention through 2026-09-10
 
-The whole file is the RIFF header, the `VP8 ` chunk header and the first four bytes of the VP8
-keyframe — it ends before the width/height fields. **0.0086%** of the declared length arrived. The
-truncation is baked into the commit: GitHub reports the blob as 27 bytes and the diffstat records
-`Bin 0 -> 27 bytes`.
+Share URL for agent retrieval:
 
-**Two separate problems.** Beyond the truncation, the surviving RIFF header declares **313,964**
-bytes while the provenance note claims **326,508** — a 12,544-byte discrepancy. They cannot both
-describe the same file. Unlike Card 01, where the header corroborated the note, here the expected
-size and SHA do **not** describe the file whose header arrived. That must be reconciled _before_
-re-transport, or the gate will be checked against values that never applied.
+`https://firestorage.ai/ja/f/UbtC6RJp2_Ok`
 
-**No visual judgement of the artwork has been made.** QA was not started, nothing was staged, and
-`/admin/art-review` was not touched.
+This replaces manual user file handling. The user is not required to download or upload the artwork.
 
-### Third transport failure of this class
+Claude must download the file locally, independently verify all canonical integrity values, then create a fresh branch:
 
-SHADOW Card 04 v1 was 14,999 bytes; PURIFICATION Card 01 v1 was 15,042; this is 27. The connected
-GitHub tooling does not truncate at a predictable boundary, so apparent size is never a substitute
-for the byte check. The provenance note itself warned this path was unsafe after Card 01, and the
-binary went through it anyway.
+`assets/seal-of-the-curse-candidate-v2`
 
-### Required fix
+using normal git CLI from local disk. Before push and again after fetching the remote branch, verify exact byte size and SHA from committed bytes.
 
-1. Do not regenerate — nothing indicates the accepted image is bad.
-2. **Reconcile the size discrepancy first:** `wc -c` and `sha256sum` the real local master, and
-   correct the provenance note if it disagrees with 326,508 / `699db6b7…`.
-3. Commit with the **git CLI from local disk**, never the connected tooling.
-4. **Before pushing:** `git cat-file -s HEAD:art-source/seal-of-the-curse.webp` must match the real
-   byte size.
-5. Push to `assets/seal-of-the-curse-candidate-v2`; leave the broken branch as evidence.
+## Current task
 
-## Current task — BLOCKED
+Execute `docs/CLAUDE_CURRENT_TASK.md` @ `2a08ffc4fc744b98ecbce06a3dff4ea0c1cb955e`.
 
-`docs/CLAUDE_CURRENT_TASK.md` carries the verify-and-review task. Its integrity gate **failed**, so
-the QA steps below it are not runnable against candidate 01 and stand unchanged for a v2 candidate.
+Only after integrity and remote re-verification pass, perform real surface QA on:
 
-Scope remains verification + real surface QA only: verify the committed bytes first; stage the
-verified file only in the gitignored review-candidate path; add only the smallest `/admin/art-review`
-target registration if required; review raw master, `CardView` 3:4, `CardDetailDrawer` 4:5,
-`HandCardPreview` 7:9, desktop, 390 px, 92 px and 92 px grayscale; EVENT does **not** use
-`CreatureSlot`; compare Common Acolyte < Rare Event < Legendary High Warden at thumbnail scale; walk
-every reject/acceptance item in the Card 02 brief; stop for owner approval.
+- raw 2:3 master
+- `CardView` 3:4
+- `CardDetailDrawer` 4:5
+- `HandCardPreview` 7:9
+- `/admin/art-review` desktop
+- `/admin/art-review` 390px
+- 92px thumbnail
+- 92px grayscale/value-only
 
-No promotion, seed/Prisma/gameplay change, production artwork path, sync/workflow change,
-Railway/Vercel/production DB access, workflow dispatch, candidate merge, or Card 03 work is
-authorized.
+EVENT does not use `CreatureSlot`.
+
+Compare Common Acolyte < Rare Event < Legendary High Warden at 92px and walk every reject/acceptance item in the Card 02 master-art brief.
+
+Final status must be exactly:
+
+- **READY FOR OWNER VISUAL APPROVAL**, or
+- **REJECTED / BLOCKED**.
+
+No promotion, seed/Prisma/gameplay change, production artwork path, sync/workflow change, Railway/Vercel/production DB access, workflow dispatch, candidate merge, or Card 03 work is authorized.
+
+## Art transport policy — permanent operational rule
+
+For generated art masters, the user must not be used as a manual file courier.
+
+Preferred pipeline:
+
+1. ChatGPT creates/normalizes the master locally.
+2. ChatGPT uploads the exact file to a machine-readable storage relay such as firestorage.ai.
+3. Receiving agent downloads to local disk.
+4. Receiving agent verifies byte size + SHA-256 + format/decode before git.
+5. Receiving agent commits with normal git CLI.
+6. Receiving agent re-fetches and re-verifies committed bytes before QA/promotion.
+
+Do not use connected GitHub text/binary content tooling to transport generated master artwork bytes when a file-native relay is available.
 
 ## Art Pack 03 remaining cards
 
 - Card 01 `acolyte-of-the-white-rune` — COMPLETE END TO END, live in production
-- Card 02 `seal-of-the-curse` — brief complete; **candidate 01 REJECTED (27 bytes)**, awaiting re-transport
+- Card 02 `seal-of-the-curse` — accepted master available via firestorage; integrity/candidate-v2/QA next
 - Card 03 `warden-of-the-barrier` — not started
 - Card 04 `rune-of-curse-breaking` — not started
