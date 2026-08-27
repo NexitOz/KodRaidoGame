@@ -4,8 +4,10 @@ import { execFileSync } from 'node:child_process';
 
 import { PrismaClient, RightsStatus } from '@prisma/client';
 
-// Pinned to the merged `main` commit whose seed.ts is the source of truth for the ten target slugs.
-const REQUIRED_SOURCE_COMMIT = '23e83c9978a9045059d3009eb1983b17f005d1d3';
+// Pinned to the merged `main` commit whose seed.ts is the source of truth for the eleven target
+// slugs. Extended 10 -> 11 for Art Pack 03 Card 01 (`acolyte-of-the-white-rune`), whose repository
+// integration merged as this commit.
+const REQUIRED_SOURCE_COMMIT = '92cc662fb5a43963c934c6c5f0aa4f1d0e8269e9';
 const TARGET_SLUGS = [
   'necromancer-of-the-twilight-order',
   'high-warden-of-the-white-rune',
@@ -17,6 +19,7 @@ const TARGET_SLUGS = [
   'ashen-blade',
   'keeper-of-smoldering-embers',
   'rune-of-the-echoing-dusk',
+  'acolyte-of-the-white-rune',
 ] as const;
 
 type Mode = 'check' | 'apply';

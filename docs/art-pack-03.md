@@ -141,14 +141,24 @@ This was the second ~15 KB truncation on this project (SHADOW Card 04 v1 was 14,
 **The standing safeguard is `git cat-file -s HEAD:<path>` before pushing** — it reads the size back
 out of the object git actually stored, and would have caught both.
 
-## Production sync
+## Production sync — PREPARED, AWAITING OWNER AUTHORIZATION
 
-Card 01's database sync is **not** part of its integration. Extending the production sync 10 → 11 is
-a separate post-merge task, because `REQUIRED_SOURCE_COMMIT` must point at an already-merged
-integration commit. When it happens, the pin, `TARGET_SLUGS`, the workflow confirmation string and
-**every** count assertion must move together in one change.
+The ten-card controlled sync has been **prepared** for extension to eleven by adding
+`acolyte-of-the-white-rune`. Nothing has been executed: the production database is unchanged and no
+sync has run.
 
-As of this document, `apps/game-server/scripts/sync-production-card-art.ts` is still pinned to
-`23e83c9978a9045059d3009eb1983b17f005d1d3` with ten target slugs, and the workflow still requires
-`SYNC-10-CARD-ART-PRODUCTION`. That confirmation string is **consumed** and is not standing
-authorization for any future sync.
+| Item                 | Value                                                                       |
+| -------------------- | --------------------------------------------------------------------------- |
+| Immutable source pin | `92cc662fb5a43963c934c6c5f0aa4f1d0e8269e9` (the merged Card 01 integration) |
+| Target slugs         | 11                                                                          |
+| Confirmation string  | `SYNC-11-CARD-ART-PRODUCTION`                                               |
+| Status               | PREPARED — **not authorized, not dispatched, not run**                      |
+
+Placing the confirmation string in the workflow does **not** authorize its use. It stays dormant
+until the owner separately supplies that exact string after the preparation PR is reviewed and
+merged. The previous `SYNC-10-CARD-ART-PRODUCTION` is **consumed** and grants nothing.
+
+Verified offline at the pinned commit, with no production connection of any kind: all 11 seed
+definitions carry the expected `artworkUrl` and `rightsStatus: 'owned'`; all 11 WebP files exist;
+the script and workflow slug lists are identical and in the same order; and the script's real
+`deriveDesiredValues` produces exactly 11 correct targets from the pin.
