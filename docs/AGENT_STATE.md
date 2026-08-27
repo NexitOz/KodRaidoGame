@@ -145,7 +145,7 @@ Carry forward:
 - no spectral echo crowd device
 - do not reuse the High Warden's full flagship cathedral-halo dominance
 
-## Confirmed untouched by the task transition
+## Confirmed untouched by the Card 01 brief task
 
 No changes were made to:
 
@@ -163,12 +163,21 @@ No changes were made to:
 
 ## Recommended next action
 
-Execute `docs/CLAUDE_CURRENT_TASK.md` exactly as written. Produce only the PURIFICATION Card 01 master-art brief, write the required GitHub handoff, update this state file last, and stop for owner review before any image generation.
+`docs/CLAUDE_CURRENT_TASK.md` as currently written is **DONE**. Do not re-execute it.
+
+The next action belongs to the owner: review
+`docs/art-review/acolyte-of-the-white-rune-master-art-brief.md`, and in particular the three open
+decisions listed above (framing, cloth-first costume, gold budget).
+
+No agent should generate, integrate, promote or sync Card 01 artwork until the owner approves the
+brief and a new `docs/CLAUDE_CURRENT_TASK.md` authorises the generation pass.
 
 ## Reader protocol
 
 1. Read this file.
-2. Read `docs/CLAUDE_CURRENT_TASK.md`.
-3. Read `docs/agent-reports/2026-08-27-art-pack-03-card-01-task-transition.md` if transition context is needed.
+2. Read `docs/CLAUDE_CURRENT_TASK.md` — note that its brief-only task is already complete as of
+   commit `2c8639a`; treat it as history unless the owner has replaced it.
+3. Read `docs/agent-reports/2026-08-27-art-pack-03-card-01-master-art-brief.md` for the full handoff,
+   and `docs/art-review/acolyte-of-the-white-rune-master-art-brief.md` for the brief itself.
 4. Resolve fresh `main` HEAD from GitHub before acting.
 5. Repository state is authoritative over stale chat summaries.
