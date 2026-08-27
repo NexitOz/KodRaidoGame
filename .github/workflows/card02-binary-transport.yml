@@ -32,7 +32,6 @@ jobs:
           import io
           import json
           import os
-          import re
           import urllib.parse
           import urllib.request
           import zipfile
@@ -82,14 +81,21 @@ jobs:
           if not direct:
               raise SystemExit(f"WeTransfer API returned no direct link: {payload}")
 
-          file_req = urllib.request.Request(direct, headers={"User-Agent": ua})
+          file_req = urllib.request.Request(
+              direct,
+              headers={"User-Agent": ua, "Range": "bytes=0-"},
+          )
           with urllib.request.urlopen(file_req, timeout=120) as resp:
               downloaded = resp.read()
+              status = getattr(resp, "status", None)
               disposition = resp.headers.get("Content-Disposition", "")
               content_type = resp.headers.get("Content-Type", "")
+              content_range = resp.headers.get("Content-Range", "")
 
+          print(f"TRANSFER_HTTP_STATUS={status}")
           print(f"TRANSFER_HTTP_BYTES={len(downloaded)}")
           print(f"TRANSFER_CONTENT_TYPE={content_type}")
+          print(f"TRANSFER_CONTENT_RANGE={content_range}")
           print(f"TRANSFER_CONTENT_DISPOSITION={disposition}")
 
           data = downloaded
