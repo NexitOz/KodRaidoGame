@@ -11,67 +11,76 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** Card 01 candidate v1 **REJECTED — truncated file. Re-transport required.**
+- **Status:** Card 01 candidate **VERIFIED + REVIEWED — READY FOR OWNER VISUAL APPROVAL**
 - **Current target:** `acolyte-of-the-white-rune` / «Послушник Белой Руны»
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
-- **Latest handoff:** `docs/agent-reports/2026-08-27-art-pack-03-card-01-candidate-rejected.md`
+- **Latest handoff:** `docs/agent-reports/2026-08-27-art-pack-03-card-01-candidate-review.md`
+- **Prior handoff (v1 rejection):** `docs/agent-reports/2026-08-27-art-pack-03-card-01-candidate-rejected.md`
 - **Superseded generation handoff:** `docs/agent-reports/2026-08-27-art-pack-03-card-01-candidate-generated.md` — its
   reported integrity values describe the generator's **local** file, not the blob that reached git
 - **Branch:** `main`
 - **PR:** none
 
-## Candidate source — v1 REJECTED, DO NOT USE
+## Candidate source — VERIFIED
 
-- branch: `assets/acolyte-of-the-white-rune-candidate`
-- candidate commit: `1652efaa1bc47771a08246bb9b498d9b737b7092`
+- branch: `assets/acolyte-of-the-white-rune-candidate` (**unmerged**)
+- verified candidate commit: `69e176e` — the re-transport, `Bin 15042 -> 214378 bytes`
 - candidate path: `art-source/acolyte-of-the-white-rune.webp`
 - source note: `docs/art-sources/2026-08-27-purification-card-01-master-prompt.md`
 
-**This candidate failed independent byte verification and must not be used, staged, promoted or
-merged.**
+The re-transport landed on the **original** branch, not a `-v2` branch. A
+`transport/acolyte-of-the-white-rune-v2` branch exists but is only a copy of `main` and carries no
+art file — ignore it. The superseded truncated commit is `1652efaa` (15,042 bytes); it remains in
+history as evidence and must never be used.
 
-| Check                      | Expected    | Actual                              | Result   |
-| -------------------------- | ----------- | ----------------------------------- | -------- |
-| Container fourcc           | `VP8 `      | `VP8 `                              | PASS     |
-| Dimensions                 | 1024 × 1536 | 1024 × 1536                         | PASS     |
-| RIFF-declared == byte size | 214,378     | declared 214,378, actual **15,042** | **FAIL** |
-| SHA-256                    | `cb766584…` | `7822d32a…`                         | **FAIL** |
-| Full decode                | succeeds    | `could not create decoder object`   | **FAIL** |
+All integrity checks PASS on `69e176e`:
 
-Only 7.0% of the file arrived. The truncation is baked into the commit: `git cat-file -s` returns
-15042, GitHub's API reports the blob as 15042, and the commit diffstat records
-`Bin 0 -> 15042 bytes`. Not a fetch artifact.
+| Check                      | Expected    | Actual                       | Result |
+| -------------------------- | ----------- | ---------------------------- | ------ |
+| `git cat-file -s`          | 214378      | 214378                       | PASS   |
+| Byte size                  | 214,378     | 214,378                      | PASS   |
+| RIFF-declared == byte size | equal       | equal                        | PASS   |
+| SHA-256                    | `cb766584…` | `cb766584…`                  | PASS   |
+| Container fourcc           | `VP8 `      | `VP8 `                       | PASS   |
+| Dimensions                 | 1024 × 1536 | 1024 × 1536                  | PASS   |
+| Full decode                | succeeds    | `DECODE OK (1024, 1536) RGB` | PASS   |
 
-**The art itself is fine — do not regenerate.** The surviving RIFF header declares exactly 214,378,
-matching the source note, which confirms the export was real and complete. Only the transport failed.
+## Review result — READY FOR OWNER VISUAL APPROVAL
 
-**No visual judgement of the artwork has been made.** The five review surfaces and the §15 checklist
-were not run — there is no decodable image — so brief compliance remains unknown.
+Full local stack (PostgreSQL + Redis + seeded game-server + Next dev) was brought up so the review
+ran against real card data and real components. All required surfaces PASS: raw master, `CardView`
+3:4, `CardDetailDrawer` 4:5, `HandCardPreview` 7:9, `CreatureSlot` 3:4, `/admin/art-review` at
+desktop and 390 px, 92 px thumbnail, and the side-by-side hierarchy check against
+`high-warden-of-the-white-rune`.
 
-### Second ~15 KB truncation on this project
+The §15 acceptance checklist passes on every item — including the decisive ones: armored not robed,
+light plain armor with no full harness, matte non-mirrored metal, bare hands, gold only as hairlines,
+no forbidden SHADOW/cathedral/crowd drift, and COMMON-vs-LEGENDARY hierarchy obvious at 92 px.
 
-SHADOW Card 04 v1 was 14,999 bytes; this is 15,042. Two uploads landing within 43 bytes of each
-other is a repeatable size cap in the upload path, not random corruption. Card 04 was recovered by
-switching routes to a `-v2` branch; do the same here.
+Candidate isolation was proven by network trace: the page requested the gitignored
+`/art-review-candidates/` path and **never** `/art/cards/acolyte-of-the-white-rune.webp`.
 
-### Required fix
+### Two caveats for the owner's decision
 
-1. Do not regenerate. On the machine holding the real file, confirm `sha256sum` prints `cb766584…`.
-2. Commit with the **git CLI from local disk** — not a web-UI upload, not an API create-file call,
-   not a base64 payload.
-3. **Before pushing:** `git cat-file -s HEAD:art-source/acolyte-of-the-white-rune.webp` must print
-   `214378`. This reads the size back out of the object git actually stored; run before either
-   truncation it would have caught both.
-4. Push to `assets/acolyte-of-the-white-rune-candidate-v2`. Leave the broken branch as evidence; do
-   not force-push over it.
+1. **Head clearance is ~2–4 px under the 4:5 cut**, not the ~130 px §10 of the brief specified. The
+   hair crown sits at master row ~130 against a cut at row 128. Nothing is clipped in any of the
+   three shipped crops today, but there is effectively no margin for a future tighter surface or a
+   re-encode that rounds differently.
+2. **Rendering reads photographic rather than painterly**, diverging from the Art Pack 01/02 house
+   style — most visible beside the High Warden. §13 asked for painterly card illustration and the
+   generator's own refinement prompt tried to correct this without fully succeeding.
 
-When v2 lands, walk §15 strictly against the real file — the generator recorded that its refinement
-prompt was not a byte-for-byte copy of §13/§14, so compliance must not be inferred from prompt text.
+Neither is a §15 failure. Both are owner calls: accept as-is, or send back for a re-render with the
+head lowered toward row ~260 and a more painterly treatment.
 
-For the record, the branch is ahead of main by 1 with exactly 2 changed files and is **not** merged.
-The integrity values the generator recorded before upload — 1024×1536, 214,378 bytes, RIFF-declared
-214,378, `VP8 `, SHA-256 `cb766584…` — describe its local file and are believed accurate for that
-file. They are the values the v2 re-transport must reproduce **in git**.
+### Review-surface change
+
+`apps/web/src/app/admin/art-review/page.tsx` @ `df0227a` — registers `acolyte-of-the-white-rune` in
+`REVIEW_TARGETS` as `ART PACK 03 — CANDIDATE 01`, deliberately **without** `reviewArtworkUrl` so it
+can only resolve through the gitignored candidate path. The candidate `.webp` itself is gitignored
+and not committed. Validation: `git diff --check`, Prettier, ESLint, typecheck (0 errors) and the
+production build all PASS — after building `packages/shared` and `packages/ui` first, without which
+4 pre-existing errors in untouched files appear as a build-order artifact.
 
 ## Owner-approved visual direction
 
@@ -93,12 +102,10 @@ Locked owner decisions:
 
 The candidate direction was selected by the owner for continuation. Exact generation/refinement provenance is recorded honestly in the candidate source note.
 
-## Review task — deferred to the v2 candidate
+## Review task — COMPLETE
 
-The task below is **not runnable against v1**, which failed byte verification. It stands unchanged
-and applies to `assets/acolyte-of-the-white-rune-candidate-v2` once that lands.
-
-The task is **verification + real-surface visual QA only**.
+Verification and real-surface visual QA are done; see the review handoff. Recorded below for
+reference.
 
 Required review surfaces:
 
@@ -112,7 +119,7 @@ Required review surfaces:
 - 92px thumbnail
 - side-by-side hierarchy check vs `high-warden-of-the-white-rune`
 
-The current `/admin/art-review` target list does not yet include `acolyte-of-the-white-rune`; adding exactly that one review target is authorised if required for QA. It must remain a candidate path, not a production `reviewArtworkUrl`.
+`acolyte-of-the-white-rune` is now registered in `/admin/art-review` as a candidate-path target (commit `df0227a`), not a production `reviewArtworkUrl`.
 
 The review must walk §15 of the approved brief and finish with one status:
 
@@ -143,23 +150,26 @@ SHADOW Art Pack 02 remains complete end to end. Its ten-card production sync was
 
 ## Recommended next action
 
-**Re-transport the master.** Candidate v1 is rejected; the QA task cannot run against it.
+**Owner visual approval decision on the two caveats above.**
 
-On the machine holding the real 214,378-byte file: confirm `sha256sum` prints `cb766584…`, commit it
-with the git CLI from local disk, verify
-`git cat-file -s HEAD:art-source/acolyte-of-the-white-rune.webp` prints `214378` **before** pushing,
-and push to `assets/acolyte-of-the-white-rune-candidate-v2`.
+If accepted, a separate and explicitly authorised integration task promotes the artwork: copy to
+`apps/web/public/art/cards/acolyte-of-the-white-rune.webp`, set `artworkUrl` and
+`rightsStatus: 'owned'` in `seed.ts`, mark Art Pack 03 Card 01 approved, and extend the production
+sync 10 → 11 with the pin, `TARGET_SLUGS`, confirmation string and **every** count assertion moving
+together in one change.
 
-Do not regenerate the art. Do not force-push over the broken v1 branch. Claude Code then re-runs
-verification and, on PASS, performs the real-surface QA and stops for owner visual approval.
+If sent back, the fix is a re-render with the head lowered toward master row ~260 and a more
+painterly treatment; §13/§14 need no change beyond re-emphasising those two points.
+
+Promotion, seed changes and production sync remain **unauthorised**.
 
 ## Reader protocol
 
 1. Read this file.
-2. Read `docs/CLAUDE_CURRENT_TASK.md` — note its BLOCKED banner; the QA steps apply to v2, not v1.
-3. Read `docs/agent-reports/2026-08-27-art-pack-03-card-01-candidate-rejected.md` for the
-   verification evidence and the transport diagnosis. The earlier
-   `…-candidate-generated.md` is superseded on its integrity claims but still holds the generation
-   provenance.
+2. Read `docs/CLAUDE_CURRENT_TASK.md` — its verify-and-review task is complete as of `df0227a`.
+3. Read `docs/agent-reports/2026-08-27-art-pack-03-card-01-candidate-review.md` for the verification
+   values, surface results, §15 walk and the two caveats. The `…-candidate-rejected.md` report
+   covers the superseded truncated v1; `…-candidate-generated.md` holds generation provenance but
+   its integrity values describe the generator's local file.
 4. Resolve fresh `main` and candidate branch refs from GitHub before acting.
 5. Repository state is authoritative over stale chat summaries.

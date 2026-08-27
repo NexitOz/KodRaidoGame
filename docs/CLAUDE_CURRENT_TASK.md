@@ -1,40 +1,26 @@
 # CURRENT TASK — Art Pack 03 Card 01: verify and visually review candidate
 
-## BLOCKED 2026-08-27 — candidate v1 REJECTED, re-transport required
+## COMPLETE 2026-08-27 — verified and reviewed, awaiting owner visual approval
 
-Step 1 was executed and **failed**. `assets/acolyte-of-the-white-rune-candidate` @ `1652efaa` must
-not be used.
+The v1 truncation is resolved. The re-transport landed on the **original** branch
+`assets/acolyte-of-the-white-rune-candidate` as commit `69e176e`
+(`Bin 15042 -> 214378 bytes`), not on a `-v2` branch. A `transport/acolyte-of-the-white-rune-v2`
+branch exists but is only a copy of `main` with no art file — ignore it.
 
-The committed blob is **15,042 bytes while its own RIFF header declares 214,378** — 7.0% of the file
-arrived — and it does not decode. Its SHA-256 is `7822d32a…`, not the expected `cb766584…`. GitHub
-reports the blob as 15,042 bytes and the commit's diffstat records `Bin 0 -> 15042 bytes`, so the
-wrong bytes went in when the commit was created. This is not a fetch artifact, and the generator's
-reported 214,378 / `cb766584…` are the values of its **local** file, not of what landed in git.
+All integrity checks PASS on `69e176e`: 214,378 bytes, RIFF-declared total equal to byte size,
+SHA-256 `cb766584…` as expected, plain `VP8 ` container, 1024 × 1536, and a clean full decode.
 
-Steps 2–6 (register in `/admin/art-review`, stage the candidate, review the five surfaces, walk §15)
-were **not** performed and cannot be — there is no decodable image. **No visual judgement of the
-artwork has been made.**
+All required surfaces were reviewed live against real card data and real components, and §15 passes
+on every item. **Status: READY FOR OWNER VISUAL APPROVAL**, with two caveats that are owner calls
+rather than checklist failures:
 
-**The art is fine; do not regenerate it.** The surviving header declares exactly the size the source
-note recorded, which confirms the 214,378-byte export was real. Only the transport failed. This is
-the second ~15 KB truncation here (SHADOW Card 04 v1 was 14,999 bytes), so change the route rather
-than retrying it:
+1. **Head clearance ~2–4 px** under the 4:5 cut instead of the ~130 px §10 specified — nothing is
+   clipped in any shipped crop today, but there is no margin left.
+2. **Photographic rather than painterly rendering**, diverging from the Art Pack 01/02 house style.
 
-1. On the machine holding the real file, confirm `sha256sum` prints `cb766584…`.
-2. Commit with the **git CLI from local disk** — not a web-UI upload, not an API create-file call,
-   not a base64 payload.
-3. **Before pushing:** `git cat-file -s HEAD:art-source/acolyte-of-the-white-rune.webp` must print
-   `214378`. It reads the size back out of the object git actually stored; run before either
-   truncation it would have caught both.
-4. Push to a fresh branch `assets/acolyte-of-the-white-rune-candidate-v2`. Leave the broken branch in
-   place; do not force-push over it.
+Full evidence: `docs/agent-reports/2026-08-27-art-pack-03-card-01-candidate-review.md`.
 
-Full analysis: `docs/agent-reports/2026-08-27-art-pack-03-card-01-candidate-rejected.md`.
-
-Everything below is unchanged and applies to the v2 candidate, with the candidate branch and commit
-substituted. When reviewing v2, walk §15 strictly against the real file — the generator has recorded
-that its refinement prompt was not a byte-for-byte copy of §13/§14, so compliance must not be
-inferred from the prompt text.
+Review-surface support committed as `df0227a`. Promotion remains unauthorised.
 
 ## Goal
 
