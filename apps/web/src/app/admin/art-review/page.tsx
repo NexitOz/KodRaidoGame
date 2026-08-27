@@ -33,12 +33,28 @@ type ReviewTarget = {
 };
 
 const REVIEW_TARGETS: ReviewTarget[] = [
-  { slug: 'necromancer-of-the-twilight-order', faction: 'SHADOW', referenceLabel: 'Reference 01 — LOCKED' },
-  { slug: 'high-warden-of-the-white-rune', faction: 'PURIFICATION', referenceLabel: 'Reference 02 — LOCKED' },
-  { slug: 'matriarch-of-the-spring-light', faction: 'BOND', referenceLabel: 'Reference 03 — LOCKED' },
+  {
+    slug: 'necromancer-of-the-twilight-order',
+    faction: 'SHADOW',
+    referenceLabel: 'Reference 01 — LOCKED',
+  },
+  {
+    slug: 'high-warden-of-the-white-rune',
+    faction: 'PURIFICATION',
+    referenceLabel: 'Reference 02 — LOCKED',
+  },
+  {
+    slug: 'matriarch-of-the-spring-light',
+    faction: 'BOND',
+    referenceLabel: 'Reference 03 — LOCKED',
+  },
   { slug: 'lord-of-the-nameless-shadow', faction: 'VEIL', referenceLabel: 'Reference 04 — LOCKED' },
   { slug: 'keeper-of-the-grey-mist', faction: 'MYSTERY', referenceLabel: 'Reference 05 — LOCKED' },
-  { slug: 'lord-of-the-stellar-stream', faction: 'COSMIC', referenceLabel: 'Reference 06 — LOCKED' },
+  {
+    slug: 'lord-of-the-stellar-stream',
+    faction: 'COSMIC',
+    referenceLabel: 'Reference 06 — LOCKED',
+  },
   {
     slug: 'whisper-of-the-forgotten',
     faction: 'SHADOW',
@@ -65,6 +81,14 @@ const REVIEW_TARGETS: ReviewTarget[] = [
     faction: 'SHADOW',
     referenceLabel: 'ART PACK 02 — APPROVED 04',
     reviewArtworkUrl: '/art/cards/rune-of-the-echoing-dusk.webp',
+  },
+  // Art Pack 03 Card 01 - candidate under review, NOT promoted. Deliberately has no
+  // `reviewArtworkUrl`, so it resolves through the gitignored
+  // apps/web/public/art-review-candidates/ path and can never read a production asset.
+  {
+    slug: 'acolyte-of-the-white-rune',
+    faction: 'PURIFICATION',
+    referenceLabel: 'ART PACK 03 — CANDIDATE 01',
   },
 ];
 
@@ -212,7 +236,11 @@ function FlagshipRow({
               RARITY_FRAME_CLASS[displayCard.rarity],
             )}
           >
-            <img src={displayCard.artworkUrl} alt={displayCard.name} className="h-full w-full object-cover" />
+            <img
+              src={displayCard.artworkUrl}
+              alt={displayCard.name}
+              className="h-full w-full object-cover"
+            />
           </div>
           <button
             type="button"
@@ -245,14 +273,14 @@ function FlagshipRow({
         </div>
 
         {stubUnit ? (
-        <div className="flex flex-col items-center gap-1">
-          <p className="text-[11px] uppercase tracking-wide text-raido-mist">
-            Battlefield board slot (CreatureSlot, 3:4)
-          </p>
-          <div className="w-full max-w-[160px]">
-            <CreatureSlot unit={stubUnit} />
+          <div className="flex flex-col items-center gap-1">
+            <p className="text-[11px] uppercase tracking-wide text-raido-mist">
+              Battlefield board slot (CreatureSlot, 3:4)
+            </p>
+            <div className="w-full max-w-[160px]">
+              <CreatureSlot unit={stubUnit} />
+            </div>
           </div>
-        </div>
         ) : null}
       </div>
     </section>
