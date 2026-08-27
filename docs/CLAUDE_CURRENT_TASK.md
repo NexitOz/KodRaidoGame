@@ -1,113 +1,95 @@
-# CURRENT TASK — EXECUTE authorized 10-card production artwork sync
+# CURRENT TASK — Art Pack 03 bootstrap: PURIFICATION Card 01 master-art brief
 
-## Authorization
+## Goal
 
-The owner explicitly authorized the production operation on 2026-08-25 with the exact confirmation string:
+Prepare one production-ready visual brief for PURIFICATION Card 01:
 
-`SYNC-10-CARD-ART-PRODUCTION`
+- **Slug:** `acolyte-of-the-white-rune`
+- **Name:** `Послушник Белой Руны`
+- **Type / rarity / cost:** CHARACTER / COMMON / 1
+- **Stats:** 1/3
+- **Ability:** on play, remove Curse and Silence from a chosen ally
 
-This authorization is valid for one controlled dispatch of the existing workflow `.github/workflows/production-card-art-sync.yml` on `main` for the ten-card artwork synchronization described below.
+This is a **brief-only task**. Do not generate, integrate, promote, or sync artwork in this task.
 
-Do not ask the owner to repeat the confirmation.
+## Canonical starting state
 
-## Canonical source
+SHADOW Art Pack 02 is complete end to end. Card 04 production sync already executed successfully and its one-use authorization is consumed.
 
-Card 04 `rune-of-the-echoing-dusk` / «Рунный Страж Эха» is owner-approved, merged and FINAL APPROVED.
+Do not reopen or modify SHADOW Art Pack 02, its four approved cards, the ten-card production sync, or any existing production artwork.
 
-PR #34 was merged at:
+PURIFICATION already has a locked faction language and an approved LEGENDARY flagship in `docs/art-bible-01.md` / `high-warden-of-the-white-rune`. Use those as the visual anchor, not as a composition to copy.
 
-`23e83c9978a9045059d3009eb1983b17f005d1d3`
+## Required work
 
-That merge commit is the immutable production source for all ten artwork targets.
+1. Read the PURIFICATION section of `docs/art-bible-01.md` and the current PURIFICATION entries in `apps/game-server/prisma/seed.ts`.
+2. Audit the approved `high-warden-of-the-white-rune` artwork and define how a **COMMON acolyte** stays unmistakably in the same faction while reading lower in rank, simpler, younger/less imposing, and less ornate.
+3. Create exactly one new brief:
 
-Before dispatch, independently resolve fresh `main` and verify from GitHub that all three pins are still exactly:
+   `docs/art-review/acolyte-of-the-white-rune-master-art-brief.md`
 
-`23e83c9978a9045059d3009eb1983b17f005d1d3`
+4. The brief must contain:
+   - card role and visual role
+   - silhouette and pose
+   - costume / materials
+   - environment / architecture
+   - lighting
+   - faction palette
+   - VFX / rune language
+   - explicit hierarchy differences vs. `high-warden-of-the-white-rune`
+   - explicit differentiation vs. SHADOW
+   - crop-safe composition for the 1024×1536 master through 3:4, 7:9, and 4:5 shipped crops
+   - mobile / thumbnail readability requirements
+   - forbidden drift list
+   - ready-to-use generation prompt
+   - negative prompt
+   - production acceptance checklist
+5. Keep the scope surgical. Do not create Art Pack 03 assets or change application code.
 
-Pins:
+## Locked PURIFICATION direction
 
-- `.github/workflows/production-card-art-sync.yml` → `REQUIRED_SOURCE_COMMIT`
-- `.github/workflows/production-card-art-sync.yml` → `SOURCE_COMMIT`
-- `apps/game-server/scripts/sync-production-card-art.ts` → `REQUIRED_SOURCE_COMMIT`
+Carry forward the existing faction language from `docs/art-bible-01.md`:
 
-Also verify that no post-merge change touched:
+- white / silver / ivory base
+- restrained gold filigree; for this COMMON card, gold must be noticeably quieter than on the LEGENDARY flagship so it does not fake a rarity signal
+- clean pressed armor / cloth edges, never tattered
+- bright diffuse near-shadowless lighting, opposite SHADOW chiaroscuro
+- cold light / frost motes only, never warm embers
+- rune magic is engraved, architectural, or material-bound rather than an actively cast open-palm effect
+- monumental/sacred geometry may inform the setting, but the acolyte must not visually compete with the High Warden's flagship cathedral-halo composition
+- no crimson/red or violet accents
+- no spectral echo crowd device
+
+The brief should deliberately scale the faction language down to a COMMON unit rather than making a miniature High Warden.
+
+## Hard scope exclusions
+
+Do not modify:
 
 - `apps/game-server/prisma/seed.ts`
-- `apps/game-server/prisma/schema.prisma`
-- `apps/web/public/art/cards`
+- Prisma schema or migrations
+- gameplay, balance, card text, effects, rarity, cost, stats, faction
+- any artwork file
+- `/admin/art-review` code
+- Battlefield UI
+- production sync script or workflow
+- Railway / Vercel configuration
+- production database
+- existing Art Pack 01 or Art Pack 02 approved assets
 
-If any pin or immutable-source condition is not exactly correct, STOP without dispatching.
+## Validation
 
-## Required action
+Because this is documentation-only:
 
-Dispatch `.github/workflows/production-card-art-sync.yml` on `main` with input:
-
-`confirmation = SYNC-10-CARD-ART-PRODUCTION`
-
-This is an authorized production DB operation.
-
-Do not dispatch any other workflow.
-Do not re-run automatically if the run fails.
-
-## Required verification
-
-Wait for the workflow to finish and inspect the actual job / step logs. The final report must record the run ID, job ID and result of every gate.
-
-Require evidence for:
-
-1. Exact manual confirmation accepted.
-2. Immutable source SHA verified as `23e83c9978a9045059d3009eb1983b17f005d1d3`.
-3. `ARTWORK_FILES_PRESENT=10/10`.
-4. `RAILWAY_TOKEN_PRESENT=YES`.
-5. Production scope checks all PASS:
-   - `TOKEN_PROJECT_ID_VERIFIED=YES`
-   - `TOKEN_ENVIRONMENT_ID_VERIFIED=YES`
-   - `GAME_SERVER_DB_LINK_VERIFIED=YES`
-   - `PRODUCTION_SCOPE_VERIFIED=YES`
-   - `READ_ONLY_DB_PREFLIGHT=YES`
-6. PRE-WRITE:
-   - `TARGET_ROWS=10`
-   - `UNIQUE_SLUGS=10`
-   - capture `ROWS_REQUIRING_MUTATION`
-   - capture the 64-character `PRE_WRITE_SNAPSHOT`
-   - capture each target's current vs desired artwork / rights values
-7. If APPLY runs:
-   - `TRANSACTION_STARTED=YES`
-   - `TRANSACTION_COMMITTED=YES`
-   - capture `ROWS_CHANGED`
-   - `TARGET_ROWS_FINAL=10`
-   - `SOURCE_OF_TRUTH_MATCH=10/10`
-   - `NON_TARGET_FIELD_CHANGES=0`
-8. POST-WRITE:
-   - `TARGET_ROWS=10`
-   - `UNIQUE_SLUGS=10`
-   - `ROWS_REQUIRING_MUTATION=0`
-   - `SOURCE_OF_TRUTH_MATCH=10/10`
-
-If the workflow fails at any point, STOP and report the exact failing gate and logs. Do not retry and do not make an alternate production mutation.
-
-## Scope
-
-Do not modify gameplay, balance, card text, effects, rarity, cost, faction, Prisma schema, migrations, Railway configuration, Vercel configuration, Battlefield layout, or unrelated card data.
-
-Do not change the approved Card 04 artwork.
+- verify the diff contains only the intended brief plus required handoff metadata
+- run/record `git diff --check`
+- run Prettier check on the new brief if available
+- no application lint/typecheck/test/build is required unless the task unexpectedly touches application/config files, which it should not
 
 ## Delivery
 
-After the run completes, create the required GitHub handoff record under the permanent `CLAUDE.md` protocol.
+Follow the permanent `CLAUDE.md` Agent Handoff Protocol.
 
-The handoff must include:
+If the task is done without a PR, save the handoff under `docs/agent-reports/` and update `docs/AGENT_STATE.md` last.
 
-- workflow run ID and URL
-- job ID
-- immutable source SHA
-- PRE-WRITE rows requiring mutation and snapshot
-- APPLY result / rows changed
-- POST-WRITE result
-- all required production-scope signals
-- exact final ten-card source-of-truth result
-- confirmation that non-target fields changed = 0
-- confirmation whether production DB was mutated
-- confirmation that no unrelated repository files were changed
-
-Finally update `docs/AGENT_STATE.md` last, fetch it back from GitHub and verify it before declaring completion.
+Do not proceed to image generation or Card 01 integration. Stop after the brief is complete and handed off for owner review.
