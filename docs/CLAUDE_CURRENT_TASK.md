@@ -1,5 +1,21 @@
 # CURRENT TASK — Art Pack 03 Card 02: master-art brief
 
+## COMPLETE 2026-08-27 — brief written, awaiting owner review
+
+`docs/art-review/seal-of-the-curse-master-art-brief.md` (479 lines, commit `9c08a54`). All seventeen
+required sections present. Documentation only — no image generated, no artwork, no seed, schema,
+gameplay, admin, Battlefield, sync or production change; no workflow dispatched; Card 03 not started.
+
+Three open decisions for owner review:
+
+1. **The Curse read as a binding, not a taint** (§1) — everything else follows from it.
+2. **The seal as a hand-and-guard clamp** (§5), binding hand to hilt.
+3. **The style clause** (§14), given Card 01 shipped more photographic than the older baseline.
+
+Full handoff: `docs/agent-reports/2026-08-27-art-pack-03-card-02-master-art-brief.md`.
+
+The original task text follows for reference.
+
 ## Goal
 
 Create the detailed master-art brief for PURIFICATION Card 02:

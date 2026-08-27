@@ -11,11 +11,13 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** Card 02 master-art brief **READY TO EXECUTE**
+- **Status:** Card 02 master-art brief **COMPLETE — AWAITING OWNER REVIEW**
 - **Current target:** `seal-of-the-curse` / «Печать Проклятия»
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
 - **Current task commit:** `8a4cbec5ac56c06cc4b817c3af8b36dac9d58c06`
-- **Latest transition report:** `docs/agent-reports/2026-08-27-art-pack-03-card-02-master-art-brief-transition.md`
+- **Latest handoff:** `docs/agent-reports/2026-08-27-art-pack-03-card-02-master-art-brief.md`
+- **Brief:** `docs/art-review/seal-of-the-curse-master-art-brief.md` (commit `9c08a54`)
+- **Prior transition report:** `docs/agent-reports/2026-08-27-art-pack-03-card-02-master-art-brief-transition.md`
 - **Transition report commit:** `0ab22cf5407e174158fc5f8b700398dca1581046`
 - **Branch:** `main`
 
@@ -104,18 +106,55 @@ This direction may be refined in staging/camera/object geometry by the brief, bu
 - no actively cast open-palm magic;
 - non-Legendary card: restrained decoration and minimal gold, never a false Legendary read.
 
-## Current task
+## Card 02 brief — COMPLETE
 
-Execute `docs/CLAUDE_CURRENT_TASK.md` exactly.
+`docs/art-review/seal-of-the-curse-master-art-brief.md` (479 lines, commit `9c08a54`). All seventeen
+required sections present.
 
-The task is **documentation only**: create the detailed Card 02 master-art brief under `docs/art-review/`, create a durable handoff report, then update this file last and stop for owner review.
+### The decision the card turns on
 
-No image generation, art integration, seed/Prisma/gameplay changes, admin changes, Battlefield changes, sync/workflow changes, Railway/Vercel/production access, or Card 03 work are authorized.
+PURIFICATION applying a "curse" is a real contradiction: the usual crimson/violet coding for a curse
+is exactly what this faction forbids. The brief resolves it by reading the Curse as a **binding, not
+a taint** — the Order locks a weapon so it cannot be raised; jailer's work, not sorcery. That is the
+only reading that stays inside the locked material-bound faction language, and it matches the
+mechanic, since CURSE prevents attacking rather than dealing harm (verified in
+`apply-action.ts`: _"This unit is cursed and cannot attack."_).
+
+Corruption imagery — tendrils, rot, purple aura, crimson veins — is an automatic reject on **concept**
+grounds, not merely palette.
+
+### Surface finding
+
+**An EVENT never occupies a Battlefield board slot, so `CreatureSlot` is not a review surface for
+this card.** `CardPlayReveal` renders an EVENT play as a 380 ms flash of `Icon name="sword"` plus the
+card name — no artwork. The art appears on exactly three surfaces: `CardView` 3:4,
+`CardDetailDrawer` 4:5, `HandCardPreview` 7:9. Same situation as Art Pack 02's RUNE.
+
+### Correction carried over from Card 01
+
+Card 01 shipped with only ~2–4 px of clearance under the binding 4:5 cut against a briefed ~130 px.
+Card 02's brief imposes a stricter working rule — **nothing essential above row 260 or below row
+1280** — and makes violating it an automatic reject even though the technical 128–1408 band would
+pass. The hero object sits at row ~770, effectively the 4:5 centre.
+
+### Open decisions for owner review
+
+1. **The binding-not-taint reading** (§1). Everything else follows from it.
+2. **The seal as a hand-and-guard clamp** (§5), binding hand to hilt. A cuff on the forearm, or a
+   seal struck onto the blade, would change §4, §5 and §12 together.
+3. **The style clause** (§14). Card 01 shipped more photographic than the older painterly baseline
+   and was accepted; this brief follows the owner's locked "cinematic realistic / semi-realistic"
+   instruction. If Cards 02–04 should pull back toward painterly, change it **before** generation.
+
+**Hard stop respected:** no image generated, no candidate art, no seed/schema/gameplay/admin/
+Battlefield/sync/production change, no workflow dispatched, no production connection. Card 03 not
+started. Validation was documentation-only: `git diff --check` clean, Prettier clean, all 17 sections
+verified present, diff scope one new file.
 
 ## Art Pack 03 remaining cards
 
 - Card 01 `acolyte-of-the-white-rune` — **COMPLETE END TO END**, live in production
-- Card 02 `seal-of-the-curse` — **MASTER-ART BRIEF READY TO EXECUTE**
+- Card 02 `seal-of-the-curse` — **MASTER-ART BRIEF COMPLETE**, awaiting owner review
 - Card 03 `warden-of-the-barrier` — not started
 - Card 04 `rune-of-curse-breaking` — not started
 
@@ -123,11 +162,27 @@ No image generation, art integration, seed/Prisma/gameplay changes, admin change
 
 SHADOW Art Pack 02 remains complete end to end.
 
+## Recommended next action
+
+Owner review of the brief, focusing on the three open decisions above.
+
+Once approved, the next task is a generation pass against §14/§15. Image generation is **not**
+available in the Claude Code session, so the master must be produced externally and landed **by
+commit on a branch**, with `git cat-file -s HEAD:<path>` confirming the committed blob size _before_
+pushing — the check that has caught two ~15 KB truncations on this project.
+
+Promotion, seed changes and production sync remain **unauthorised**. `SYNC-11-CARD-ART-PRODUCTION` is
+consumed; a twelfth card needs a fresh owner confirmation and a pin repointed at a new
+already-merged integration commit.
+
 ## Reader protocol
 
 1. Read this file.
-2. Read `docs/CLAUDE_CURRENT_TASK.md`.
-3. Read `docs/agent-reports/2026-08-27-art-pack-03-card-02-master-art-brief-transition.md`.
+2. Read `docs/CLAUDE_CURRENT_TASK.md` — its brief task is **complete** as of `9c08a54`; treat it as
+   history unless the owner has replaced it.
+3. Read `docs/art-review/seal-of-the-curse-master-art-brief.md` — the deliverable — and
+   `docs/agent-reports/2026-08-27-art-pack-03-card-02-master-art-brief.md` for the handoff. The
+   `…-transition.md` report holds the owner's original concept direction.
 4. Read `docs/art-bible-01.md`, `docs/art-pack-03.md`, and `docs/content-pack-01.md`.
 5. Read the Card 01 brief for crop/checklist structure, but do not copy its character composition into this EVENT.
 6. Resolve fresh `main` before acting.
