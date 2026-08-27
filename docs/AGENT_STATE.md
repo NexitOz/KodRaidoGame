@@ -68,19 +68,10 @@ switching routes to a `-v2` branch; do the same here.
 When v2 lands, walk §15 strictly against the real file — the generator recorded that its refinement
 prompt was not a byte-for-byte copy of §13/§14, so compliance must not be inferred from prompt text.
 
-- branch vs main at creation: ahead by 1, behind by 0
-- changed files vs main: exactly 2
-- merged: **NO**
-
-Candidate integrity recorded before upload:
-
-- dimensions: `1024 × 1536`
-- byte size: `214378`
-- RIFF-declared total: `214378`
-- container fourcc: plain `VP8 `
-- SHA-256: `cb76658416628f91b721c826a451342319bcfe39ff3b5f770a5f8ca73ba499fe`
-
-The next agent must verify these independently from the committed bytes before any visual review.
+For the record, the branch is ahead of main by 1 with exactly 2 changed files and is **not** merged.
+The integrity values the generator recorded before upload — 1024×1536, 214,378 bytes, RIFF-declared
+214,378, `VP8 `, SHA-256 `cb766584…` — describe its local file and are believed accurate for that
+file. They are the values the v2 re-transport must reproduce **in git**.
 
 ## Owner-approved visual direction
 
@@ -102,9 +93,12 @@ Locked owner decisions:
 
 The candidate direction was selected by the owner for continuation. Exact generation/refinement provenance is recorded honestly in the candidate source note.
 
-## Current review task
+## Review task — deferred to the v2 candidate
 
-The current task is now **verification + real-surface visual QA only**.
+The task below is **not runnable against v1**, which failed byte verification. It stands unchanged
+and applies to `assets/acolyte-of-the-white-rune-candidate-v2` once that lands.
+
+The task is **verification + real-surface visual QA only**.
 
 Required review surfaces:
 
@@ -149,12 +143,23 @@ SHADOW Art Pack 02 remains complete end to end. Its ten-card production sync was
 
 ## Recommended next action
 
-Execute `docs/CLAUDE_CURRENT_TASK.md` exactly as written. Verify candidate commit `1652efaa...`, perform the real-surface QA, write the GitHub handoff, update this file last, and stop for owner visual approval.
+**Re-transport the master.** Candidate v1 is rejected; the QA task cannot run against it.
+
+On the machine holding the real 214,378-byte file: confirm `sha256sum` prints `cb766584…`, commit it
+with the git CLI from local disk, verify
+`git cat-file -s HEAD:art-source/acolyte-of-the-white-rune.webp` prints `214378` **before** pushing,
+and push to `assets/acolyte-of-the-white-rune-candidate-v2`.
+
+Do not regenerate the art. Do not force-push over the broken v1 branch. Claude Code then re-runs
+verification and, on PASS, performs the real-surface QA and stops for owner visual approval.
 
 ## Reader protocol
 
 1. Read this file.
-2. Read `docs/CLAUDE_CURRENT_TASK.md`.
-3. Read `docs/agent-reports/2026-08-27-art-pack-03-card-01-candidate-generated.md` if generation/transport context is needed.
+2. Read `docs/CLAUDE_CURRENT_TASK.md` — note its BLOCKED banner; the QA steps apply to v2, not v1.
+3. Read `docs/agent-reports/2026-08-27-art-pack-03-card-01-candidate-rejected.md` for the
+   verification evidence and the transport diagnosis. The earlier
+   `…-candidate-generated.md` is superseded on its integrity claims but still holds the generation
+   provenance.
 4. Resolve fresh `main` and candidate branch refs from GitHub before acting.
 5. Repository state is authoritative over stale chat summaries.
