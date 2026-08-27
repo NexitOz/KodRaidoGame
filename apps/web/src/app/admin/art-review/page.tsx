@@ -82,13 +82,11 @@ const REVIEW_TARGETS: ReviewTarget[] = [
     referenceLabel: 'ART PACK 02 — APPROVED 04',
     reviewArtworkUrl: '/art/cards/rune-of-the-echoing-dusk.webp',
   },
-  // Art Pack 03 Card 01 - candidate under review, NOT promoted. Deliberately has no
-  // `reviewArtworkUrl`, so it resolves through the gitignored
-  // apps/web/public/art-review-candidates/ path and can never read a production asset.
   {
     slug: 'acolyte-of-the-white-rune',
     faction: 'PURIFICATION',
-    referenceLabel: 'ART PACK 03 — CANDIDATE 01',
+    referenceLabel: 'ART PACK 03 — APPROVED 01',
+    reviewArtworkUrl: '/art/cards/acolyte-of-the-white-rune.webp',
   },
 ];
 
