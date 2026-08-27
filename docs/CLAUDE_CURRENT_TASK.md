@@ -1,106 +1,134 @@
-# CURRENT TASK — Art Pack 03 Card 01: execute controlled 11-card production-art sync
-
-## COMPLETE 2026-08-27 — sync executed successfully
-
-Workflow run **33091769787** (job `98586183358`) finished with conclusion **success**.
-
-`ROWS_REQUIRING_MUTATION=1` at PRE-WRITE — exactly the expected single row,
-`acolyte-of-the-white-rune`, so the critical stop rule was not triggered. APPLY committed inside its
-Serializable transaction with `ROWS_CHANGED=1`, `TARGET_ROWS_FINAL=11`, `SOURCE_OF_TRUTH_MATCH=11/11`
-and **`NON_TARGET_FIELD_CHANGES=0`**. The independent POST-WRITE re-read returned
-`ROWS_REQUIRING_MUTATION=0` and `SOURCE_OF_TRUTH_MATCH=11/11`.
-
-`SYNC-11-CARD-ART-PRODUCTION` is now **CONSUMED** and is not standing authorization.
-
-Card 01 is complete end to end. Card 02 was not started.
-
-Full evidence: `docs/agent-reports/2026-08-27-art-pack-03-card-01-production-sync-executed.md`.
-
-The original task text follows for reference.
+# CURRENT TASK — Art Pack 03 Card 02: master-art brief
 
 ## Goal
 
-Execute the already-prepared and merged controlled production card-art sync for eleven cards, adding the approved PURIFICATION Card 01 (`acolyte-of-the-white-rune`) to production.
+Create the detailed master-art brief for PURIFICATION Card 02:
 
-## Fresh owner authorization
+- slug: `seal-of-the-curse`
+- name: «Печать Проклятия»
+- EVENT / RARE / cost 2
+- gameplay meaning: apply Curse to a chosen enemy; cursed enemy cannot attack
+- Resonance: visual only
 
-The owner supplied the exact one-use confirmation on 2026-08-27:
+Write the brief to:
 
-`SYNC-11-CARD-ART-PRODUCTION`
+`docs/art-review/seal-of-the-curse-master-art-brief.md`
 
-This authorizes exactly one execution of `.github/workflows/production-card-art-sync.yml` using the merged 11-card configuration. It does not authorize any unrelated production operation and must be treated as consumed after this authorized run.
+## Canonical inputs
 
-## Required source/config
+Read first:
 
-Use fresh `main` and verify before dispatch:
+- `docs/AGENT_STATE.md`
+- `docs/art-bible-01.md`
+- `docs/art-pack-03.md`
+- `docs/art-review/acolyte-of-the-white-rune-master-art-brief.md`
+- `docs/agent-reports/2026-08-27-art-pack-03-card-02-master-art-brief-transition.md`
+- `docs/content-pack-01.md`
 
-- merged preparation PR #36
-- preparation merge commit: `a3810c4bbc91c1a4c684e79b64433cfa7c1e51c4`
-- immutable source pin in both script/workflow: `92cc662fb5a43963c934c6c5f0aa4f1d0e8269e9`
-- target slugs: 11
-- confirmation gate: `SYNC-11-CARD-ART-PRODUCTION`
+Do not re-derive the card's gameplay or faction identity from memory.
 
-Do not edit the sync script/workflow before execution unless fresh verification reveals a genuine blocker. If any guarded source path drifted since the immutable source pin, stop and report rather than weakening the guard.
+## Locked house style
 
-## Execution
+Cards 02–04 should stay consistent with the owner-approved Card 01:
 
-Dispatch `.github/workflows/production-card-art-sync.yml` on `main` with the exact confirmation:
+- cinematic realistic / semi-realistic premium CCG;
+- realistic materials and anatomy where people appear;
+- crisp readable forms;
+- controlled illustrative finish;
+- do not regress to generic painterly fantasy;
+- do not become sterile photobash/plastic-photo rendering.
 
-`SYNC-11-CARD-ART-PRODUCTION`
+## Locked concept direction
 
-Then inspect the actual run and logs.
+The EVENT must read as **an attack being physically sealed**, not as a caster throwing magic.
 
-### PRE-WRITE gate
+Primary concept:
 
-Expected normal state:
+- close, iconic event composition;
+- a generic hostile dark-steel/charcoal weapon arm and weapon are halted mid-attack;
+- a rigid physical white/silver rune seal, restraint plate, or cuff has locked around the weapon hand/guard/forearm;
+- engraved geometric rune lines inside the physical seal glow softly cold pale blue-white;
+- the weapon clearly cannot complete its attack;
+- the white/silver seal is the visual hero;
+- enemy identity remains generic and secondary;
+- no visible PURIFICATION caster is required.
 
-- `PRODUCTION_SCOPE_VERIFIED=YES`
-- `TARGET_ROWS=11`
-- `UNIQUE_SLUGS=11`
-- `ROWS_REQUIRING_MUTATION=1`
+The brief may refine staging, camera, exact object geometry and environment, but must not replace this core story with an open-hand spell, beam, projectile, explosion, or generic magical shield.
 
-The expected single mutation is `acolyte-of-the-white-rune`.
+## PURIFICATION constraints
 
-**Critical stop rule:** if `ROWS_REQUIRING_MUTATION` is greater than 1, stop before APPLY and report production drift. Do not override safeguards or manually mutate the database.
+Preserve the locked faction language:
 
-If the workflow itself already enforces a stronger safe stop, preserve it.
+- white/silver/ivory dominant faction materials;
+- bright diffuse near-shadowless illumination;
+- clean pressed/rigid material edges;
+- rune magic engraved/material-bound/static;
+- cold frost/light motes only;
+- no crimson/red/violet/magenta/ember-orange;
+- no ash/warm embers;
+- no spectral echo figures;
+- no SHADOW-like deep chiaroscuro;
+- no ragged/tattered cloth;
+- no monumental High Warden cathedral/rose-window halo composition;
+- no actively cast open-palm magic;
+- non-Legendary rarity: restrained decoration and minimal gold, never a false Legendary read.
 
-### APPLY / POST-WRITE expected gates
+## Composition / crop requirements
 
-On the normal one-row path, verify from logs:
+Use the established 1024×1536 vertical 2:3 master and current centered `object-cover` crop rules:
 
-- `TRANSACTION_STARTED=YES`
-- `TRANSACTION_COMMITTED=YES`
-- `TARGET_ROWS_FINAL=11`
-- `SOURCE_OF_TRUTH_MATCH=11/11`
-- `NON_TARGET_FIELD_CHANGES=0`
-- independent POST-WRITE `TARGET_ROWS=11`
-- independent POST-WRITE `UNIQUE_SLUGS=11`
-- independent POST-WRITE `ROWS_REQUIRING_MUTATION=0`
-- independent POST-WRITE `SOURCE_OF_TRUTH_MATCH=11/11`
+- CardView / CreatureSlot 3:4;
+- HandCardPreview 7:9;
+- CardDetailDrawer 4:5 is binding;
+- essential story must survive inside the middle ~83% vertical safe zone;
+- the seal, weapon-lock read and any necessary hand/forearm geometry must survive at 92px thumbnail size.
 
-If PRE-WRITE reports `ROWS_REQUIRING_MUTATION=0`, verify the already-synchronized path and independent readback; do not force a write.
+Because this is an EVENT rather than a character portrait, explicitly define what becomes the primary focal point, secondary focal point and background hierarchy at thumbnail scale.
 
-## Hard prohibitions
+## Required brief contents
 
-- no manual SQL
-- no ad-hoc production DB mutation
-- no bypassing the immutable-source guard
-- no weakening snapshot/non-target integrity gates
-- no changes to card gameplay/balance/text/stats/rarity/faction/effects
-- no artwork changes
-- no Card 02 work in this task
-- no reuse of `SYNC-11-CARD-ART-PRODUCTION` after this authorized run
+The brief must include at minimum:
+
+1. card/gameplay summary;
+2. visual thesis in one sentence;
+3. focal hierarchy;
+4. exact scene and action staging;
+5. seal object/material design;
+6. enemy arm/weapon treatment and how to keep it faction-neutral;
+7. environment;
+8. lighting/value structure;
+9. palette and gold budget;
+10. rune/VFX language;
+11. rarity hierarchy versus Common Acolyte and Legendary High Warden;
+12. 2:3 composition and crop-safe geometry;
+13. mobile/92px readability test;
+14. exact generation prompt;
+15. exact negative prompt;
+16. automatic reject conditions;
+17. final acceptance checklist.
+
+## Hard scope
+
+This task is documentation only.
+
+Do NOT:
+
+- generate an image;
+- add candidate art;
+- change `seed.ts`;
+- change Prisma/schema/migrations;
+- change gameplay, stats, text, effects or rarity;
+- change `/admin/art-review` code;
+- touch Battlefield UI;
+- touch sync scripts/workflows;
+- connect to Railway/Vercel/production DB;
+- dispatch any workflow;
+- begin Card 03.
 
 ## Delivery
 
-After the run completes:
-
-1. record workflow run ID, job ID, conclusion and key gate outputs;
-2. record how many rows required mutation and which target changed if logs expose it;
-3. explicitly confirm `NON_TARGET_FIELD_CHANGES=0` and final `SOURCE_OF_TRUTH_MATCH=11/11`;
-4. create/update a durable execution report under `docs/agent-reports/`;
-5. update `docs/art-pack-03.md` to state Card 01 production sync completed, only if the run is successful;
-6. update `docs/AGENT_STATE.md` last and fetch it back from GitHub to verify.
-
-After a successful run, mark the confirmation string consumed and move Card 01 to complete end-to-end. Do not begin Card 02 inside this task.
+1. Create `docs/art-review/seal-of-the-curse-master-art-brief.md`.
+2. Create a durable handoff report under `docs/agent-reports/`.
+3. Update `docs/AGENT_STATE.md` last.
+4. Fetch back the final state from GitHub and verify it.
+5. Stop for owner review of the brief before any art generation.
