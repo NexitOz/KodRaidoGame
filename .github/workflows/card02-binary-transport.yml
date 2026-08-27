@@ -109,9 +109,20 @@ jobs:
           print('SOURCE_BYTE_INTEGRITY=PASS')
           PY
 
-          ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,width,height -of default=noprint_wrappers=1 /tmp/seal-of-the-curse.webp
-          ffmpeg -v error -i /tmp/seal-of-the-curse.webp -f null -
-          echo "SOURCE_FULL_DECODE=PASS"
+          python -m pip install --quiet --disable-pip-version-check Pillow
+          python - <<'PY'
+          from PIL import Image
+          p='/tmp/seal-of-the-curse.webp'
+          with Image.open(p) as im:
+              if im.format != 'WEBP':
+                  raise SystemExit(f'FORMAT MISMATCH: {im.format}')
+              if im.size != (1024,1536):
+                  raise SystemExit(f'DECODE DIMENSIONS MISMATCH: {im.size}')
+              im.load()
+              print('DECODE_FORMAT=', im.format)
+              print('DECODE_DIMENSIONS=', f'{im.width}x{im.height}')
+          print('SOURCE_FULL_DECODE=PASS')
+          PY
 
       - name: Create candidate-v2 from fresh main and verify Git object before and after push
         env:
