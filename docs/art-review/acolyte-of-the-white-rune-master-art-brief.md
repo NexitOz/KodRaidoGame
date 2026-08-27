@@ -151,13 +151,13 @@ Locked faction lighting, unchanged in kind and softer in degree:
 Base is the locked PURIFICATION palette: white / silver / ivory around
 `FACTION_ACCENT.PURIFICATION` `#e7e2d3`.
 
-| Band                           | Share of canvas           | Where                                      |
-| ------------------------------ | ------------------------- | ------------------------------------------ |
-| White / ivory / warm off-white | dominant, roughly 55–70%  | cassock, mantle, stone, haze               |
-| Cool pale silver / grey        | secondary, roughly 20–30% | gorget, pauldron, bracers, piers           |
-| Cold pale blue-white           | accent, small             | engraved rune glow, frost motes, rim light |
-| Gold                           | **≤ ~3%, hairlines only** | one gorget edge line, one tablet rim line  |
-| Warm skin / hair               | small                     | face and hands, natural, unsaturated       |
+| Band                           | Share of canvas           | Where                                        |
+| ------------------------------ | ------------------------- | -------------------------------------------- |
+| White / ivory / warm off-white | dominant, roughly 55–70%  | tabard, mantle, under-tunic, stone, haze     |
+| Cool pale silver / grey        | secondary, roughly 20–30% | cuirass, gorget, pauldrons, vambraces, piers |
+| Cold pale blue-white           | accent, small             | engraved rune glow, frost motes, rim light   |
+| Gold                           | **≤ ~3%, hairlines only** | one gorget edge line, one tablet rim line    |
+| Warm skin / hair               | small                     | face and hands, natural, unsaturated         |
 
 **The gold rule is a hard constraint, and it is the one the art bible explicitly anticipated.** The
 Warden's diegetic gold is harmless because that card is already LEGENDARY and the UI's `raido.gold`
@@ -195,21 +195,21 @@ palm.** For this card the ability itself makes that easy: the cleanse is the tab
 Audited directly against the approved production file. Every row is a deliberate step down, and the
 first five are the ones that survive to thumbnail size.
 
-| Axis            | High Warden (LEGENDARY, approved)                                             | Acolyte (COMMON, this brief)                    |
-| --------------- | ----------------------------------------------------------------------------- | ----------------------------------------------- |
-| Framing         | Full body, head to boots                                                      | Three-quarter, cut mid-thigh                    |
-| Silhouette mass | Wide pyramid — cape, skirt, shield disc                                       | Narrow vertical column                          |
-| Head            | Tall crown/tiara, vertical spike, radiant gold hair                           | Bare head, no ornament, ordinary hair           |
-| Carried object  | Dual-wield: tall ornate spear + huge round rune-shield                        | One small hand-held rune tablet, no weapon      |
-| Armour          | Full white/silver plate: breastplate, pauldrons, gauntlets, greaves           | Gorget, one half-pauldron, bracers — over cloth |
-| Outer layer     | Enormous flowing cape and layered ceremonial skirt                            | Short shoulder-mantle, no cape                  |
-| Gold            | Heavy filigree fields — chest starburst, skirt panels, shield rim, spear head | Two hairlines, ≤ ~3% of canvas                  |
-| Architecture    | Monumental cathedral facade, spires, rose-window halo, banners, grand stair   | Modest side-chapel arcade, shallow, plain       |
-| Floor           | Wet mirror floor with inscribed rune circle                                   | Plain dry stone                                 |
-| Crowd           | Ranked helmeted honor guard flanking both sides                               | Alone                                           |
-| Lighting drama  | Strong backlight bloom through the rose window                                | Plain even daylight, gentle rim                 |
-| Bearing         | Chin lifted, commanding, heroic low camera                                    | Level eyeline, attentive, unassuming            |
-| Age read        | Mature, authoritative                                                         | Young adult, novice                             |
+| Axis            | High Warden (LEGENDARY, approved)                                                            | Acolyte (COMMON, this brief)                                            |
+| --------------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Framing         | Full body, head to boots                                                                     | Three-quarter, cut mid-thigh                                            |
+| Silhouette mass | Wide pyramid — cape, skirt, shield disc                                                      | Narrow vertical column                                                  |
+| Head            | Tall crown/tiara, vertical spike, radiant gold hair                                          | Bare head, no ornament, ordinary hair                                   |
+| Carried object  | Dual-wield: tall ornate spear + huge round rune-shield                                       | One small hand-held rune tablet, no weapon                              |
+| Armour          | Full ceremonial harness: breastplate, layered pauldrons, gauntlets, greaves, heavy gold trim | Light plain cuirass, gorget, two small pauldrons, vambraces; bare hands |
+| Outer layer     | Enormous flowing cape and layered ceremonial skirt                                           | Short shoulder-mantle, no cape                                          |
+| Gold            | Heavy filigree fields — chest starburst, skirt panels, shield rim, spear head                | Two hairlines, ≤ ~3% of canvas                                          |
+| Architecture    | Monumental cathedral facade, spires, rose-window halo, banners, grand stair                  | Modest side-chapel arcade, shallow, plain                               |
+| Floor           | Wet mirror floor with inscribed rune circle                                                  | Plain dry stone                                                         |
+| Crowd           | Ranked helmeted honor guard flanking both sides                                              | Alone                                                                   |
+| Lighting drama  | Strong backlight bloom through the rose window                                               | Plain even daylight, gentle rim                                         |
+| Bearing         | Chin lifted, commanding, heroic low camera                                                   | Level eyeline, attentive, unassuming                                    |
+| Age read        | Mature, authoritative                                                                        | Young adult, novice                                                     |
 
 **The one-sentence test:** if you can look at the two thumbnails side by side and not instantly say
 which one costs 6, the candidate has failed.
@@ -295,9 +295,9 @@ The card is rendered at these real sizes in the shipped codebase:
   92 px wide, which is why it must be well up in the frame, frontal, and shadow-free.
 - The **white/silver faction color** must dominate the thumbnail.
 - The **tablet** must survive as a distinct light-toned rectangle with a faint cold glow, separated
-  in value from both the hands and the cassock. If the tablet, hands, and garment are all the same
-  ivory, the ability read dissolves at thumbnail size — give the tablet a slightly cooler, slightly
-  darker stone value than the cloth so its edges hold.
+  in value from both the hands and the cuirass behind it. If the tablet, the hands and the armor are
+  all the same ivory-white, the ability read dissolves at thumbnail size — give the tablet a
+  slightly cooler, slightly darker stone value than the metal so its edges hold.
 - Background detail (arch profiles, the pier rune motif, individual frost motes) is expected to be
   lost and that is acceptable.
 
@@ -314,7 +314,10 @@ Automatic-reject items. Any one of these means the candidate does not go to appr
 1. Broad gold filigree fields anywhere — chest starburst, skirt panels, ornate trim runs.
 2. A crown, tiara, circlet, halo, or any head ornament.
 3. A full cape, a ceremonial trailing skirt, or a wide-spread outer layer.
-4. Full plate armour — breastplate, gauntlets, greaves, faulds.
+4. A **full ceremonial harness** — layered pauldron stacks, faulds, tassets, gauntlets, greaves, or
+   embossed/engraved plate. Note the distinction: the light plain cuirass, gorget, two small
+   pauldrons and vambraces specified in §3 are **required**, not forbidden. What is forbidden is
+   _full and decorated_ armour, and equally its opposite — a robed, unarmoured cleric.
 5. Any weapon: spear, polearm, staff, sword, or a large shield.
 6. A rose window, glowing rune-circle halo, cathedral facade, spires, banners, grand staircase, or
    an inscribed floor rune-circle.
