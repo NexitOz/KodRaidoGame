@@ -11,7 +11,7 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** Card 01 master-art brief COMPLETE — AWAITING OWNER REVIEW
+- **Status:** Card 01 brief APPROVED — **READY FOR EXTERNAL ART GENERATION**
 - **Current target:** `acolyte-of-the-white-rune` / «Послушник Белой Руны»
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
 - **Current task-result commit:** `5614d8180f62bde9e569555a6c68d51be66cea7c` (light-armor amendment;
@@ -45,7 +45,7 @@ edges, bright near-shadowless light, cold frost motes, engraved material-bound r
 near-symmetrical posture) and invert its **structural** devices: three-quarter framing cut at
 mid-thigh instead of a full-body monument; a narrow vertical column instead of a wide pyramid; a
 bare head with no crown; one small hand-held white-stone rune tablet instead of spear-plus-shield;
-cloth-first costume with minimal silver hardware instead of full plate under a cape; gold capped at
+light plain standard-issue armor instead of a full ceremonial harness under a cape; gold capped at
 two hairlines and ~3% of canvas; a modest cloister arcade instead of the cathedral facade with its
 rose-window halo; and no crowd at all.
 
@@ -66,24 +66,27 @@ reject on that ground alone.
    from how little armor there is and how undecorated it is, not from swapping armor for cloth.
    Applied in commit `5614d818`, scoped by owner instruction to §3, the generation prompt, the
    negative prompt and the acceptance checklist only.
-2. **Framing** — still open: three-quarter length cut at mid-thigh rather than full body. Drives
-   silhouette, crop plan and thumbnail legibility.
-3. **Gold budget** — still open: two hairlines at ≤ ~3% of canvas, enforced as an automatic reject.
+2. **Framing — ACCEPTED** by the owner approving the brief and authorising generation:
+   three-quarter length cut at mid-thigh rather than full body.
+3. **Gold budget — ACCEPTED** on the same approval: two hairlines at ≤ ~3% of canvas, enforced as
+   an automatic reject.
 
-### Known stale cross-references in the brief
+The brief is closed for revision. Any further change to it is a new owner decision, not agent
+discretion.
 
-The light-armor amendment was deliberately confined to the four sections the owner named, leaving
-three places that still describe the superseded cloth-first costume. They are recorded in the
-"Amendment follow-up" section of the handoff report and are **not** to be fixed without owner
-authorisation:
+### Cross-references — RESOLVED
 
-1. **§12 forbidden-drift item 4** still lists "breastplate" as an automatic reject while §3 now
-   requires a light cuirass — the one contradiction that could wrongly reject a good candidate. The
-   intended rule is "no _full_ harness".
-2. **§8 hierarchy table, Armour row** still reads "over cloth".
-3. **§6 palette table and §11** still name the "cassock" as the dominant white garment.
+The three stale cross-references left by the light-armor amendment were fixed on owner
+authorisation in commit `4082b534`:
 
-None of the three changes the direction; they are terminology catching up with the decision.
+1. **§12 forbidden-drift item 4** no longer forbids "breastplate" (which §3 requires). It now
+   forbids a full ceremonial harness and, symmetrically, a robed unarmoured cleric.
+2. **§8 hierarchy table, Armour row** now reads "Light plain cuirass, gorget, two small pauldrons,
+   vambraces; bare hands".
+3. **§6 palette table and §11** now name the cuirass and tabard instead of the cassock.
+
+Terminology only — the art direction is unchanged. The brief is now internally consistent and the
+only remaining occurrence of "cassock" is the intended one, in the §14 negative prompt.
 
 **Hard stop respected:** no image was generated, integrated, promoted or synced. No seed, schema,
 gameplay, artwork, `/admin/art-review`, Battlefield UI, sync script, workflow, Railway/Vercel or
@@ -91,13 +94,34 @@ production database change was made. Validation was documentation-only: `git dif
 Prettier clean (Prettier's first `--check` failed on table padding and emphasis style; corrected with
 `--write` and re-verified).
 
-## Next task — awaiting owner decision
+## Next task — GENERATION (authorised 2026-08-27)
 
-Nothing is authorised beyond owner review of the brief. Once the direction is approved, the natural
-next task is a generation pass producing a 1024×1536 candidate against the brief's §13/§14, committed
-to a candidate branch (the only transport that has ever worked on this project), verified byte-exact
-— plain `VP8 ` container, RIFF-declared size matching actual size, decoded dimensions 1024×1536,
-SHA-256 recorded — then reviewed through `/admin/art-review` at desktop and 390 px mobile widths.
+The owner approved the brief and authorised moving to generation. The task is written up in
+`docs/CLAUDE_CURRENT_TASK.md`.
+
+**Blocking constraint: image generation is not available in the Claude Code session.** Its tool
+surface was re-checked at the start of this phase — there is no image-generation tool. This is the
+same constraint that blocked SHADOW Card 04, and it was resolved there the same way: the master was
+produced externally and committed to a branch.
+
+**The master must be generated externally**, against §13 and §14 of the brief verbatim, and landed
+on:
+
+`assets/acolyte-of-the-white-rune-candidate`
+
+with the file at `art-source/acolyte-of-the-white-rune.webp` plus a source note at
+`docs/art-sources/2026-08-27-purification-card-01-master-prompt.md`. Committing to a branch is the
+**only** transport that has ever worked here — chat image attachments are re-encoded in transit, ZIP
+attachments never materialise, and chunked base64 truncates. Do not merge the candidate branch.
+
+Required output: 1024×1536, WebP q92 method 6, plain `VP8 ` container (not `VP8X`), no text/frame/UI.
+Record SHA-256, byte size, RIFF-declared total and decoded dimensions.
+
+Once the candidate is on the branch, Claude Code resumes with a mechanical pass: verify the bytes,
+review `CardView` 3:4, `CardDetailDrawer` 4:5, `HandCardPreview` 7:9, `CreatureSlot` and
+`/admin/art-review` at desktop and 390 px, walk the §15 checklist, then **stop for owner visual
+approval**. Note Card 01 is a CHARACTER, so `CreatureSlot` is a real surface for it — unlike Card 04,
+which was a RUNE.
 
 Promotion, seed changes and production sync remain **unauthorised**.
 
@@ -183,20 +207,21 @@ No changes were made to:
 
 ## Recommended next action
 
-`docs/CLAUDE_CURRENT_TASK.md` as currently written is **DONE**. Do not re-execute it.
+Generate the Card 01 master externally against §13/§14 of the approved brief and push it to
+`assets/acolyte-of-the-white-rune-candidate`, per `docs/CLAUDE_CURRENT_TASK.md`.
 
-The next action belongs to the owner: review
-`docs/art-review/acolyte-of-the-white-rune-master-art-brief.md`, and in particular the three open
-decisions listed above (framing, cloth-first costume, gold budget).
+Claude Code cannot do this step — no image-generation tool exists in its session. It resumes once
+the candidate bytes are in the repository.
 
-No agent should generate, integrate, promote or sync Card 01 artwork until the owner approves the
-brief and a new `docs/CLAUDE_CURRENT_TASK.md` authorises the generation pass.
+Nothing substitutes for the real master: no placeholder, no approximation, no re-encoded derivative,
+no reconstructed copy. Two candidates have already been rejected on integrity grounds in this
+project (a truncated transcode on Card 03, a 14,999-byte non-image blob on Card 04), and that
+discipline holds here.
 
 ## Reader protocol
 
 1. Read this file.
-2. Read `docs/CLAUDE_CURRENT_TASK.md` — note that its brief-only task is already complete as of
-   commit `2c8639a`; treat it as history unless the owner has replaced it.
+2. Read `docs/CLAUDE_CURRENT_TASK.md` — it now carries the GENERATION task for Card 01.
 3. Read `docs/agent-reports/2026-08-27-art-pack-03-card-01-master-art-brief.md` for the full handoff,
    and `docs/art-review/acolyte-of-the-white-rune-master-art-brief.md` for the brief itself.
 4. Resolve fresh `main` HEAD from GitHub before acting.
