@@ -125,7 +125,7 @@ Two owner-accepted caveats stay on the record in `docs/art-pack-03.md`:
 
 ## Art Pack 03 remaining cards
 
-- Card 01 `acolyte-of-the-white-rune` — FINAL APPROVED, repository integrated, production sync AUTHORIZED / awaiting execution
+- Card 01 `acolyte-of-the-white-rune` — **COMPLETE END TO END**, live in production (run `33091769787`)
 - Card 02 `seal-of-the-curse` — not started
 - Card 03 `warden-of-the-barrier` — not started
 - Card 04 `rune-of-curse-breaking` — not started
