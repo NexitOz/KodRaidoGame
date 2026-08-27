@@ -73,17 +73,29 @@ Not a combat stance. The Acolyte is _performing a small rite_, not fighting and 
 
 ## 3. Costume / materials
 
-The faction language is "armor, not robes" — that stays true, but scaled down to a novice. The
-Acolyte is **cloth-first with minimal silver hardware**, where the Warden is **plate-first with a
-cloth overlayer**.
+The faction language is "armor, not robes" and it is held **strictly** here. The Acolyte wears real
+armor — just **light, plain, standard-issue** armor, where the Warden wears a **full ceremonial
+harness**. The rank read comes from _how much armor and how decorated it is_, never from swapping
+armor out for cloth. This card must never read as a robed cleric, monk, or acolyte-in-vestments.
 
-- **Base garment:** a fitted ivory/off-white linen cassock or tunic with a high collar, cut clean
-  and tailored. Crisp pressed edges, straight hems, no fraying, no tatters, no ragged silhouette
-  anywhere.
-- **Hardware, and only this much:** a plain silver gorget at the throat, a single light silver
-  half-pauldron on one shoulder, and simple silver forearm bracers. Smooth, functional, lightly worn
-  — an issued kit, not a commissioned one. No breastplate, no gauntlets, no greaves, no faulds.
-- **Mantle:** a short shoulder-mantle or pushed-back hood in the same ivory cloth, falling no lower
+- **Armor, the primary layer:** a **light white/silver cuirass** — a single smooth, simply-shaped
+  breastplate with a matching back, worn close to the body. Undecorated: no embossing, no engraved
+  panels, no filigree, no repoussé, no applied medallion. Plain silver gorget at the throat. Two
+  small, plain, matching pauldrons — symmetrical, single-piece, not the Warden's layered stacks.
+  Simple vambraces on both forearms.
+- **Bare hands, deliberately.** No gauntlets. The hands on the rune tablet are the ability read and
+  must stay legible as human hands at thumbnail size; bare hands also mark the wearer as a novice
+  performing a rite rather than a commander in full harness.
+- **Below the waist:** a short plain ivory tabard or armored skirt falling to mid-thigh, where the
+  frame cuts. No faulds, no tassets, no layered plate stacks, no ceremonial skirt. Greaves are
+  irrelevant — the crop never reaches them — so nothing below mid-thigh needs designing.
+- **Under-layer:** a plain ivory high-collared under-tunic showing only at the collar and beneath
+  the vambraces. It is _under_ the armor, not the main garment. Crisp pressed edges, straight hems,
+  no fraying, no tatters, no ragged silhouette anywhere.
+- **Metal finish:** brushed or satin white-steel — **matte, not mirror-polished.** Mirror polish and
+  chrome sheen are ceremonial and belong to the flagship. A little honest wear is right: fine edge
+  scuffs and faint use marks. No dents, no damage, no dirt, no grime, no blood.
+- **Mantle:** a short shoulder-mantle or pushed-back hood in plain ivory cloth, falling no lower
   than mid-back. **No full cape.** The cape is the Warden's silhouette device.
 - **Belt:** a plain leather-and-silver belt with one small pouch or a rolled cloth. Utility, not
   ceremony.
@@ -336,11 +348,14 @@ A young novice of a holy white-rune order, three-quarter length portrait cut at 
 standing frontally and symmetrically, calm and attentive, holding a small hand-sized white stone
 rune tablet in both hands at chest height and presenting it slightly forward. Bare uncovered head,
 no crown and no headwear, short simple hair in an ordinary natural tone, hood pushed back flat on
-the shoulders. Fitted ivory linen cassock with a high collar and crisp pressed tailored edges,
-plain silver gorget at the throat, a single light silver half-pauldron on one shoulder, simple
-silver forearm bracers, plain leather-and-silver belt with one small pouch. Only two thin gold
-hairlines in the whole image: one along the gorget edge and one along the rim of the stone tablet.
-No weapon, no shield, no staff, no cape.
+the shoulders. Wearing light plain standard-issue armor: a smooth undecorated white and silver
+cuirass worn close to the body, a plain silver gorget at the throat, two small simple matching
+pauldrons, simple vambraces on both forearms, a short plain ivory tabard to mid-thigh, a plain
+ivory high-collared under-tunic showing at the collar, a plain leather-and-silver belt with one
+small pouch. The metal is brushed satin white steel, matte and not mirror-polished, with faint
+honest edge wear and no damage. Bare hands, no gauntlets. Only two thin gold hairlines in the whole
+image: one along the gorget edge and one along the rim of the stone tablet. No weapon, no shield,
+no staff, no cape.
 
 The engraved rune lines in the pale white stone tablet glow softly from within with cold pale
 blue-white light, steady and low intensity, casting a faint cool light onto the underside of the
@@ -375,7 +390,10 @@ materials, realistic proportions, character sharply in focus against a softly bl
 ```
 crown, tiara, circlet, halo, headdress, helmet, headwear, head ornament, ornate headpiece,
 full cape, long flowing cape, trailing ceremonial skirt, layered gown, wide spread robes,
-full plate armor, breastplate, gauntlets, greaves, faulds, heavy armor,
+robe, cassock, habit, monk robe, priest vestment, cleric robes, unarmored, cloth only outfit,
+full plate harness, heavy armor, layered pauldrons, faulds, tassets, gauntlets, armored gloves,
+ornate embossed armor, engraved breastplate, mirror polished chrome armor, battle damaged armor,
+dented armor, rusted armor,
 gold filigree, ornate gold trim, gold brocade, gold starburst, jeweled ornament, gemstones,
 heavily decorated, opulent, regal, royal, queen, saint, angel, wings,
 spear, polearm, staff, sword, weapon, large round shield, banner, flag, standard,
@@ -415,7 +433,15 @@ A candidate is approvable only when every box below is verifiable against the ac
 - [ ] Side by side with `high-warden-of-the-white-rune` at thumbnail size, it is immediately obvious
       which card is COMMON.
 - [ ] No crown or head ornament of any kind.
-- [ ] No cape; no full plate; no weapon; no shield.
+- [ ] No cape; no weapon; no shield.
+- [ ] **The figure is armored, not robed.** A light cuirass, gorget, two small pauldrons and
+      vambraces are present and readable. If it reads as a robed cleric, monk, or acolyte in
+      vestments, it fails.
+- [ ] The armor is **light and plain**: no full harness, no layered pauldron stacks, no faulds or
+      tassets, no embossing, no engraved panels, no applied medallion.
+- [ ] Metal is brushed/satin matte, not mirror-polished or chromed; wear is limited to faint edge
+      scuffs — no dents, damage, rust, dirt or grime.
+- [ ] Hands are bare — no gauntlets — and read as human hands on the tablet at thumbnail size.
 - [ ] Gold appears only as hairlines and covers no more than roughly 3% of the canvas.
 - [ ] No rose window, cathedral facade, banners, floor rune-circle, or ranked crowd.
 
