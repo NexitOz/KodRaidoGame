@@ -14,51 +14,73 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: Identify firestorage public content token
+      - name: Isolate firestorage API origin and token flow
         env:
-          BASE: https://firestorage.ai
-          SHARE_ID: UbtC6RJp2_Ok
-          PUBLIC_ID: EVRn3M1IL7mzwH0F
-          SUBDIR: CAf5Hi
-          FILE_ID: 01a044b6f15c732c90c67a9d3375965e
+          SHARE_URL: https://firestorage.ai/ja/f/UbtC6RJp2_Ok
         run: |
           set -euo pipefail
           python - <<'PY'
-          import json, os, urllib.error, urllib.request
+          import os,re,urllib.parse,urllib.request
 
-          base=os.environ['BASE'].rstrip('/')
-          share=os.environ['SHARE_ID']
-          candidates=[
-              os.environ['PUBLIC_ID'],
-              os.environ['SUBDIR'],
-              share,
-              os.environ['FILE_ID'],
-          ]
-          headers={'User-Agent':'Mozilla/5.0 Chrome/151','Accept':'application/json,text/plain,*/*'}
+          share=os.environ['SHARE_URL']
+          headers={'User-Agent':'Mozilla/5.0 Chrome/151','Accept':'text/html,application/javascript,*/*'}
 
-          def probe(path):
-              url=base+path
+          def get(url):
               req=urllib.request.Request(url,headers=headers)
-              try:
-                  with urllib.request.urlopen(req,timeout=30) as r:
-                      body=r.read().decode('utf-8','replace')
-                      print('\nURL=',url)
-                      print('STATUS=',getattr(r,'status',None))
-                      print('TYPE=',r.headers.get('Content-Type'))
-                      print('BODY=',body[:5000])
-                      return getattr(r,'status',None), body
-              except urllib.error.HTTPError as e:
-                  body=e.read().decode('utf-8','replace')
-                  print('\nURL=',url)
-                  print('STATUS=',e.code)
-                  print('TYPE=',e.headers.get('Content-Type'))
-                  print('BODY=',body[:3000])
-                  return e.code, body
-              except Exception as e:
-                  print('\nURL=',url,'ERROR=',repr(e))
-                  return None,''
+              with urllib.request.urlopen(req,timeout=30) as r:
+                  return r.read().decode('utf-8','replace'), r.geturl()
 
-          for token in candidates:
-              probe(f'/api/p/{share}/{token}')
-              probe(f'/api/p/{share}/{token}/content?page=1')
+          html,final=get(share)
+          scripts=[urllib.parse.urljoin(final,s) for s in re.findall(r'<script[^>]+src=["\']([^"\']+)',html)]
+          print('FINAL_SHARE=',final)
+          print('SCRIPT_COUNT=',len(scripts))
+
+          # React/Next payload may carry runtime config or token.
+          for term in ['UbtC6RJp2_Ok','EVRn3M1IL7mzwH0F','CAf5Hi','01a044b6f15c732c90c67a9d3375965e','apiBase','API_URL','NEXT_PUBLIC']:
+              hits=[]
+              low=html.lower(); needle=term.lower(); pos=0
+              while len(hits)<3:
+                  i=low.find(needle,pos)
+                  if i<0: break
+                  hits.append(html[max(0,i-240):min(len(html),i+520)].replace('\n',' '))
+                  pos=i+len(needle)
+              if hits:
+                  print(f'HTML_TERM={term} HITS={len(hits)}')
+                  for h in hits: print('CTX=',h[:800])
+
+          origins=set()
+          targeted=[]
+          terms=['/api/p/','downloadUrl','NEXT_PUBLIC','API_URL','BASE_URL','baseURL','apiBase','fetch(','axios','new URL','downloadUrl:s(']
+          for url in scripts:
+              try: js,_=get(url)
+              except Exception: continue
+              # Absolute origins only.
+              for m in re.finditer(r'https?://[A-Za-z0-9._:-]+',js):
+                  origins.add(m.group(0))
+              low=js.lower()
+              for term in terms:
+                  needle=term.lower(); pos=0; count=0
+                  while count<3:
+                      i=low.find(needle,pos)
+                      if i<0: break
+                      ctx=js[max(0,i-420):min(len(js),i+900)].replace('\n',' ')
+                      targeted.append((url,term,i,ctx))
+                      pos=i+len(needle); count+=1
+
+          print('ABSOLUTE_ORIGINS=')
+          for o in sorted(origins):
+              if any(k in o.lower() for k in ['fire','api','storage','supabase','vercel','cloud','railway','render','fly','r2','aws']):
+                  print(o)
+
+          print('TARGETED_CONTEXTS=')
+          seen=set(); emitted=0
+          for url,term,i,ctx in targeted:
+              key=(term,ctx[:220])
+              if key in seen: continue
+              seen.add(key)
+              print(f'[{term}] {url} @{i}')
+              print(ctx[:1320])
+              emitted+=1
+              if emitted>=35: break
+          print('EMITTED_CONTEXTS=',emitted)
           PY
