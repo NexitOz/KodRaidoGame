@@ -14,9 +14,10 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 - **Status:** Card 01 master-art brief COMPLETE — AWAITING OWNER REVIEW
 - **Current target:** `acolyte-of-the-white-rune` / «Послушник Белой Руны»
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
-- **Current task-result commit:** `2c8639a81214749b1f4c7eb19a3a7e6d1278df56`
+- **Current task-result commit:** `5614d8180f62bde9e569555a6c68d51be66cea7c` (light-armor amendment;
+  the brief was first created in `2c8639a`)
 - **Latest handoff report:** `docs/agent-reports/2026-08-27-art-pack-03-card-01-master-art-brief.md`
-- **Latest handoff report commit:** `c047016`
+- **Latest handoff report commit:** `697060f`
 - **Branch:** `main`
 - **PR:** none — documentation-only task
 
@@ -55,15 +56,34 @@ loss (spearhead apex trimmed ~5.5–8.3%) is designed out. Card 01 is specified 
 accepted crop losses, and a candidate returning with a headpiece or raised staff is an automatic
 reject on that ground alone.
 
-### Open decisions for owner review
+### Owner decisions
 
-1. **Framing** — three-quarter length cut at mid-thigh rather than full body. Drives silhouette,
-   crop plan and thumbnail legibility.
-2. **Cloth-first costume** — the art bible says PURIFICATION is "armor, not robes"; a COMMON novice
-   in full plate would not read as junior, so §3 of the brief specifies cloth-first with a gorget,
-   one half-pauldron and bracers, and says so explicitly rather than departing quietly. If the
-   armour rule should hold strictly even for COMMONs, §3 is the only section to revise.
-3. **Gold budget** — two hairlines at ≤ ~3% of canvas, enforced as an automatic reject.
+1. **Costume — DECIDED 2026-08-27: light armor.** The owner held the art bible's "armor, not robes"
+   rule strictly. §3 now specifies real but light, plain, standard-issue armor — a smooth
+   undecorated white/silver cuirass, plain gorget, two small matching pauldrons, vambraces on both
+   forearms, a short ivory tabard to mid-thigh, over a plain high-collared under-tunic; brushed
+   satin matte metal, not mirror-polished; bare hands, no gauntlets. The COMMON rank read now comes
+   from how little armor there is and how undecorated it is, not from swapping armor for cloth.
+   Applied in commit `5614d818`, scoped by owner instruction to §3, the generation prompt, the
+   negative prompt and the acceptance checklist only.
+2. **Framing** — still open: three-quarter length cut at mid-thigh rather than full body. Drives
+   silhouette, crop plan and thumbnail legibility.
+3. **Gold budget** — still open: two hairlines at ≤ ~3% of canvas, enforced as an automatic reject.
+
+### Known stale cross-references in the brief
+
+The light-armor amendment was deliberately confined to the four sections the owner named, leaving
+three places that still describe the superseded cloth-first costume. They are recorded in the
+"Amendment follow-up" section of the handoff report and are **not** to be fixed without owner
+authorisation:
+
+1. **§12 forbidden-drift item 4** still lists "breastplate" as an automatic reject while §3 now
+   requires a light cuirass — the one contradiction that could wrongly reject a good candidate. The
+   intended rule is "no _full_ harness".
+2. **§8 hierarchy table, Armour row** still reads "over cloth".
+3. **§6 palette table and §11** still name the "cassock" as the dominant white garment.
+
+None of the three changes the direction; they are terminology catching up with the decision.
 
 **Hard stop respected:** no image was generated, integrated, promoted or synced. No seed, schema,
 gameplay, artwork, `/admin/art-review`, Battlefield UI, sync script, workflow, Railway/Vercel or
