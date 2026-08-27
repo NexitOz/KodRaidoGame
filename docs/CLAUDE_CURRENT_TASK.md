@@ -1,5 +1,23 @@
 # CURRENT TASK — Art Pack 03 Card 01: execute controlled 11-card production-art sync
 
+## COMPLETE 2026-08-27 — sync executed successfully
+
+Workflow run **33091769787** (job `98586183358`) finished with conclusion **success**.
+
+`ROWS_REQUIRING_MUTATION=1` at PRE-WRITE — exactly the expected single row,
+`acolyte-of-the-white-rune`, so the critical stop rule was not triggered. APPLY committed inside its
+Serializable transaction with `ROWS_CHANGED=1`, `TARGET_ROWS_FINAL=11`, `SOURCE_OF_TRUTH_MATCH=11/11`
+and **`NON_TARGET_FIELD_CHANGES=0`**. The independent POST-WRITE re-read returned
+`ROWS_REQUIRING_MUTATION=0` and `SOURCE_OF_TRUTH_MATCH=11/11`.
+
+`SYNC-11-CARD-ART-PRODUCTION` is now **CONSUMED** and is not standing authorization.
+
+Card 01 is complete end to end. Card 02 was not started.
+
+Full evidence: `docs/agent-reports/2026-08-27-art-pack-03-card-01-production-sync-executed.md`.
+
+The original task text follows for reference.
+
 ## Goal
 
 Execute the already-prepared and merged controlled production card-art sync for eleven cards, adding the approved PURIFICATION Card 01 (`acolyte-of-the-white-rune`) to production.

@@ -4,14 +4,14 @@ Production artwork for the PURIFICATION faction's non-flagship cards. The factio
 flagship, `high-warden-of-the-white-rune`, was approved earlier as part of Art Pack 01 and is not
 part of this pack — see [`art-bible-01.md`](art-bible-01.md).
 
-**Pack status:** IN PROGRESS — Card 01 of 4 integrated.
+**Pack status:** IN PROGRESS — Card 01 of 4 complete and live in production.
 
-| #   | Slug                        | Type / Rarity / Cost   | Status             |
-| --- | --------------------------- | ---------------------- | ------------------ |
-| 01  | `acolyte-of-the-white-rune` | CHARACTER / COMMON / 1 | **FINAL APPROVED** |
-| 02  | `seal-of-the-curse`         | EVENT / RARE / 2       | not started        |
-| 03  | `warden-of-the-barrier`     | CHARACTER / RARE / 3   | not started        |
-| 04  | `rune-of-curse-breaking`    | RUNE / EPIC / 3        | not started        |
+| #   | Slug                        | Type / Rarity / Cost   | Status                 |
+| --- | --------------------------- | ---------------------- | ---------------------- |
+| 01  | `acolyte-of-the-white-rune` | CHARACTER / COMMON / 1 | **LIVE IN PRODUCTION** |
+| 02  | `seal-of-the-curse`         | EVENT / RARE / 2       | not started            |
+| 03  | `warden-of-the-barrier`     | CHARACTER / RARE / 3   | not started            |
+| 04  | `rune-of-curse-breaking`    | RUNE / EPIC / 3        | not started            |
 
 ## Card 01 — `acolyte-of-the-white-rune` — FINAL APPROVED
 
@@ -141,24 +141,39 @@ This was the second ~15 KB truncation on this project (SHADOW Card 04 v1 was 14,
 **The standing safeguard is `git cat-file -s HEAD:<path>` before pushing** — it reads the size back
 out of the object git actually stored, and would have caught both.
 
-## Production sync — PREPARED, AWAITING OWNER AUTHORIZATION
+## Production sync — COMPLETED
 
-The ten-card controlled sync has been **prepared** for extension to eleven by adding
-`acolyte-of-the-white-rune`. Nothing has been executed: the production database is unchanged and no
-sync has run.
+Card 01 is live in production. The controlled sync was extended 10 → 11 and executed successfully.
 
-| Item                 | Value                                                                       |
-| -------------------- | --------------------------------------------------------------------------- |
-| Immutable source pin | `92cc662fb5a43963c934c6c5f0aa4f1d0e8269e9` (the merged Card 01 integration) |
-| Target slugs         | 11                                                                          |
-| Confirmation string  | `SYNC-11-CARD-ART-PRODUCTION`                                               |
-| Status               | PREPARED — **not authorized, not dispatched, not run**                      |
+| Item                 | Value                                                                        |
+| -------------------- | ---------------------------------------------------------------------------- |
+| Workflow run         | **33091769787** (run 7), job `98586183358` — conclusion **success**          |
+| Executed             | 2026-08-27, ~41 s                                                            |
+| Immutable source pin | `92cc662fb5a43963c934c6c5f0aa4f1d0e8269e9`                                   |
+| Target slugs         | 11                                                                           |
+| Confirmation used    | `SYNC-11-CARD-ART-PRODUCTION` — now **CONSUMED**                             |
+| Rows changed         | **1** — `acolyte-of-the-white-rune` (`08b4f9d4-7928-4d7c-9794-bc6b8cb46d65`) |
 
-Placing the confirmation string in the workflow does **not** authorize its use. It stays dormant
-until the owner separately supplies that exact string after the preparation PR is reviewed and
-merged. The previous `SYNC-10-CARD-ART-PRODUCTION` is **consumed** and grants nothing.
+The single changed row moved from an inline SVG placeholder with `rightsStatus: placeholder` to
+`/art/cards/acolyte-of-the-white-rune.webp` with `rightsStatus: owned`. The other ten targets
+reported `needsChange=NO` throughout and were not modified.
 
-Verified offline at the pinned commit, with no production connection of any kind: all 11 seed
-definitions carry the expected `artworkUrl` and `rightsStatus: 'owned'`; all 11 WebP files exist;
-the script and workflow slug lists are identical and in the same order; and the script's real
-`deriveDesiredValues` produces exactly 11 correct targets from the pin.
+Verified gates, read from the actual job logs:
+
+- **PRE-WRITE** — `TARGET_ROWS=11`, `UNIQUE_SLUGS=11`, `ROWS_REQUIRING_MUTATION=1`,
+  `SOURCE_OF_TRUTH_MATCH=10/11`
+- **APPLY** — `TRANSACTION_STARTED=YES`, `TRANSACTION_COMMITTED=YES`, `ROWS_CHANGED=1`,
+  `TARGET_ROWS_FINAL=11`, `SOURCE_OF_TRUTH_MATCH=11/11`, **`NON_TARGET_FIELD_CHANGES=0`**
+- **Independent POST-WRITE re-read** — `TARGET_ROWS=11`, `UNIQUE_SLUGS=11`,
+  `ROWS_REQUIRING_MUTATION=0`, `SOURCE_OF_TRUTH_MATCH=11/11`
+
+Full evidence:
+[`agent-reports/2026-08-27-art-pack-03-card-01-production-sync-executed.md`](agent-reports/2026-08-27-art-pack-03-card-01-production-sync-executed.md)
+
+`SYNC-11-CARD-ART-PRODUCTION` authorized exactly that one run and is **consumed**. It is not
+standing authorization. Any future sync needs a fresh owner confirmation and a repointed
+immutable-source pin — and, per the established pattern, the pin must reference an
+already-merged integration commit.
+
+**Card 01 is complete end to end:** briefed → generated → byte-verified → surface-reviewed →
+owner-approved → integrated → merged → synced to production.
