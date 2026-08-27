@@ -11,14 +11,16 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** Card 01 **REPOSITORY INTEGRATION MERGED — 11-CARD PRODUCTION-SYNC PREPARATION READY FOR AGENT EXECUTION**
+- **Status:** 11-card production-sync **PREPARED — PR #36 OPEN, NOT MERGED, NOT AUTHORIZED**
 - **Current target:** post-merge controlled production-art sync preparation for `acolyte-of-the-white-rune` / «Послушник Белой Руны»
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
 - **Current task commit:** `4b8caa44b53857e2789b4b3f8ee24a856bb57a7d`
 - **Latest transition report:** `docs/agent-reports/2026-08-27-art-pack-03-card-01-integration-merged-transition.md`
 - **Transition report commit:** `ec16f77b41783ca0f375f2330583537192621256`
 - **Branch:** `main`
-- **Current preparation PR:** none yet
+- **Current preparation PR:** #36 — https://github.com/NexitOz/KodRaidoGame/pull/36 (OPEN, **not merged**)
+- **Preparation branch:** `claude/prepare-11-card-production-art-sync` @ `0ef199b`
+- **Preparation handoff:** full final report posted as a comment on PR #36
 
 ## Card 01 repository integration — MERGED
 
@@ -127,9 +129,45 @@ Cards 01–04 are FINAL APPROVED and the prior controlled ten-card production sy
 
 Do not begin Card 02 inside the sync-preparation task.
 
+## 11-card sync preparation — DONE, awaiting review
+
+PR #36 on `claude/prepare-11-card-production-art-sync` (`0ef199b`) prepares the 10 → 11 extension.
+Three files: the sync script (pin repointed, 11th slug added), the workflow (pins, slug list,
+wording and **every** count assertion moved 10 → 11, fresh confirmation string), and
+`docs/art-pack-03.md`.
+
+- **New immutable pin:** `92cc662fb5a43963c934c6c5f0aa4f1d0e8269e9` — the merged Card 01 integration
+- **Target slugs:** 11, with `acolyte-of-the-white-rune` appended
+- **Fresh confirmation:** `SYNC-11-CARD-ART-PRODUCTION`
+
+**Nothing was executed.** No production connection, no workflow dispatch, no `--check`, no
+`--apply`, no database mutation. The production database is unchanged.
+
+**The confirmation string in the workflow is NOT authorization.** It stays dormant until the owner
+supplies it separately, after PR #36 is reviewed and merged. `SYNC-10-CARD-ART-PRODUCTION` is
+consumed and is now absent from the workflow entirely.
+
+Verified offline against the pinned commit: all 11 seed definitions carry the expected `artworkUrl`
+and `rightsStatus: 'owned'`; all 11 WebP files exist; script and workflow slug lists are identical
+and in the same order; the script's real `deriveDesiredValues` (run with `PrismaClient` stripped out,
+so it cannot connect) produces exactly 11 correct targets; and the workflow's own immutability guard
+passes, since only docs commits have landed on `main` since the pin.
+
+Two notes carried forward: the repo's `lint`/`typecheck` do **not** cover `scripts/`, so the sync
+script was checked with ESLint and `tsc` directly; and the script was deliberately not run through
+`prettier --write`, because it was already Prettier-dirty on `main` and a write would reformat 37
+unrelated lines in a file that must stay reviewable line-by-line.
+
 ## Recommended next action
 
-Have Claude execute the current sync-preparation task and stop with the dedicated PR open for review. Do not authorize or dispatch production sync yet.
+1. Review and merge PR #36.
+2. **Separately and explicitly**, supply `SYNC-11-CARD-ART-PRODUCTION` to authorize the actual sync
+   run. That is a distinct decision — PR #36 does not request it, and no part of the preparation
+   task obtained it.
+
+On that run, expect `ROWS_REQUIRING_MUTATION=1` (only `acolyte-of-the-white-rune` should differ),
+`SOURCE_OF_TRUTH_MATCH=11/11` and `NON_TARGET_FIELD_CHANGES=0`. A higher mutation count means
+production has drifted from the pinned source of truth and deserves a look before proceeding.
 
 ## Reader protocol
 
