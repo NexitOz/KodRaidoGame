@@ -16,8 +16,10 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
 - **Current task commit:** `2a08ffc4fc744b98ecbce06a3dff4ea0c1cb955e`
 - **Latest handoff:** `docs/agent-reports/2026-08-27-art-pack-03-card-02-firestorage-transport-blocked.md`
+- **Latest task-result commit:** `7672f520f74d9a5bda9395c77df6e75b3ff4bf21` (blocked handoff written), amended by the second-attempt commit below
 - **Prior handoff:** `docs/agent-reports/2026-08-27-art-pack-03-card-02-candidate-rejected.md`
 - **Branch:** `main`
+- **Open blocker:** the accepted `seal-of-the-curse` master has never reached the repository. No transport route currently works from this session. **Owner/ChatGPT action is required to unblock — see "Recommended: GitHub Release asset" below.**
 
 ## Card 01 — COMPLETE END TO END
 
@@ -98,8 +100,15 @@ detail: gateway answered 403 to CONNECT (policy denial or upstream failure)
 ```
 
 This is an organization egress-policy denial for this session. The proxy documentation requires such
-failures be reported rather than retried or routed around, so no retry, alternate route or setting
+failures be reported rather than retried or routed around, so no alternate route, mirror or setting
 change was attempted.
+
+**Confirmed by a second attempt on owner instruction (2026-08-27 19:47:49Z).** The identical
+`connect_rejected` was logged again for `firestorage.ai:443`, eight minutes after the first. Two
+rejections on the same host establish a standing denial rather than a transient upstream fault. The
+same check confirmed the master had not appeared anywhere else reachable in the meantime: **no
+release exists on the repository at all**, no issue or PR carries the asset, no new branch contains
+it, and no 326,508-byte blob exists in any ref or on local disk.
 
 **Nothing was downloaded, so this is not another truncation and implies nothing about the artwork.**
 No candidate-v2 branch was created, nothing was staged, `/admin/art-review` was untouched, and **no

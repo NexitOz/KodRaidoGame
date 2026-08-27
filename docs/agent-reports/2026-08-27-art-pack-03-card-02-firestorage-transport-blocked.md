@@ -36,6 +36,33 @@ The agent proxy's own status endpoint records the reason explicitly:
 ]
 ```
 
+### Re-attempted at owner direction — same result
+
+The owner asked for the task to be driven to completion, so the download was attempted **a second
+time** rather than assumed to still be failing. The proxy's own failure text is ambiguous between a
+standing policy denial and a transient upstream fault (`policy denial or upstream failure`), which
+made one fresh attempt worthwhile.
+
+It failed identically, and the proxy logged it as a new event:
+
+```json
+{
+  "ts": "2026-08-27T19:47:49.408Z",
+  "kind": "connect_rejected",
+  "detail": "gateway answered 403 to CONNECT (policy denial or upstream failure)",
+  "host": "firestorage.ai:443"
+}
+```
+
+Two rejections eight minutes apart, on the same host, establish this as a standing denial rather
+than a transient upstream fault. Only the original request was repeated — no alternate route, no
+mirror, no proxy or TLS setting was changed.
+
+Re-checked at the same time, in case the master had landed somewhere reachable since: **no GitHub
+release exists on the repository at all** (`list_releases` → `[]`), no open or closed issue or PR
+carries the asset, no new branch contains it, and there is still no 326,508-byte blob in any ref or
+on local disk.
+
 The session's proxy documentation (`/root/.ccr/README.md`) is unambiguous about what to do with this
 class of failure:
 
