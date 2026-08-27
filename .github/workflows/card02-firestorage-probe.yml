@@ -14,73 +14,64 @@ jobs:
   probe:
     runs-on: ubuntu-latest
     steps:
-      - name: Isolate firestorage API origin and token flow
+      - name: Resolve firestorage public file API prefix
         env:
-          SHARE_URL: https://firestorage.ai/ja/f/UbtC6RJp2_Ok
+          CHUNK_URL: https://firestorage.ai/_next/static/chunks/4899-d89df949f2dbd5af.js
+          SHARE_ID: UbtC6RJp2_Ok
         run: |
           set -euo pipefail
           python - <<'PY'
-          import os,re,urllib.parse,urllib.request
+          import os,re,urllib.error,urllib.request
 
-          share=os.environ['SHARE_URL']
-          headers={'User-Agent':'Mozilla/5.0 Chrome/151','Accept':'text/html,application/javascript,*/*'}
+          headers={'User-Agent':'Mozilla/5.0 Chrome/151','Accept':'application/javascript,application/json,*/*'}
+          req=urllib.request.Request(os.environ['CHUNK_URL'],headers=headers)
+          with urllib.request.urlopen(req,timeout=30) as r:
+              js=r.read().decode('utf-8','replace')
+          print('JS_BYTES=',len(js.encode()))
 
-          def get(url):
-              req=urllib.request.Request(url,headers=headers)
-              with urllib.request.urlopen(req,timeout=30) as r:
-                  return r.read().decode('utf-8','replace'), r.geturl()
+          # Show every assignment/string containing api.firestorage.ai, with tight context.
+          needle='api.firestorage.ai'
+          pos=0; n=0
+          while n<12:
+              i=js.find(needle,pos)
+              if i<0: break
+              print(f'API_CTX_{n}=',js[max(0,i-650):min(len(js),i+1150)].replace('\n',' ')[:1800])
+              pos=i+len(needle); n+=1
+          print('API_OCCURRENCES=',n)
 
-          html,final=get(share)
-          scripts=[urllib.parse.urljoin(final,s) for s in re.findall(r'<script[^>]+src=["\']([^"\']+)',html)]
-          print('FINAL_SHARE=',final)
-          print('SCRIPT_COUNT=',len(scripts))
+          # Show the exact public-share loader function around /shares/${...}/files.
+          for needle2 in ['/files?maxResults=1000','/shares/${','downloadUrl','File API returned']:
+              i=js.find(needle2)
+              print('TERM=',needle2,'POS=',i)
+              if i>=0:
+                  print('CTX=',js[max(0,i-1500):min(len(js),i+1800)].replace('\n',' ')[:3300])
 
-          # React/Next payload may carry runtime config or token.
-          for term in ['UbtC6RJp2_Ok','EVRn3M1IL7mzwH0F','CAf5Hi','01a044b6f15c732c90c67a9d3375965e','apiBase','API_URL','NEXT_PUBLIC']:
-              hits=[]
-              low=html.lower(); needle=term.lower(); pos=0
-              while len(hits)<3:
-                  i=low.find(needle,pos)
-                  if i<0: break
-                  hits.append(html[max(0,i-240):min(len(html),i+520)].replace('\n',' '))
-                  pos=i+len(needle)
-              if hits:
-                  print(f'HTML_TERM={term} HITS={len(hits)}')
-                  for h in hits: print('CTX=',h[:800])
+          # Extract full string literals that mention the API host.
+          strings=sorted(set(re.findall(r'["\'](https://api\.firestorage\.ai[^"\']*)["\']',js)))
+          print('API_STRINGS=',strings)
 
-          origins=set()
-          targeted=[]
-          terms=['/api/p/','downloadUrl','NEXT_PUBLIC','API_URL','BASE_URL','baseURL','apiBase','fetch(','axios','new URL','downloadUrl:s(']
-          for url in scripts:
-              try: js,_=get(url)
-              except Exception: continue
-              # Absolute origins only.
-              for m in re.finditer(r'https?://[A-Za-z0-9._:-]+',js):
-                  origins.add(m.group(0))
-              low=js.lower()
-              for term in terms:
-                  needle=term.lower(); pos=0; count=0
-                  while count<3:
-                      i=low.find(needle,pos)
-                      if i<0: break
-                      ctx=js[max(0,i-420):min(len(js),i+900)].replace('\n',' ')
-                      targeted.append((url,term,i,ctx))
-                      pos=i+len(needle); count+=1
-
-          print('ABSOLUTE_ORIGINS=')
-          for o in sorted(origins):
-              if any(k in o.lower() for k in ['fire','api','storage','supabase','vercel','cloud','railway','render','fly','r2','aws']):
-                  print(o)
-
-          print('TARGETED_CONTEXTS=')
-          seen=set(); emitted=0
-          for url,term,i,ctx in targeted:
-              key=(term,ctx[:220])
-              if key in seen: continue
-              seen.add(key)
-              print(f'[{term}] {url} @{i}')
-              print(ctx[:1320])
-              emitted+=1
-              if emitted>=35: break
-          print('EMITTED_CONTEXTS=',emitted)
+          share=os.environ['SHARE_ID']
+          # Probe only prefixes actually observed, plus the one shared file-api prefix from the client core.
+          bases=set()
+          for s in strings:
+              if '${' not in s and '`' not in s:
+                  bases.add(s if s.endswith('/') else s+'/')
+          bases.update([
+              'https://api.firestorage.ai/prod/',
+              'https://api.firestorage.ai/prod/file/',
+              'https://api.firestorage.ai/prod/file/v1/',
+              'https://api.firestorage.ai/prod/file/v1/public/',
+          ])
+          for base in sorted(bases):
+              url=base+f'shares/{share}/files?maxResults=1000'
+              req=urllib.request.Request(url,headers={'User-Agent':'Mozilla/5.0 Chrome/151','Accept':'application/json,*/*'})
+              try:
+                  with urllib.request.urlopen(req,timeout=20) as r:
+                      body=r.read().decode('utf-8','replace')
+                      print('PROBE=',url,'STATUS=',r.status,'TYPE=',r.headers.get('Content-Type'),'BODY=',body[:3000])
+              except urllib.error.HTTPError as e:
+                  body=e.read().decode('utf-8','replace')
+                  print('PROBE=',url,'STATUS=',e.code,'TYPE=',e.headers.get('Content-Type'),'BODY=',body[:500])
+              except Exception as e:
+                  print('PROBE=',url,'ERROR=',repr(e))
           PY
