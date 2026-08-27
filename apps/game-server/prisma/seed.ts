@@ -821,6 +821,9 @@ const PURIFICATION_CARDS: SeedCard[] = [
     attack: 1,
     health: 3,
     abilityText: 'При выходе: снимите Проклятие и Заглушение с выбранного союзника.',
+    // Art Pack 03 Card 01 - owner-approved production artwork.
+    artworkUrl: '/art/cards/acolyte-of-the-white-rune.webp',
+    rightsStatus: 'owned',
     effectJson: [
       { trigger: 'ON_PLAY', conditions: [], effects: [{ type: 'CLEANSE', target: 'FRIENDLY_CHOSEN' }] },
     ],
