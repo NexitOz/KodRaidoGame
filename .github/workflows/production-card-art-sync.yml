@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       confirmation:
-        description: Type SYNC-11-CARD-ART-PRODUCTION to authorize the controlled production sync
+        description: Type SYNC-12-CARD-ART-PRODUCTION to authorize the controlled production sync
         required: true
         type: string
 
@@ -17,10 +17,18 @@ concurrency:
 
 jobs:
   sync-production-card-art:
-    name: Verify and synchronize eleven production card artwork records
+    name: Verify and synchronize twelve production card artwork records
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
+      # DELIBERATELY STALE UNTIL THE CARD 02 INTEGRATION MERGES. Both pins still point at the
+      # eleven-card commit, whose seed.ts carries no production artwork fields for
+      # `seal-of-the-curse`, so a twelve-card run fails closed in `deriveDesiredValues` before it can
+      # read or write anything.
+      #
+      # AFTER the Card 02 integration PR merges, repoint both pins here and REQUIRED_SOURCE_COMMIT in
+      # apps/game-server/scripts/sync-production-card-art.ts to that merge commit. A sync may then be
+      # dispatched only with a fresh owner confirmation of SYNC-12-CARD-ART-PRODUCTION.
       REQUIRED_SOURCE_COMMIT: 92cc662fb5a43963c934c6c5f0aa4f1d0e8269e9
       SOURCE_COMMIT: 92cc662fb5a43963c934c6c5f0aa4f1d0e8269e9
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
@@ -30,7 +38,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "${{ inputs.confirmation }}" = "SYNC-11-CARD-ART-PRODUCTION"
+          test "${{ inputs.confirmation }}" = "SYNC-12-CARD-ART-PRODUCTION"
 
       - name: Check out the reviewed workflow revision
         uses: actions/checkout@v4
@@ -56,7 +64,7 @@ jobs:
           echo "IMMUTABLE_SOURCE_SHA_VERIFIED=$REQUIRED_SOURCE_COMMIT"
           echo "CURRENT_MAIN_SHA=$actual_main"
 
-      - name: Verify all eleven committed artwork files
+      - name: Verify all twelve committed artwork files
         shell: bash
         run: |
           set -euo pipefail
@@ -72,11 +80,12 @@ jobs:
             keeper-of-smoldering-embers
             rune-of-the-echoing-dusk
             acolyte-of-the-white-rune
+            seal-of-the-curse
           )
           for slug in "${slugs[@]}"; do
             git cat-file -e "$REQUIRED_SOURCE_COMMIT:apps/web/public/art/cards/$slug.webp"
           done
-          echo "ARTWORK_FILES_PRESENT=11/11"
+          echo "ARTWORK_FILES_PRESENT=12/12"
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -120,13 +129,13 @@ jobs:
             npm exec -- tsx apps/game-server/scripts/sync-production-card-art.ts --check \
             | tee /tmp/prewrite.log
           grep -qx 'PRODUCTION_SCOPE_VERIFIED=YES' /tmp/prewrite.log
-          grep -qx 'TARGET_ROWS=11' /tmp/prewrite.log
-          grep -qx 'UNIQUE_SLUGS=11' /tmp/prewrite.log
+          grep -qx 'TARGET_ROWS=12' /tmp/prewrite.log
+          grep -qx 'UNIQUE_SLUGS=12' /tmp/prewrite.log
           snapshot="$(sed -n 's/^PRE_WRITE_SNAPSHOT=//p' /tmp/prewrite.log)"
           test "$(printf '%s' "$snapshot" | wc -c)" -eq 64
           rows_requiring_mutation="$(sed -n 's/^ROWS_REQUIRING_MUTATION=//p' /tmp/prewrite.log)"
           test "$rows_requiring_mutation" -ge 0
-          test "$rows_requiring_mutation" -le 11
+          test "$rows_requiring_mutation" -le 12
           echo "snapshot=$snapshot" >> "$GITHUB_OUTPUT"
           echo "rows_requiring_mutation=$rows_requiring_mutation" >> "$GITHUB_OUTPUT"
 
@@ -142,8 +151,8 @@ jobs:
           grep -qx 'PRODUCTION_SCOPE_VERIFIED=YES' /tmp/apply.log
           grep -qx 'TRANSACTION_STARTED=YES' /tmp/apply.log
           grep -qx 'TRANSACTION_COMMITTED=YES' /tmp/apply.log
-          grep -qx 'TARGET_ROWS_FINAL=11' /tmp/apply.log
-          grep -qx 'SOURCE_OF_TRUTH_MATCH=11/11' /tmp/apply.log
+          grep -qx 'TARGET_ROWS_FINAL=12' /tmp/apply.log
+          grep -qx 'SOURCE_OF_TRUTH_MATCH=12/12' /tmp/apply.log
           grep -qx 'NON_TARGET_FIELD_CHANGES=0' /tmp/apply.log
 
       - name: Report already synchronized state
@@ -160,7 +169,7 @@ jobs:
             npm exec -- tsx apps/game-server/scripts/sync-production-card-art.ts --check \
             | tee /tmp/postwrite.log
           grep -qx 'PRODUCTION_SCOPE_VERIFIED=YES' /tmp/postwrite.log
-          grep -qx 'TARGET_ROWS=11' /tmp/postwrite.log
-          grep -qx 'UNIQUE_SLUGS=11' /tmp/postwrite.log
+          grep -qx 'TARGET_ROWS=12' /tmp/postwrite.log
+          grep -qx 'UNIQUE_SLUGS=12' /tmp/postwrite.log
           grep -qx 'ROWS_REQUIRING_MUTATION=0' /tmp/postwrite.log
-          grep -qx 'SOURCE_OF_TRUTH_MATCH=11/11' /tmp/postwrite.log
+          grep -qx 'SOURCE_OF_TRUTH_MATCH=12/12' /tmp/postwrite.log
