@@ -11,15 +11,62 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** Card 02 **OWNER APPROVED — INTEGRATION AUTHORIZED, PRODUCTION SYNC NOT AUTHORIZED**
+- **Status:** Card 02 **INTEGRATED — PR #37 OPEN, AWAITING REPOSITORY REVIEW. NOT MERGED. PRODUCTION SYNC NOT AUTHORIZED.**
 - **Current target:** `seal-of-the-curse` / «Печать Проклятия»
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
 - **Current task commit:** `1f428c16ee5ac41d7683786f2983d9b6017d26b7`
+- **Integration PR:** **#37** — `claude/integrate-seal-of-the-curse-art`
+- **Latest task-result commit:** `6b668d8ba73ede0899f4cba3e5362fd74f10f2b1` (integration head)
+- **Integration base SHA:** `2e1884f27c47da933d27d139814b3ad5ff495c51`
+- **Final report:** `## AGENT HANDOFF — FINAL REPORT` comment on PR #37
 - **Owner approval record:** `docs/agent-reports/2026-08-30-art-pack-03-card-02-owner-approval.md` @ `81f59ae65d266e07546306af938c1e835b1e884e`
 - **Visual-QA handoff:** `docs/agent-reports/2026-08-30-art-pack-03-card-02-candidate-v2-visual-qa.md`
-- **Review-only code branch:** `claude/card-02-review-support` @ `45bdb37` — no PR opened
+- **Superseded review-only branch:** `claude/card-02-review-support` @ `45bdb37` — its candidate registration is superseded by the production-path entry in PR #37; do not merge it
 - **Branch for current coordination:** `main`
-- **Open blocker:** NONE for repository integration. Production synchronization remains separately gated.
+- **Open blocker:** PR #37 needs repository review and merge. **After merge the sync source pin MUST be repointed** — see below.
+
+## Card 02 — INTEGRATION COMPLETE, PR #37 OPEN
+
+Merged: **NO** · Production sync dispatched: **NO** · Production DB mutated: **NO**
+
+Changed files (6): the new `apps/web/public/art/cards/seal-of-the-curse.webp`; `seed.ts` (+3, Card 02
+only); `apps/web/src/app/admin/art-review/page.tsx` (+8); `sync-production-card-art.ts` (+1 slug and
+pin comment); `.github/workflows/production-card-art-sync.yml` (11 → 12); `docs/art-pack-03.md`.
+
+**Production artwork is byte-identical to the approved candidate.** `cmp` clean against
+`assets/seal-of-the-curse-candidate-v2` @ `6740569`; 326508 bytes; SHA-256 `699db6b7…`; Git blob SHA
+`95940017577f7152a28bf76122912c37e548c7e0` unchanged through hash-object, commit, push and re-fetch;
+RIFF total 326508; plain `VP8 `; 1024×1536; full decode PASS.
+
+**Production-path QA passed on the real stack** across all nine surfaces including the logged-in
+Collection. Candidate isolation is gone and proven: the staged gitignored file was deleted, the only
+Card 02 request is `/art/cards/seal-of-the-curse.webp` → 200, zero requests to
+`/art-review-candidates/`, and the badges read `rightsStatus: owned` / `PRODUCTION ASSET — REVIEW`.
+`CreatureSlot` correctly absent (EVENT keeps the four-panel path). No 390 px overflow. **No new
+regression.** Both accepted caveats persist unchanged and remain non-blocking.
+
+**Validation:** `git diff --check` clean; lint, typecheck, tests and production build PASS for web
+and game-server (32 + 156 tests). Prettier reformatted `docs/art-pack-03.md`; `seed.ts` and
+`sync-production-card-art.ts` remain flagged as **pre-existing drift on `main`** — verified at `HEAD`,
+and Prettier would not touch any line the PR adds, so they were left rather than reformatting
+unrelated code.
+
+### Sync 11 → 12 — prepared, fail-closed, NOT dispatched
+
+Script and workflow both carry 12 unique slugs and the lists are identical;
+`ARTWORK_FILES_PRESENT=12/12`; seed source entries 12/12 with `/art/cards/<slug>.webp` + `owned`;
+PRE-WRITE / APPLY / POST-WRITE assertions updated; new confirmation string
+`SYNC-12-CARD-ART-PRODUCTION`.
+
+**The immutable source pin is deliberately stale** at `92cc662f…` in both the workflow and
+`REQUIRED_SOURCE_COMMIT`. A twelve-card run therefore aborts in `deriveDesiredValues` with
+`Missing explicit production artwork fields in seed.ts for seal-of-the-curse` — verified by running
+the script's non-mutating `--check`, which failed **before any database connection was attempted**.
+
+**AFTER PR #37 MERGES:** repoint `REQUIRED_SOURCE_COMMIT` in
+`apps/game-server/scripts/sync-production-card-art.ts` and both pins in
+`.github/workflows/production-card-art-sync.yml` to the merge commit. Only then can a sync run, and
+only with a fresh owner confirmation of `SYNC-12-CARD-ART-PRODUCTION`.
 
 ## Card 01 — COMPLETE END TO END
 
@@ -107,9 +154,9 @@ Two QA caveats are explicitly accepted as non-blocking:
 
 Do not regenerate or alter the accepted artwork. Do not reopen these caveats as blockers unless a new regression appears after production-path integration.
 
-## Current authorized work — repository integration only
+## Superseded — the integration task, now complete
 
-Execute `docs/CLAUDE_CURRENT_TASK.md`.
+Executed `docs/CLAUDE_CURRENT_TASK.md`; result is PR #37 above.
 
 Required outcome:
 
@@ -160,6 +207,6 @@ Never use GitHub Contents-API binary upload/base64-in-JSON for generated masters
 ## Art Pack 03 remaining cards
 
 - Card 01 `acolyte-of-the-white-rune` — COMPLETE END TO END, live in production
-- Card 02 `seal-of-the-curse` — **OWNER APPROVED; integration task active**
+- Card 02 `seal-of-the-curse` — **INTEGRATED in PR #37, awaiting repository review**; not merged, not synced
 - Card 03 `warden-of-the-barrier` — not started
 - Card 04 `rune-of-curse-breaking` — not started
