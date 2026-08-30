@@ -11,7 +11,7 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** Card 02 **MERGED AND PINNED — PRODUCTION SYNC AWAITING FRESH OWNER AUTHORIZATION**
+- **Status:** Card 02 **PRODUCTION SYNC AUTHORIZED FOR ONE DISPATCH — EXECUTION PENDING**
 - **Current target:** `seal-of-the-curse` / «Печать Проклятия»
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
 - **Integration PR:** #37 — MERGED
@@ -19,10 +19,12 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 - **Merge commit / immutable 12-card source:** `8d41b6570e0a7a29ec7ecc38b0c6075aed8a4757`
 - **Workflow pin commit:** `3bff9b6bb49ede3dff5e96d889c55eb39af1239a`
 - **Sync-script pin commit:** `9fb36bb2ad104e099f4e8a75fd9fbd799f0fe626`
+- **Authorization task commit:** `4eb4985d1228d3657df7b184422339666b3740cb`
 - **Production sync target count:** `12`
-- **Required fresh confirmation:** `SYNC-12-CARD-ART-PRODUCTION`
-- **Production sync dispatched:** NO
-- **Production DB mutated by this merge/pin step:** NO
+- **Owner confirmation supplied:** `SYNC-12-CARD-ART-PRODUCTION`
+- **Authorization scope:** exactly one controlled workflow dispatch
+- **Production sync dispatched from ChatGPT bridge:** NO
+- **Production DB mutated by authorization-record step:** NO
 
 ## Card 01
 
@@ -48,59 +50,60 @@ Approved master integrity:
 - FourCC: plain `VP8 `
 - full decode: PASS
 
-Repository integration includes:
+Repository integration includes production art, `artworkUrl: '/art/cards/seal-of-the-curse.webp'`, `rightsStatus: 'owned'`, correct EVENT/non-CHARACTER review behavior, FINAL APPROVED docs, and production sync extended 11 → 12.
 
-- production art at `apps/web/public/art/cards/seal-of-the-curse.webp`
-- `artworkUrl: '/art/cards/seal-of-the-curse.webp'`
-- `rightsStatus: 'owned'`
-- correct EVENT/non-CHARACTER `/admin/art-review` path
-- Card 02 marked FINAL APPROVED in `docs/art-pack-03.md`
-- production sync extended 11 → 12
+Production-path QA passed on all required surfaces with no new regression. The two owner-accepted caveats remain non-blocking.
 
-Production-path QA passed on raw 2:3, `CardView` 3:4, `CardDetailDrawer` 4:5, `HandCardPreview` 7:9, `/admin/art-review` desktop, 390px, 92px thumbnail, 92px grayscale, and real Collection. No new regression appeared. The two owner-accepted caveats remain non-blocking.
+## Immutable source and pre-dispatch verification
 
-## Repository review and immutable source pin
+All three operational pins equal:
 
-PR #37 passed repository review. GitHub reported `mergeable: true`, `mergeable_state: clean`; Vercel status was success. The PR was merged using expected head protection.
+`8d41b6570e0a7a29ec7ecc38b0c6075aed8a4757`
 
-After merge, all three operational pins were set to the merge commit `8d41b6570e0a7a29ec7ecc38b0c6075aed8a4757`:
+Verified immediately before recording this authorization:
 
-- `.github/workflows/production-card-art-sync.yml`
-  - `REQUIRED_SOURCE_COMMIT`
-  - `SOURCE_COMMIT`
-- `apps/game-server/scripts/sync-production-card-art.ts`
-  - `REQUIRED_SOURCE_COMMIT`
+- current `main` was `8664dd429beb4f8d3ad75d4fe19420d7912d8689`
+- workflow `REQUIRED_SOURCE_COMMIT` = immutable source
+- workflow `SOURCE_COMMIT` = immutable source
+- sync-script `REQUIRED_SOURCE_COMMIT` = immutable source
+- compare from immutable source to pre-authorization `main` changed only workflow, sync script, and coordination docs
+- no post-source change touched `apps/game-server/prisma/seed.ts`, `apps/game-server/prisma/schema.prisma`, or `apps/web/public/art/cards`
 
-A GitHub compare from the immutable source commit to the pin-complete main state shows only these two files changed after merge:
+## Owner production authorization — ACTIVE FOR ONE DISPATCH
 
-- `.github/workflows/production-card-art-sync.yml`
-- `apps/game-server/scripts/sync-production-card-art.ts`
-
-Therefore the source-of-truth `seed.ts`, Prisma schema, and committed card artwork remain unchanged after the immutable source commit.
-
-## Production authorization gate
-
-No production operation is currently authorized.
-
-The next production action requires a **fresh explicit owner confirmation** of exactly:
+The owner explicitly supplied the exact confirmation string on 2026-08-30:
 
 `SYNC-12-CARD-ART-PRODUCTION`
 
-Do not infer this authorization from prior approvals and do not reuse `SYNC-11-CARD-ART-PRODUCTION`.
+Do not ask the owner to repeat it.
 
-After exact authorization, follow `docs/CLAUDE_CURRENT_TASK.md` and require the full immutable-source, production-scope, PRE-WRITE, Atomic APPLY, and POST-WRITE safety sequence.
+Authorization is limited to one dispatch of `.github/workflows/production-card-art-sync.yml` on `main` with that exact input. If any safety gate fails, stop. Do not automatically retry and do not use another production mutation route.
 
-## Hard stop
+## Required next action
 
-Until the fresh confirmation is supplied:
+Read `docs/CLAUDE_CURRENT_TASK.md`, re-verify current `main` and immutable paths, then execute the authorized workflow and inspect it to completion.
 
-- do not dispatch production sync
-- do not mutate production DB
-- do not begin Card 03
+Required final signals:
+
+- exact confirmation accepted
+- immutable source verified
+- artwork files `12/12`
+- Railway token present
+- production scope + read-only preflight PASS
+- PRE-WRITE `TARGET_ROWS=12`, `UNIQUE_SLUGS=12`
+- valid snapshot and mutation count
+- APPLY transaction committed if needed
+- `TARGET_ROWS_FINAL=12`
+- `SOURCE_OF_TRUTH_MATCH=12/12`
+- `NON_TARGET_FIELD_CHANGES=0`
+- POST-WRITE `ROWS_REQUIRING_MUTATION=0`
+- POST-WRITE `SOURCE_OF_TRUTH_MATCH=12/12`
+
+After a successful run, record run/job IDs and exact mutation count, then transition the project to Card 03 `warden-of-the-barrier` planning. Update this file last and verify it back from GitHub.
 
 ## Art Pack 03 remaining cards
 
 - Card 01 `acolyte-of-the-white-rune` — COMPLETE END TO END, live in production
-- Card 02 `seal-of-the-curse` — MERGED, repository-integrated, awaiting production sync authorization
-- Card 03 `warden-of-the-barrier` — not started
+- Card 02 `seal-of-the-curse` — MERGED and FINAL APPROVED; production sync authorized, execution pending
+- Card 03 `warden-of-the-barrier` — next after successful Card 02 production sync
 - Card 04 `rune-of-curse-breaking` — not started
