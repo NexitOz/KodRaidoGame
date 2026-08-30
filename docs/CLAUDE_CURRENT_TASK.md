@@ -1,81 +1,74 @@
-# CURRENT TASK — Art Pack 03 Card 02: production synchronization gate
+# CURRENT TASK — Art Pack 03 Card 02: authorized production synchronization
 
-## Current status
+## Owner authorization
 
-Card 02 `seal-of-the-curse` / «Печать Проклятия» is fully integrated into `main`.
-
-- owner visual approval: recorded and final
-- integration PR: #37
-- integration PR head: `6b668d8ba73ede0899f4cba3e5362fd74f10f2b1`
-- merge commit / immutable 12-card source: `8d41b6570e0a7a29ec7ecc38b0c6075aed8a4757`
-- production artwork path: `apps/web/public/art/cards/seal-of-the-curse.webp`
-- `artworkUrl`: `/art/cards/seal-of-the-curse.webp`
-- `rightsStatus`: `owned`
-- production sync target count: `12`
-- required confirmation string: `SYNC-12-CARD-ART-PRODUCTION`
-
-The approved artwork remains byte-identical to candidate-v2:
-
-- source branch: `assets/seal-of-the-curse-candidate-v2`
-- source commit: `67405697628a3dec3fa8e9dab2cdb27c273b6af1`
-- Git blob SHA: `95940017577f7152a28bf76122912c37e548c7e0`
-- SHA-256: `699db6b797effe04c2fd2b8642391af62da506d9e290374369bd842630258261`
-- size: `326508`
-- RIFF total: `326508`
-- dimensions: `1024x1536`
-- FourCC: plain `VP8 `
-
-## Repository review result
-
-PR #37 passed repository review and was merged.
-
-Post-merge, all three immutable-source pins were repointed to the merge commit `8d41b6570e0a7a29ec7ecc38b0c6075aed8a4757`:
-
-- `.github/workflows/production-card-art-sync.yml`
-  - `REQUIRED_SOURCE_COMMIT`
-  - `SOURCE_COMMIT`
-- `apps/game-server/scripts/sync-production-card-art.ts`
-  - `REQUIRED_SOURCE_COMMIT`
-
-A compare from the immutable source commit to the pin-complete `main` shows only the workflow and sync script changed after the merge. Therefore `seed.ts`, Prisma schema, and `apps/web/public/art/cards` remain immutable relative to the source commit.
-
-## Production authorization gate
-
-No production operation is currently authorized.
-
-Do not dispatch the workflow until the owner explicitly supplies the exact confirmation string:
+The owner explicitly supplied the exact confirmation string on 2026-08-30:
 
 `SYNC-12-CARD-ART-PRODUCTION`
 
-Do not reuse the consumed `SYNC-11-CARD-ART-PRODUCTION` authorization.
+This authorizes exactly **one** controlled dispatch of `.github/workflows/production-card-art-sync.yml` on `main` using that exact input. Do not ask the owner to repeat it. Do not use any alternate production mutation path and do not automatically retry a failed run.
 
-## After explicit owner authorization
+## Pre-dispatch state verified by ChatGPT bridge
 
-1. Resolve current `main` directly from GitHub.
-2. Verify the three pins still equal `8d41b6570e0a7a29ec7ecc38b0c6075aed8a4757`.
-3. Verify no post-source change touched:
-   - `apps/game-server/prisma/seed.ts`
-   - `apps/game-server/prisma/schema.prisma`
-   - `apps/web/public/art/cards`
-4. Dispatch `.github/workflows/production-card-art-sync.yml` with exact input `SYNC-12-CARD-ART-PRODUCTION`.
-5. Require all safety signals:
-   - exact confirmation accepted
+- current `main` before this authorization record: `8664dd429beb4f8d3ad75d4fe19420d7912d8689`
+- immutable 12-card source / Card 02 merge commit: `8d41b6570e0a7a29ec7ecc38b0c6075aed8a4757`
+- workflow `REQUIRED_SOURCE_COMMIT`: `8d41b6570e0a7a29ec7ecc38b0c6075aed8a4757`
+- workflow `SOURCE_COMMIT`: `8d41b6570e0a7a29ec7ecc38b0c6075aed8a4757`
+- sync-script `REQUIRED_SOURCE_COMMIT`: `8d41b6570e0a7a29ec7ecc38b0c6075aed8a4757`
+- production sync target count: `12`
+
+A GitHub compare from the immutable source to current `main` shows only these post-source changes:
+
+- `.github/workflows/production-card-art-sync.yml`
+- `apps/game-server/scripts/sync-production-card-art.ts`
+- `docs/AGENT_STATE.md`
+- `docs/CLAUDE_CURRENT_TASK.md`
+
+Therefore no post-source change touched:
+
+- `apps/game-server/prisma/seed.ts`
+- `apps/game-server/prisma/schema.prisma`
+- `apps/web/public/art/cards`
+
+## Required execution
+
+1. Sync fresh `main` and resolve its exact HEAD directly from GitHub.
+2. Re-verify all three immutable-source pins equal `8d41b6570e0a7a29ec7ecc38b0c6075aed8a4757`.
+3. Re-verify no post-source commit touched `seed.ts`, Prisma schema, or `apps/web/public/art/cards`.
+4. Dispatch **only** `.github/workflows/production-card-art-sync.yml` with exact input `SYNC-12-CARD-ART-PRODUCTION`.
+5. Inspect the actual run through completion. Require:
+   - exact manual confirmation accepted
    - immutable source SHA verified
-   - artwork files `12/12`
-   - Railway token present
-   - production scope verified
-   - read-only DB preflight PASS
-   - PRE-WRITE `TARGET_ROWS=12`, `UNIQUE_SLUGS=12`, snapshot captured
-   - mutation count within `0..12`
-   - if APPLY runs: transaction started + committed, `TARGET_ROWS_FINAL=12`, `SOURCE_OF_TRUTH_MATCH=12/12`, `NON_TARGET_FIELD_CHANGES=0`
-   - POST-WRITE `ROWS_REQUIRING_MUTATION=0`, `SOURCE_OF_TRUTH_MATCH=12/12`
-6. Record run/job IDs and mutation count in the durable handoff.
-7. Update `docs/AGENT_STATE.md` last and verify it back from GitHub.
+   - `ARTWORK_FILES_PRESENT=12/12`
+   - `RAILWAY_TOKEN_PRESENT=YES`
+   - token project/environment/database scope gates PASS
+   - `READ_ONLY_DB_PREFLIGHT=YES`
+   - PRE-WRITE `TARGET_ROWS=12`
+   - PRE-WRITE `UNIQUE_SLUGS=12`
+   - a 64-char PRE-WRITE snapshot
+   - `ROWS_REQUIRING_MUTATION` in `0..12`
+6. If APPLY runs, require:
+   - `TRANSACTION_STARTED=YES`
+   - `TRANSACTION_COMMITTED=YES`
+   - `TARGET_ROWS_FINAL=12`
+   - `SOURCE_OF_TRUTH_MATCH=12/12`
+   - `NON_TARGET_FIELD_CHANGES=0`
+7. Require independent POST-WRITE:
+   - `TARGET_ROWS=12`
+   - `UNIQUE_SLUGS=12`
+   - `ROWS_REQUIRING_MUTATION=0`
+   - `SOURCE_OF_TRUTH_MATCH=12/12`
+8. Record workflow run ID, job ID, PRE-WRITE mutation count, APPLY rows changed (or already-synchronized state), and all final safety signals in a durable report under `docs/agent-reports/`.
+9. After a successful sync, transition the project to Art Pack 03 Card 03 `warden-of-the-barrier` planning. Do not generate/promote Card 03 art inside the production-sync task itself.
+10. Update `docs/AGENT_STATE.md` **last** and fetch it back from GitHub to verify.
 
-## Hard stop
+## Failure rule
 
-Until exact owner authorization is supplied:
+If any gate fails, stop and report the exact failure. Do not retry automatically, do not mutate production another way, and do not begin Card 03 until the failure is reviewed.
 
-- production sync: NOT authorized
-- production DB mutation: NOT authorized
-- Card 03 `warden-of-the-barrier`: do not begin yet
+## Current hard status
+
+- Owner authorization: **YES — ONE DISPATCH**
+- Production sync dispatched from ChatGPT bridge: **NO**
+- Production DB mutated by this authorization-record step: **NO**
+- Next action: execute and verify the authorized workflow.
