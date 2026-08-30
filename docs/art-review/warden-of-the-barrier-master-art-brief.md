@@ -2,7 +2,9 @@
 
 Art Pack 03, Card 03 of 4. PURIFICATION / CHARACTER / RARE / cost 3.
 
-**Status: DRAFT — awaiting owner concept/brief approval. No generation is authorized.**
+**Status: APPROVED BY OWNER 2026-08-30. All four open decisions resolved (§14). Generation of a
+master-art candidate is authorized against §13. Integration, promotion and production sync are NOT
+authorized.**
 
 ---
 
@@ -390,13 +392,21 @@ Any one of these means the candidate does not go to approval.
 
 ---
 
-## 13. Generation prompt — **DRAFT, NOT YET AUTHORIZED FOR GENERATION**
+## 13. Generation prompt — **APPROVED AND AUTHORIZED**
 
-> **This prompt must not be run until the owner approves this brief.**
+Owner-approved 2026-08-30 with the four §14 defaults accepted, including an explicit style decision:
+**cinematic realistic premium CCG with a subtle painterly finish.** That is a deliberate correction
+away from the more photographic result Cards 01 and 02 shipped with, and the style clause below is
+written to enforce it.
 
-**Prompt draft**
+The full operational package — parameters, output spec, transport and verification — is
+`docs/art-review/warden-of-the-barrier-generation-package.md`.
 
-> Cinematic realistic / semi-realistic premium collectible-card illustration, vertical 2:3, 1024×1536.
+**Prompt (locked)**
+
+> Cinematic realistic premium collectible-card illustration with a **subtle painterly finish** —
+> visible brushwork in the soft passages, painted edges rather than photographic micro-detail, hand-
+> rendered rather than photobashed or 3D. Vertical 2:3, 1024×1536.
 >
 > A woman warden of a white-rune order, seen three-quarters, braced behind a segmented white-steel
 > ward-screen she has just driven into the ground and locked upright. Her gauntleted left hand rests
@@ -422,8 +432,10 @@ Any one of these means the candidate does not go to approval.
 > Composition: head near the upper third, face clearly readable, the lit channel near the vertical
 > centre of the frame, the barrier's ground anchor low but fully visible.
 
-**Negative prompt draft**
+**Negative prompt (locked)**
 
+> photograph, photorealistic, photoreal skin pores, photobash, 3D render, CGI, octane render,
+> airbrushed plastic skin,
 > round shield, buckler, shield boss, compass emblem, star emblem, heraldry, crest, spear, polearm,
 > sword, second weapon, crown, tiara, halo, circlet, helmet, visor, cape, mantle, cloak, robes,
 > vestments, tattered cloth, ragged edges, frayed fabric, cathedral, rose window, stained glass,
@@ -437,27 +449,28 @@ Any one of these means the candidate does not go to approval.
 
 ---
 
-## 14. Open owner decisions
+## 14. Owner decisions — ALL RESOLVED 2026-08-30
 
-Four choices are cheap to change now and expensive after generation. The brief commits to a default
-for each so work is not blocked; any of them can be overturned.
+All four were approved as the brief's committed defaults, except the style clause, which the owner
+sharpened. Nothing here is open.
 
-1. **The barrier device (§2, §5).** Committed: a hinged, ground-planted, segmented ward-screen whose
-   rune channel runs off-frame. The alternatives considered and rejected — an arm-carried pavise
-   (collides with the flagship's shield), a conjured dome (violates the material-bound magic rule and
-   reject #6), a ground rune-circle (flagship-reserved). **If the owner wants her to carry rather
-   than plant, §2, §4, §5 and §10 all change together.**
-2. **Environment policy (§8).** Committed: restrained readable, with a hard ceiling, on the grounds
-   of consistency with Cards 01 and 02. The alternative is strict near-abstract, which would be more
-   faithful to Card 02's _written_ brief but inconsistent with what actually shipped twice.
-3. **Bare head vs helm (§6).** Committed: bare, for 92 px face readability and to keep the crown
-   flagship-exclusive. A helm would be more soldierly but costs the face.
-4. **House style.** Cards 01 and 02 both shipped noticeably more photographic than the older
-   painterly baseline, and the owner accepted both. This brief follows that precedent. If the
-   intention is to pull Art Pack 03 back toward painterly, **§13's style clause is the line to
-   change, and it must change before generation.**
+| #   | Decision           | Resolution                                                                    |
+| --- | ------------------ | ----------------------------------------------------------------------------- |
+| 1   | Barrier device     | **APPROVED — planted ward-screen.** She plants, she does not carry.           |
+| 2   | Environment policy | **APPROVED — restrained readable with the hard ceiling in §8.**               |
+| 3   | Head               | **APPROVED — bare head**, uncrowned, unhelmed.                                |
+| 4   | House style        | **CHANGED — cinematic realistic premium CCG with a subtle painterly finish.** |
 
----
+**On #4, the one that moved.** The brief's default was to follow Cards 01 and 02, which both shipped
+noticeably more photographic than the older painterly baseline. The owner has instead pulled Art
+Pack 03 back toward painterly. §13's style clause and negative prompt are rewritten accordingly —
+`photograph`, `photorealistic`, `photobash`, `3D render` and `CGI` are now explicit negatives.
+
+**Expect this card to look different from its two shipped pack-mates.** That divergence is intended
+and must not be raised as a QA defect. What it does _not_ license is any drift in the faction's
+locked material language: white/silver/ivory, clean pressed intact armor, bright near-shadowless
+cold light, and engraved material-bound rune magic all hold exactly as written in §5–§8. The change
+is one of _rendering_, not of _content_.
 
 ## 15. Explicitly out of scope
 
