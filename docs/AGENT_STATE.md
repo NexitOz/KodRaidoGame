@@ -11,15 +11,17 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** Card 02 **CANDIDATE-V2 BYTE-VERIFIED IN GITHUB — REAL VISUAL QA NEXT**
+- **Status:** Card 02 **READY FOR OWNER VISUAL APPROVAL — integrity PASS, full real visual QA complete, 2 caveats recorded**
 - **Current target:** `seal-of-the-curse` / «Печать Проклятия»
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
 - **Current task commit:** `568b4a9044159fa394efa312622e630a18382d7a`
-- **Latest completed handoff:** `docs/agent-reports/2026-08-27-art-pack-03-card-02-github-actions-transport-success.md`
+- **Latest handoff:** `docs/agent-reports/2026-08-30-art-pack-03-card-02-candidate-v2-visual-qa.md`
+- **Latest task-result commit:** `a151140` (QA report)
+- **Review-only code branch:** `claude/card-02-review-support` @ `45bdb37` — no PR opened
+- **Prior handoff:** `docs/agent-reports/2026-08-27-art-pack-03-card-02-github-actions-transport-success.md`
 - **Transport report commit:** `7d25caf10d4b2aeea8dfba5e8026c13919ffe97a`
-- **Prior handoff:** `docs/agent-reports/2026-08-27-art-pack-03-card-02-wetransfer-transport-blocked.md`
 - **Branch for current coordination:** `main`
-- **Open blocker:** NONE for transport. Claude Code can now fetch the exact candidate directly from GitHub.
+- **Open blocker:** NONE. **Awaiting owner visual approval**, including a decision on the two caveats below.
 
 ## Card 01 — COMPLETE END TO END
 
@@ -152,7 +154,66 @@ That file is only 27 bytes and remains permanently rejected evidence. Never repa
 
 The failed WeTransfer transfer also contained an HTML share page rather than the WebP and must not be used.
 
-## Current task — real visual QA only
+## Card 02 — VISUAL QA COMPLETE (2026-08-30)
+
+Full report: `docs/agent-reports/2026-08-30-art-pack-03-card-02-candidate-v2-visual-qa.md`
+
+**Independent integrity gate: FULL PASS.** Verified from the fetched Git objects — branch head
+`6740569`, parent `d6428d2`, exactly one commit adding only the one WebP, `git cat-file -s` 326508,
+blob SHA `95940017…`, SHA-256 `699db6b7…`, RIFF total 326508, FourCC plain `VP8 `, 1024×1536, and a
+full 4,718,592-byte decode.
+
+**The 313,964 discrepancy is settled.** The real master declares `326508` in its own RIFF header;
+`313964` came from the 27-byte fragment. The canonical values were correct as written.
+
+**QA ran against the real stack** (Postgres 16 → migrate → seed → NestJS `:4000` → Next.js `:3000`,
+driven with Playwright), not mock renders. All eight surfaces PASS. `CreatureSlot` correctly
+excluded — the EVENT takes the four-surface path. No horizontal overflow at 390 px.
+
+**Candidate isolation proven three ways:** the live API still reports `rightsStatus: placeholder`
+with the original SVG data-URI `artworkUrl`; the network trace resolves only
+`/art-review-candidates/seal-of-the-curse.webp`; the page badges read `placeholder` +
+`showing CANDIDATE (not wired to artworkUrl)`.
+
+**All twenty automatic-reject conditions checked and cleared**, several by measurement: 0
+violet/magenta and 3 red pixels; gold 0.01% against a 5% ceiling; dark-arm median value 71/255 with
+one pixel below 12 (no black silhouette); specular centroid (494, 563) on the clamp face; and a
+glow-removed test confirming the stop reads on geometry alone.
+
+**Crop safety:** clamp top at y≈262 — **~134 px clearance** against the binding 4:5 cut at 128, the
+~130 px the brief asked for, correcting Card 01's 2–4 px. The pommel extends past 1280 and is
+clipped at 4:5, but is not essential; clamp, fist and guard sit well above.
+
+**92 px hierarchy:** edge density 20.95 (Common) < 23.73 (Rare) < 31.85 (Legendary) — monotonic and
+independent of the rarity frame. Grayscale range 155 keeps clamp and hand separated.
+
+### Two caveats — owner decision needed before approval
+
+1. **Background describes architecture.** §7 of the brief asked for a "near-abstract" space carrying
+   "almost no information"; the candidate shows a pale, blurred interior arcade with columns, arches
+   and a receding tiled floor. It never competes with the seal, and reject #11's six named items
+   (facade, rose window, halo, banners, floor rune-circle, crowd) are all absent — so **not** an
+   automatic reject as written. But it is the one genuine divergence from the locked brief.
+2. **Star emblem on the enemy pommel.** Reject #13 covers insignia on enemy _armour_; this is on the
+   weapon, so #13 does not fire. Unlit dark steel, no colour, glow or iridescence — unlike COSMIC's
+   sheen — and it vanishes at 92 px. Assessed neutral, but the owner's call.
+
+### Review-only code change
+
+`apps/web/src/app/admin/art-review/page.tsx` — one `REVIEW_TARGETS` entry with **no**
+`reviewArtworkUrl`, so the page reads the gitignored candidate and cannot touch production
+`artworkUrl`/`rightsStatus`. Branch `claude/card-02-review-support` @ `45bdb37`, no PR opened.
+Validation: `git diff --check` clean, Prettier PASS, lint PASS, typecheck PASS (after building
+`shared` + `ui`), tests PASS (6 files / 32 tests), production build PASS.
+
+### Recommended next action
+
+Owner visual approval, with an explicit decision on the two caveats. If approved, integration is the
+separate authorized step — wire `artworkUrl` to `/art/cards/seal-of-the-curse.webp` with
+`rightsStatus: 'owned'`. `SYNC-11-CARD-ART-PRODUCTION` is **consumed**: a twelfth card needs fresh
+owner confirmation and a sync pin repointed at a new already-merged integration commit.
+
+## Superseded task sequence — completed 2026-08-30
 
 Execute:
 
@@ -221,6 +282,6 @@ Never use GitHub Contents-API binary upload/base64-in-JSON for generated masters
 ## Art Pack 03 remaining cards
 
 - Card 01 `acolyte-of-the-white-rune` — COMPLETE END TO END, live in production
-- Card 02 `seal-of-the-curse` — exact candidate-v2 in GitHub; **real visual QA next**
+- Card 02 `seal-of-the-curse` — candidate-v2 byte-verified, full visual QA complete; **READY FOR OWNER VISUAL APPROVAL** (2 caveats)
 - Card 03 `warden-of-the-barrier` — not started
 - Card 04 `rune-of-curse-breaking` — not started
