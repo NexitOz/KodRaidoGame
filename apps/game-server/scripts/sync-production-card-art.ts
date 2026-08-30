@@ -4,19 +4,9 @@ import { execFileSync } from 'node:child_process';
 
 import { PrismaClient, RightsStatus } from '@prisma/client';
 
-// Pinned to the merged `main` commit whose seed.ts is the source of truth for the target slugs.
-// Extended 11 -> 12 for Art Pack 03 Card 02 (`seal-of-the-curse`).
-//
-// DELIBERATELY STALE UNTIL THE CARD 02 INTEGRATION MERGES. This pin still points at the eleven-card
-// commit, whose seed.ts has no production artwork fields for `seal-of-the-curse`. That makes the
-// script fail closed: `deriveDesiredValues` throws
-// "Missing explicit production artwork fields in seed.ts for seal-of-the-curse" before it can read
-// or write anything, so no twelve-card sync can run by accident.
-//
-// AFTER the Card 02 integration PR merges, repoint this constant (and the two workflow pins) to that
-// merge commit. Only then can a sync be dispatched, and only with a fresh owner confirmation using
-// `SYNC-12-CARD-ART-PRODUCTION`.
-const REQUIRED_SOURCE_COMMIT = '92cc662fb5a43963c934c6c5f0aa4f1d0e8269e9';
+// Pinned to the merged `main` commit whose seed.ts and committed art are the reviewed source of truth
+// for the twelve production artwork targets, including Art Pack 03 Card 02 (`seal-of-the-curse`).
+const REQUIRED_SOURCE_COMMIT = '8d41b6570e0a7a29ec7ecc38b0c6075aed8a4757';
 const TARGET_SLUGS = [
   'necromancer-of-the-twilight-order',
   'high-warden-of-the-white-rune',
