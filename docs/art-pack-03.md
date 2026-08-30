@@ -4,15 +4,15 @@ Production artwork for the PURIFICATION faction's non-flagship cards. The factio
 flagship, `high-warden-of-the-white-rune`, was approved earlier as part of Art Pack 01 and is not
 part of this pack — see [`art-bible-01.md`](art-bible-01.md).
 
-**Pack status:** IN PROGRESS — Card 01 live in production; Card 02 approved and integrated in the
-repository, awaiting production sync.
+**Pack status:** IN PROGRESS — Cards 01 and 02 complete end to end and live in production; Card 03
+next (planning).
 
-| #   | Slug                        | Type / Rarity / Cost   | Status                                          |
-| --- | --------------------------- | ---------------------- | ----------------------------------------------- |
-| 01  | `acolyte-of-the-white-rune` | CHARACTER / COMMON / 1 | **LIVE IN PRODUCTION**                          |
-| 02  | `seal-of-the-curse`         | EVENT / RARE / 2       | **FINAL APPROVED** — integrated, not yet synced |
-| 03  | `warden-of-the-barrier`     | CHARACTER / RARE / 3   | not started                                     |
-| 04  | `rune-of-curse-breaking`    | RUNE / EPIC / 3        | not started                                     |
+| #   | Slug                        | Type / Rarity / Cost   | Status                 |
+| --- | --------------------------- | ---------------------- | ---------------------- |
+| 01  | `acolyte-of-the-white-rune` | CHARACTER / COMMON / 1 | **LIVE IN PRODUCTION** |
+| 02  | `seal-of-the-curse`         | EVENT / RARE / 2       | **LIVE IN PRODUCTION** |
+| 03  | `warden-of-the-barrier`     | CHARACTER / RARE / 3   | planning — brief next  |
+| 04  | `rune-of-curse-breaking`    | RUNE / EPIC / 3        | not started            |
 
 ## Card 01 — `acolyte-of-the-white-rune` — FINAL APPROVED
 
@@ -220,7 +220,42 @@ appears on the production artwork path.
    weapon. It is unlit dark steel with no COSMIC colour, glow or iridescence, and it disappears at
    92 px.
 
-## Production sync 11 → 12 — PREPARED, NOT DISPATCHED
+## Production sync 11 → 12 — COMPLETED
+
+Card 02 is live in production. The controlled sync was extended 11 → 12 and executed successfully.
+
+| Item                 | Value                                                                |
+| -------------------- | -------------------------------------------------------------------- |
+| Workflow run         | **33320281456** (run 8), job `99280920592` — conclusion **success**  |
+| Executed             | 2026-08-30, ~45 s                                                    |
+| Immutable source pin | `8d41b6570e0a7a29ec7ecc38b0c6075aed8a4757` (PR #37 merge)            |
+| Target slugs         | 12                                                                   |
+| Confirmation used    | `SYNC-12-CARD-ART-PRODUCTION` — now **CONSUMED**                     |
+| Rows changed         | **1** — `seal-of-the-curse` (`84dd1893-4cf1-45d4-8d36-bbff3abb5781`) |
+
+The single changed row moved from an inline SVG placeholder with `rightsStatus: placeholder` to
+`/art/cards/seal-of-the-curse.webp` with `rightsStatus: owned`. The other eleven targets reported
+`needsChange=NO` in both the PRE-WRITE and POST-WRITE passes and were not modified.
+
+Verified gates, read from the actual job logs:
+
+- **PRE-WRITE** — `TARGET_ROWS=12`, `UNIQUE_SLUGS=12`, `ROWS_REQUIRING_MUTATION=1`,
+  `SOURCE_OF_TRUTH_MATCH=11/12`, 64-char snapshot `9304451d…`
+- **APPLY** — `TRANSACTION_STARTED=YES`, `TRANSACTION_COMMITTED=YES`, `ROWS_CHANGED=1`,
+  `TARGET_ROWS_FINAL=12`, `SOURCE_OF_TRUTH_MATCH=12/12`, **`NON_TARGET_FIELD_CHANGES=0`**
+- **Independent POST-WRITE re-read** — `TARGET_ROWS=12`, `UNIQUE_SLUGS=12`,
+  `ROWS_REQUIRING_MUTATION=0`, `SOURCE_OF_TRUTH_MATCH=12/12`
+
+Full evidence:
+[`agent-reports/2026-08-30-art-pack-03-card-02-production-sync-executed.md`](agent-reports/2026-08-30-art-pack-03-card-02-production-sync-executed.md)
+
+`SYNC-12-CARD-ART-PRODUCTION` authorized exactly that one run and is **consumed**. A thirteenth card
+needs a fresh owner confirmation and a pin repointed at a new already-merged integration commit.
+
+**Card 02 is complete end to end:** briefed → generated → byte-verified → surface-reviewed →
+owner-approved → integrated → merged → synced to production.
+
+## Superseded — sync preparation notes (pre-dispatch)
 
 Card 02's repository integration extends the controlled sync from 11 targets to 12 by adding only
 `seal-of-the-curse`. **No sync has been dispatched and no production database has been touched.**
