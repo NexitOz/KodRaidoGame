@@ -88,6 +88,14 @@ const REVIEW_TARGETS: ReviewTarget[] = [
     referenceLabel: 'ART PACK 03 — APPROVED 01',
     reviewArtworkUrl: '/art/cards/acolyte-of-the-white-rune.webp',
   },
+  // Card 02 is an EVENT - like the rune above it never occupies a board slot, so its row shows four
+  // surfaces. No reviewArtworkUrl: this is an unapproved candidate, read from the gitignored
+  // art-review-candidates/ drop and never wired to artworkUrl.
+  {
+    slug: 'seal-of-the-curse',
+    faction: 'PURIFICATION',
+    referenceLabel: 'ART PACK 03 — CANDIDATE 02',
+  },
 ];
 
 function FlagshipRow({
