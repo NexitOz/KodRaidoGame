@@ -88,6 +88,14 @@ const REVIEW_TARGETS: ReviewTarget[] = [
     referenceLabel: 'ART PACK 03 — APPROVED 01',
     reviewArtworkUrl: '/art/cards/acolyte-of-the-white-rune.webp',
   },
+  // Card 02 is an EVENT, so like the Art Pack 02 rune it takes the `hasBoardSlot` false path below
+  // and shows four surfaces rather than five - an EVENT never occupies a Battlefield board slot.
+  {
+    slug: 'seal-of-the-curse',
+    faction: 'PURIFICATION',
+    referenceLabel: 'ART PACK 03 — APPROVED 02',
+    reviewArtworkUrl: '/art/cards/seal-of-the-curse.webp',
+  },
 ];
 
 function FlagshipRow({

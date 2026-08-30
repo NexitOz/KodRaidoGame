@@ -837,6 +837,9 @@ const PURIFICATION_CARDS: SeedCard[] = [
     tags: ['Purification'],
     abilityText:
       'Наложите Проклятие на выбранного вражеского персонажа - он не может атаковать, пока Проклятие не снято.',
+    // Art Pack 03 Card 02 - owner-approved production artwork.
+    artworkUrl: '/art/cards/seal-of-the-curse.webp',
+    rightsStatus: 'owned',
     effectJson: [
       {
         trigger: 'ON_PLAY',

@@ -4,14 +4,15 @@ Production artwork for the PURIFICATION faction's non-flagship cards. The factio
 flagship, `high-warden-of-the-white-rune`, was approved earlier as part of Art Pack 01 and is not
 part of this pack — see [`art-bible-01.md`](art-bible-01.md).
 
-**Pack status:** IN PROGRESS — Card 01 of 4 complete and live in production.
+**Pack status:** IN PROGRESS — Card 01 live in production; Card 02 approved and integrated in the
+repository, awaiting production sync.
 
-| #   | Slug                        | Type / Rarity / Cost   | Status                 |
-| --- | --------------------------- | ---------------------- | ---------------------- |
-| 01  | `acolyte-of-the-white-rune` | CHARACTER / COMMON / 1 | **LIVE IN PRODUCTION** |
-| 02  | `seal-of-the-curse`         | EVENT / RARE / 2       | not started            |
-| 03  | `warden-of-the-barrier`     | CHARACTER / RARE / 3   | not started            |
-| 04  | `rune-of-curse-breaking`    | RUNE / EPIC / 3        | not started            |
+| #   | Slug                        | Type / Rarity / Cost   | Status                                          |
+| --- | --------------------------- | ---------------------- | ----------------------------------------------- |
+| 01  | `acolyte-of-the-white-rune` | CHARACTER / COMMON / 1 | **LIVE IN PRODUCTION**                          |
+| 02  | `seal-of-the-curse`         | EVENT / RARE / 2       | **FINAL APPROVED** — integrated, not yet synced |
+| 03  | `warden-of-the-barrier`     | CHARACTER / RARE / 3   | not started                                     |
+| 04  | `rune-of-curse-breaking`    | RUNE / EPIC / 3        | not started                                     |
 
 ## Card 01 — `acolyte-of-the-white-rune` — FINAL APPROVED
 
@@ -141,7 +142,110 @@ This was the second ~15 KB truncation on this project (SHADOW Card 04 v1 was 14,
 **The standing safeguard is `git cat-file -s HEAD:<path>` before pushing** — it reads the size back
 out of the object git actually stored, and would have caught both.
 
-## Production sync — COMPLETED
+## Card 02 — `seal-of-the-curse` — FINAL APPROVED
+
+Owner-approved 2026-08-30. Record:
+[`agent-reports/2026-08-30-art-pack-03-card-02-owner-approval.md`](agent-reports/2026-08-30-art-pack-03-card-02-owner-approval.md)
+
+### Card facts
+
+| Field                      | Value                                                                                                   |
+| -------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `slug`                     | `seal-of-the-curse`                                                                                     |
+| `name`                     | Печать Проклятия                                                                                        |
+| `type` / `rarity` / `cost` | EVENT / RARE / 2                                                                                        |
+| `tags`                     | `['Purification']`                                                                                      |
+| `abilityText`              | Наложите Проклятие на выбранного вражеского персонажа - он не может атаковать, пока Проклятие не снято. |
+| `effectJson`               | `ON_PLAY` → `ADD_STATUS` / `ENEMY_CHOSEN` / `CURSE`                                                     |
+
+None of the above was changed by the art integration.
+
+### Production artwork
+
+| Property            | Value                                                                                    |
+| ------------------- | ---------------------------------------------------------------------------------------- |
+| Path                | `apps/web/public/art/cards/seal-of-the-curse.webp`                                       |
+| Dimensions          | 1024 × 1536 (vertical 2:3)                                                               |
+| Byte size           | 326508                                                                                   |
+| RIFF-declared total | 326508 (equals byte size)                                                                |
+| Container fourcc    | plain `VP8 ` (original export, not a `VP8X` transcode)                                   |
+| SHA-256             | `699db6b797effe04c2fd2b8642391af62da506d9e290374369bd842630258261`                       |
+| Git blob SHA        | `95940017577f7152a28bf76122912c37e548c7e0`                                               |
+| Candidate source    | `assets/seal-of-the-curse-candidate-v2` @ `6740569`, `art-source/seal-of-the-curse.webp` |
+
+The production copy was taken byte-for-byte from the candidate git object and re-verified at the
+production path: `cmp` identical, identical SHA-256 and byte size, declared size equal to actual,
+plain `VP8 `, 1024 × 1536, and a clean full decode. `git hash-object` on the production file returns
+the candidate's blob SHA unchanged. No re-encode, resize or sharpen was applied at any point.
+
+`seed.ts` carries `artworkUrl: '/art/cards/seal-of-the-curse.webp'` and `rightsStatus: 'owned'`.
+
+### Visual direction
+
+Approved brief:
+[`art-review/seal-of-the-curse-master-art-brief.md`](art-review/seal-of-the-curse-master-art-brief.md)
+
+The card resolves PURIFICATION applying a "Curse" by reading it as **binding, not taint** — jailer's
+work rather than sorcery. A rigid white/silver rune clamp locks a hostile gauntleted fist to its own
+sword hilt and crossguard, so the weapon cannot be raised. That matches the mechanic exactly, since
+CURSE prevents attacking rather than dealing harm, and it keeps the card inside the faction's locked
+language without touching the crimson/violet that would read as SHADOW or VEIL.
+
+RARE is signalled by engineered precision rather than ornament: hinges, banding, rivets and a lock
+block, against Card 01's plain slab and the flagship's broad filigree.
+
+### Verification at approval
+
+Full QA record:
+[`agent-reports/2026-08-30-art-pack-03-card-02-candidate-v2-visual-qa.md`](agent-reports/2026-08-30-art-pack-03-card-02-candidate-v2-visual-qa.md)
+
+All eight required surfaces passed on the real application stack. `CreatureSlot` is correctly not a
+surface for this card — an EVENT never occupies a Battlefield board slot. All twenty automatic-reject
+conditions in the brief were checked and cleared, several by measurement: 0 violet/magenta and 3 red
+pixels, gold at 0.01% against a ~5% ceiling, dark-arm median value 71/255 with one pixel below 12,
+and specular centroid on the clamp face. The clamp's top edge sits at y≈262, giving ~134 px of
+clearance against the binding 4:5 cut at row 128. At 92 px the rarity ladder reads
+Common 20.95 < Rare 23.73 < Legendary 31.85 on edge density, independent of the rarity frame.
+
+### Accepted caveats — non-blocking
+
+The owner reviewed and explicitly accepted both. Neither is to be reopened unless a new regression
+appears on the production artwork path.
+
+1. **Background describes architecture.** §7 of the brief asked for a near-abstract space carrying
+   "almost no information"; the artwork shows a pale, blurred interior arcade with columns and a
+   receding tiled floor. It stays low-contrast and never competes with the seal, and none of reject
+   #11's six named items (facade, rose window, halo, banners, floor rune-circle, crowd) is present.
+2. **Star emblem on the enemy pommel.** Reject #13 covers insignia on enemy _armour_; this is on the
+   weapon. It is unlit dark steel with no COSMIC colour, glow or iridescence, and it disappears at
+   92 px.
+
+## Production sync 11 → 12 — PREPARED, NOT DISPATCHED
+
+Card 02's repository integration extends the controlled sync from 11 targets to 12 by adding only
+`seal-of-the-curse`. **No sync has been dispatched and no production database has been touched.**
+
+| Item                    | Value                                             |
+| ----------------------- | ------------------------------------------------- |
+| Script target slugs     | 12 (unique)                                       |
+| Workflow target slugs   | 12 (unique) — lists identical                     |
+| Artwork files present   | 12/12                                             |
+| Seed source entries     | 12/12 with `/art/cards/<slug>.webp` and `owned`   |
+| New confirmation string | `SYNC-12-CARD-ART-PRODUCTION` (not yet usable)    |
+| Immutable source pin    | **deliberately stale** at `92cc662f…` — see below |
+
+**The pin is intentionally not final.** It still points at the eleven-card commit, whose `seed.ts`
+has no production artwork fields for `seal-of-the-curse`. A twelve-card run therefore fails closed
+inside `deriveDesiredValues` with
+`Missing explicit production artwork fields in seed.ts for seal-of-the-curse`, before any database
+connection is attempted. This was verified by running the script's non-mutating `--check` mode.
+
+After the Card 02 integration PR merges, repoint `REQUIRED_SOURCE_COMMIT` in
+`apps/game-server/scripts/sync-production-card-art.ts` and both pins in
+`.github/workflows/production-card-art-sync.yml` to that merge commit. Only then can a sync run, and
+only with a fresh owner confirmation of `SYNC-12-CARD-ART-PRODUCTION`.
+
+## Card 01 production sync — COMPLETED
 
 Card 01 is live in production. The controlled sync was extended 10 → 11 and executed successfully.
 
