@@ -11,17 +11,17 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** Card 02 **COMPLETE END TO END — LIVE IN PRODUCTION**; Card 03 **BRIEF APPROVED, GENERATION PACKAGE READY — AWAITING EXTERNAL GENERATION**
+- **Status:** Card 02 **COMPLETE END TO END — LIVE IN PRODUCTION**; Card 03 **BLOCKED — candidate cannot be generated in a Claude Code session; package ready and waiting**
 - **Current target:** `warden-of-the-barrier` / «Хранительница Барьера»
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
 - **Current task commit:** `5a102f93b977542806304577d5c0548265b3ab72`
 - **Current task type:** planning / docs only
 - **Card 03 brief:** `docs/art-review/warden-of-the-barrier-master-art-brief.md` — **APPROVED 2026-08-30**
 - **Card 03 generation package:** `docs/art-review/warden-of-the-barrier-generation-package.md`
-- **Latest handoff:** `docs/agent-reports/2026-08-30-art-pack-03-card-03-generation-package.md`
-- **Prior handoff:** `docs/agent-reports/2026-08-30-art-pack-03-card-03-master-art-brief.md`
-- **Latest task-result commit:** `675f3b9`
-- **Open blocker:** **external image generation** — Claude Code cannot generate images in this session
+- **Latest handoff:** `docs/agent-reports/2026-08-30-art-pack-03-card-03-candidate-generation-blocked.md`
+- **Prior handoff:** `docs/agent-reports/2026-08-30-art-pack-03-card-03-generation-package.md`
+- **Latest task-result commit:** `675f3b9` (package); this block record follows it
+- **Open blocker:** **image generation, re-verified 2026-08-30** — no image-generation tool exists in the Claude Code session, and every image-generation API host (OpenAI, Stability, Replicate, HuggingFace, BFL, fal, Midjourney) is denied at CONNECT by the GitHub-only egress policy. **Candidate branch NOT created; no asset exists.**
 - **Master-art candidate generation authorized:** **YES**, against brief §13
 - **Integration / promotion authorized:** NO
 - **Production operation authorized:** NO
@@ -156,11 +156,39 @@ Common 20.95 and Legendary 31.85), grayscale spread p5–p95 **≥ 140** with p5
 crimson/violet/magenta effectively zero, background collapsing to a flat pale field at 92 px, and no
 horizontal overflow at 390 px.
 
-### Next action
+### Generation attempt 2026-08-30 — BLOCKED, re-verified from scratch
 
-Generate externally against package §1, export to §2's contract, land via §3's transport, and
-publish the size and SHA-256 measured on the producing machine. Then hand back for the §5 QA pass,
-ending at **READY FOR OWNER VISUAL APPROVAL** or **REJECTED / BLOCKED**.
+Asked to prepare and deliver the candidate. It could not be produced, and the incapability was
+re-verified rather than restated:
+
+1. **No candidate had landed** — no remote branch matching `warden`/`card03`, no matching object in
+   any ref, nothing on disk.
+2. **No image-generation tool** exists in the session's tool surface (searched directly).
+3. **Every image-generation API host is denied at CONNECT** — `api.openai.com`, `api.stability.ai`,
+   `api.replicate.com`, `huggingface.co`, `api.bfl.ml`, `fal.run`, `api.midjourney.com`. The only
+   reachable non-GitHub host is `api.anthropic.com`, a text/vision API that cannot emit a WebP.
+
+**Deliberately not done:** the candidate branch was **not** created as an empty shell, and **no
+placeholder image was synthesised.** An empty branch is indistinguishable from a real candidate to
+the next agent, and this project has already lost cycles to a 27-byte WebP and two ~15 KB
+truncations that looked real. A fabricated image would flow straight into QA and an integration PR.
+
+### Next action — two routes
+
+**Option A — generate externally, land by the proven transport.** Run package §1, export to §2's
+contract, land on `assets/warden-of-the-barrier-candidate` at `art-source/warden-of-the-barrier.webp`
+via §3's GitHub Actions transport, and publish the size and SHA-256 measured on the producing
+machine.
+
+**Option B — generate on a GitHub Actions runner.** A runner has **different egress from the Claude
+Code session** — the same asymmetry that made the Card 02 transport work when every relay failed
+locally. With an image-generation API key, one workflow could call the provider, gate the output
+against §2, and commit the candidate in a single verified step. **Not attempted:** it needs a key
+this repository is not known to hold, and spending owner credentials against a paid external service
+is not a call to make unilaterally.
+
+Either way, the QA pass then runs unchanged, ending at **READY FOR OWNER VISUAL APPROVAL** or
+**REJECTED / BLOCKED**.
 
 ## Current hard gate
 
@@ -193,5 +221,5 @@ Candidate-delivery task status must end at either:
 
 - Card 01 `acolyte-of-the-white-rune` — COMPLETE END TO END, live in production
 - Card 02 `seal-of-the-curse` — COMPLETE END TO END, live in production
-- Card 03 `warden-of-the-barrier` — **brief APPROVED; generation package ready; awaiting external generation**; no art exists yet
+- Card 03 `warden-of-the-barrier` — **brief APPROVED; package ready; BLOCKED on image generation** (not possible in a Claude Code session); no branch, no art
 - Card 04 `rune-of-curse-breaking` — not started
