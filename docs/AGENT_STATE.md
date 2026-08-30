@@ -11,16 +11,19 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** Card 02 **COMPLETE END TO END — LIVE IN PRODUCTION**; Card 03 **BRIEF WRITTEN — READY FOR OWNER CONCEPT / BRIEF APPROVAL**
+- **Status:** Card 02 **COMPLETE END TO END — LIVE IN PRODUCTION**; Card 03 **BRIEF APPROVED, GENERATION PACKAGE READY — AWAITING EXTERNAL GENERATION**
 - **Current target:** `warden-of-the-barrier` / «Хранительница Барьера»
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
 - **Current task commit:** `5a102f93b977542806304577d5c0548265b3ab72`
 - **Current task type:** planning / docs only
-- **Card 03 brief:** `docs/art-review/warden-of-the-barrier-master-art-brief.md`
-- **Latest handoff:** `docs/agent-reports/2026-08-30-art-pack-03-card-03-master-art-brief.md`
-- **Latest task-result commit:** `806820b`
-- **Open blocker:** **owner concept/brief approval** — four decisions listed below
-- **Generation authorized:** **NO**
+- **Card 03 brief:** `docs/art-review/warden-of-the-barrier-master-art-brief.md` — **APPROVED 2026-08-30**
+- **Card 03 generation package:** `docs/art-review/warden-of-the-barrier-generation-package.md`
+- **Latest handoff:** `docs/agent-reports/2026-08-30-art-pack-03-card-03-generation-package.md`
+- **Prior handoff:** `docs/agent-reports/2026-08-30-art-pack-03-card-03-master-art-brief.md`
+- **Latest task-result commit:** `675f3b9`
+- **Open blocker:** **external image generation** — Claude Code cannot generate images in this session
+- **Master-art candidate generation authorized:** **YES**, against brief §13
+- **Integration / promotion authorized:** NO
 - **Production operation authorized:** NO
 
 ## Card 02 — COMPLETE END TO END
@@ -72,78 +75,92 @@ The two owner-accepted Card 02 caveats remain historical/non-blocking: the blurr
   - `ON_PLAY` → `SHIELD` / `SELF`
   - `ON_PLAY` + `RESONANCE_TIER_AT_LEAST 5` → `CLEANSE` / `FRIENDLY_ALL`
 
-## Card 03 — BRIEF COMPLETE, AWAITING OWNER APPROVAL
+## Card 03 — BRIEF APPROVED, GENERATION PACKAGE READY
 
-Brief: `docs/art-review/warden-of-the-barrier-master-art-brief.md` (15 sections)
-Report: `docs/agent-reports/2026-08-30-art-pack-03-card-03-master-art-brief.md`
+Brief: `docs/art-review/warden-of-the-barrier-master-art-brief.md` — **APPROVED by owner 2026-08-30**
+Package: `docs/art-review/warden-of-the-barrier-generation-package.md`
+Report: `docs/agent-reports/2026-08-30-art-pack-03-card-03-generation-package.md`
 
-**No image was generated, transported, staged or promoted. Generation is not authorized until the
-owner approves this brief.**
+**No image exists yet.** Claude Code has no image-generation tool in this session and the
+environment's egress is GitHub-only, so — exactly as for Cards 01 and 02 — the master must be
+produced externally and landed by transport.
 
-### The central design problem, and the locked resolution
+### Owner decisions — all four resolved
 
-**The obvious device is already the LEGENDARY's signature.** `docs/art-bible-01.md` records the
-approved flagship `high-warden-of-the-white-rune` as dual-wielding **a large rune-engraved round
-shield with a compass/star emblem** plus a ceremonial spear — so the faction's shield-bearer is the
-Legendary. Giving Card 03 a round rune shield would produce a discount High Warden and damage both
-cards.
+| #   | Decision       | Resolution                                                                   |
+| --- | -------------- | ---------------------------------------------------------------------------- |
+| 1   | Barrier device | **planted ward-screen** — she plants, she does not carry                     |
+| 2   | Environment    | **restrained readable, hard ceiling** (brief §8)                             |
+| 3   | Head           | **bare**, uncrowned, unhelmed                                                |
+| 4   | House style    | **CHANGED — cinematic realistic premium CCG with a subtle painterly finish** |
 
-**Locked resolution: she does not carry a shield, she plants a barrier.** A hinged, segmented
-white-steel ward-screen spiked into the ground and locked upright, one gauntleted hand still on its
-top rail. Its engraved rune channel, lit cool blue-white, **runs off both frame edges.**
+**#4 moved and matters.** Cards 01 and 02 both shipped noticeably more photographic; the owner has
+pulled Art Pack 03 back toward painterly. Brief §13's style clause now demands visible brushwork and
+painted edges, and the negative prompt leads with `photograph`, `photorealistic`, `photobash`,
+`3D render`, `CGI`.
 
-That one object carries both halves of the ability:
+**Card 03 will therefore not match its two pack-mates in rendering. That is intended and must not be
+logged as a QA defect.** The faction's material language is unchanged — white/silver/ivory, clean
+pressed intact armor, bright near-shadowless cold light, engraved material-bound rune magic — and
+brief §11's twenty-three reject conditions stand untouched.
 
-- `SHIELD` / self — her section is planted and braced: physical, singular, already raised
-- `CLEANSE` / `FRIENDLY_ALL` at Resonance 5+ — the channel continues past frame, implying the same
-  barrier in front of every ally, **without drawing a crowd** (crowds are flagship-reserved)
+### The locked concept, unchanged
 
-**Engine facts that shaped this**, verified rather than assumed: `SHIELD` is a **one-shot absorb**
-(`effects/primitives.ts` strips the status and emits `SHIELD_CONSUMED`, negating the entire next
-damage instance, then it is gone) — so the barrier is a ward raised once and spent once, never a
-maintained forcefield. `CLEANSE` strips `CURSE` + `SILENCED`, making Card 03 the Acolyte's
-single-target cleanse scaled to the whole line.
+`docs/art-bible-01.md` records the LEGENDARY flagship as dual-wielding **a large rune-engraved round
+shield with a compass/star emblem**, so the faction's shield-bearer is the Legendary. Card 03
+therefore **plants a barrier rather than carrying a shield**: a hinged, segmented white-steel
+ward-screen spiked into the ground, one gauntleted hand still on its top rail, its lit rune channel
+**running off both frame edges** to imply the same barrier in front of every ally without drawing a
+flagship-reserved crowd.
 
-### Decisions the brief commits to
+Engine facts behind it: `SHIELD` is a **one-shot absorb** (`effects/primitives.ts` strips the status
+and emits `SHIELD_CONSUMED`, negating the entire next damage instance, then it is gone), so the ward
+is raised once and spent once, never a maintained forcefield. `CLEANSE` strips `CURSE` + `SILENCED`.
 
-- **Environment: restrained readable, with a hard checkable ceiling** — at most two architectural
-  forms, all defocused, no background specular, background luminance capped below the panel face,
-  and the binding test that **at 92 px the background must collapse to a flat pale field.** Chosen
-  over near-abstract because Cards 01 and 02 both shipped with soft Order interiors.
-- **Rarity specified numerically** from the Card 02 measurements: 92 px edge-density band **24–28**,
-  between the measured Common 20.95 and Legendary 31.85, so the ladder holds independent of the
-  rarity frame. Grayscale threshold p5–p95 ≥ 140 with p5 ≥ ~25.
-- **Crop clearance to the Card 02 standard:** head top y ≈ 300–340, giving ~170–210 px above the
-  binding 4:5 cut at row 128. Card 01's ~2–4 px is explicitly not the target.
-- **Silhouette: asymmetric braced L**, against the Acolyte's narrow column and the flagship's frontal
-  symmetric pyramid. Full articulated gauntlets invert Card 01's deliberately bare hands; the second
-  hand is empty, against the flagship's dual wield.
+### Canonical names for the coming candidate
 
-### Four open owner decisions — each has a committed default, none blocks work
+| Thing                             | Path / name                                                        |
+| --------------------------------- | ------------------------------------------------------------------ |
+| Candidate branch                  | `assets/warden-of-the-barrier-candidate` — **not yet created**     |
+| Path inside candidate branch      | `art-source/warden-of-the-barrier.webp`                            |
+| Temporary transport branch        | `transport/card03-github-actions` — never merged into `main`       |
+| Local review staging (gitignored) | `apps/web/public/art-review-candidates/warden-of-the-barrier.webp` |
+| Production path — later, not now  | `apps/web/public/art/cards/warden-of-the-barrier.webp`             |
 
-1. **Barrier device** — planted ward-screen. Rejected alternatives: arm-carried pavise (collides with
-   the flagship's shield), conjured dome (violates material-bound magic), floor rune-circle
-   (flagship-reserved). **If she should carry rather than plant, §2, §4, §5 and §10 change together.**
-2. **Environment policy** — restrained-with-ceiling, for consistency; the alternative is strict
-   near-abstract.
-3. **Bare head vs helm** — bare, for 92 px face readability and to keep the crown flagship-exclusive.
-4. **House style** — follows Cards 01/02's more photographic result. To pull Art Pack 03 back toward
-   painterly, §13's style clause must change **before** generation.
+The candidate branch is **deliberately not pre-created**: an empty branch would be
+indistinguishable from a real candidate to a later agent, and this project has already lost cycles
+to branches that looked real and were not. The transport run creates it.
 
-### Superseded planning objective (now satisfied)
+### Integrity gate — values that cannot be pre-stated
 
-Create and review a master-art brief before any generation:
+Card 03's byte size, SHA-256 and Git blob SHA **do not exist yet** and must not be invented. Writing
+placeholders would risk gating a good file against fictional numbers — the failure mode that nearly
+rejected a correct Card 02 file against a stale `313964`.
 
-`docs/art-review/warden-of-the-barrier-master-art-brief.md`
+Knowable a priori: **1024 × 1536**, plain **`VP8 `** fourcc, RIFF total equals actual size, full
+decode PASS, no text/watermark/frame.
 
-Required design problem: communicate a defensive RARE CHARACTER whose immediate identity is self-barrier / Shield and whose high-Resonance authority expands into team-wide cleansing, while staying visually distinct from COMMON `acolyte-of-the-white-rune` and LEGENDARY `high-warden-of-the-white-rune`.
+Recorded at generation on the producing machine, then enforced at three checkpoints — on the runner
+before git, from the committed object before push (`git cat-file -s`), and from the **fetched remote
+branch** after push.
 
-Carry forward these lessons:
+### QA plan — nine surfaces, not eight
 
-1. Use the stricter working safe zone around y≈260–1280 so the binding 4:5 crop has real clearance.
-2. State the environment information ceiling explicitly; do not repeat Card 02's brief ambiguity.
-3. Because Card 03 is a CHARACTER, later QA includes `CreatureSlot` as well as CardView, CardDetailDrawer, HandCardPreview, admin review, mobile 390px, 92px and grayscale.
-4. Preserve PURIFICATION's white/silver/ivory, clean intact armor, bright cold light and material-bound rune language without making Card 03 a second Legendary flagship.
+Card 03 is a **CHARACTER**, so unlike Card 02 it occupies a Battlefield board slot and
+**`CreatureSlot` is a real review surface.** Full list: raw 2:3, `CardView` 3:4, **`CreatureSlot`
+3:4**, `CardDetailDrawer` 4:5, `HandCardPreview` 7:9, `/admin/art-review` desktop, `/admin/art-review`
+390 px, 92 px thumbnail, 92 px grayscale.
+
+Measured thresholds carried from the Card 02 pass: 92 px edge density **24–28** (between measured
+Common 20.95 and Legendary 31.85), grayscale spread p5–p95 **≥ 140** with p5 **≥ ~25**, gold **≤ 3%**,
+crimson/violet/magenta effectively zero, background collapsing to a flat pale field at 92 px, and no
+horizontal overflow at 390 px.
+
+### Next action
+
+Generate externally against package §1, export to §2's contract, land via §3's transport, and
+publish the size and SHA-256 measured on the producing machine. Then hand back for the §5 QA pass,
+ending at **READY FOR OWNER VISUAL APPROVAL** or **REJECTED / BLOCKED**.
 
 ## Current hard gate
 
@@ -170,5 +187,5 @@ No Card 03 image generation until explicit owner approval of the brief/concept.
 
 - Card 01 `acolyte-of-the-white-rune` — COMPLETE END TO END, live in production
 - Card 02 `seal-of-the-curse` — COMPLETE END TO END, live in production
-- Card 03 `warden-of-the-barrier` — **brief written; READY FOR OWNER CONCEPT / BRIEF APPROVAL**; no art generated
+- Card 03 `warden-of-the-barrier` — **brief APPROVED; generation package ready; awaiting external generation**; no art exists yet
 - Card 04 `rune-of-curse-breaking` — not started
