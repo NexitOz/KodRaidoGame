@@ -1,163 +1,196 @@
-# CURRENT TASK — Art Pack 03 Card 02: verified candidate-v2 → real visual QA → owner gate
+# CURRENT TASK — Art Pack 03 Card 02: owner-approved integration → repository review gate
 
 ## Status entering this task
 
-Transport is complete. Do **not** attempt firestorage, WeTransfer, Dropbox, Google Drive, Release assets, Contents-API binary upload, or owner/manual upload.
+Card 02 `seal-of-the-curse` / «Печать Проклятия» has completed independent byte verification and full real-stack visual QA across all required surfaces.
 
-The exact owner-accepted master is already in GitHub on:
+The owner has now given **FINAL VISUAL APPROVAL FOR INTEGRATION**. Durable approval record:
+
+`docs/agent-reports/2026-08-30-art-pack-03-card-02-owner-approval.md`
+
+Both recorded QA caveats are explicitly accepted and are not blockers unless a new regression appears on the production artwork path:
+
+1. the pale blurred background describes an interior arcade more than the brief's near-abstract target;
+2. the enemy weapon pommel carries a dark unlit star / compass-rose relief.
+
+## Approved source — exact bytes only
+
+Use only:
 
 - branch: `assets/seal-of-the-curse-candidate-v2`
 - commit: `67405697628a3dec3fa8e9dab2cdb27c273b6af1`
 - path: `art-source/seal-of-the-curse.webp`
 - Git blob SHA: `95940017577f7152a28bf76122912c37e548c7e0`
-- size: `326508`
+- SHA-256: `699db6b797effe04c2fd2b8642391af62da506d9e290374369bd842630258261`
+- size: `326508` bytes
+- dimensions: `1024x1536`
+- RIFF total: `326508`
+- FourCC: plain `VP8 `
 
-Transport proof:
-
-`docs/agent-reports/2026-08-27-art-pack-03-card-02-github-actions-transport-success.md`
-
-GitHub Actions transport run `33117588154`, job `98676113281`, concluded `success`. The runner downloaded the raw provider object, verified all canonical values, full-decoded it with Pillow, committed through normal git, pushed, fetched the remote branch back, and re-verified remote bytes. GitHub API independently reports the same blob SHA and size.
+Do not use, repair, or reference the rejected 27-byte candidate branch `assets/seal-of-the-curse-candidate` for integration.
 
 ## Goal
 
-Independently verify the GitHub candidate from your own session, perform the complete real visual QA for Card 02, record durable findings, then stop for owner visual approval. No promotion.
+Integrate the exact owner-approved Card 02 master into the repository, validate the production artwork path with the real application, extend the controlled production artwork synchronization from **11 to 12 targets**, open a narrow integration PR, and stop for repository review.
 
-Card:
+No production sync is authorized in this task.
 
-- slug: `seal-of-the-curse`
-- name: «Печать Проклятия»
-- PURIFICATION / EVENT / RARE / cost 2
-- gameplay meaning: Curse prevents the chosen enemy from attacking
+## Step 1 — fresh branch and integrity recheck
 
-Master-art brief:
+1. Start from fresh current `main` and resolve its exact HEAD from GitHub.
+2. Create a narrow integration branch for Card 02.
+3. Fetch `assets/seal-of-the-curse-candidate-v2` and independently recheck:
+   - candidate commit
+   - Git blob SHA
+   - byte size
+   - SHA-256
+   - RIFF total
+   - FourCC
+   - dimensions
+   - full decode
+4. If any value differs, STOP — BLOCKED. Do not re-encode, regenerate, resize, substitute, or repair.
 
-`docs/art-review/seal-of-the-curse-master-art-brief.md`
+The prior review-only branch `claude/card-02-review-support` @ `45bdb37` contains only the `/admin/art-review` registration. Reuse/cherry-pick/reapply it only if it applies cleanly to fresh `main`; do not drag unrelated history into the integration branch.
 
-## Step 1 — fresh GitHub candidate integrity gate
+## Step 2 — promote exact bytes to production artwork path
 
-Start from fresh `main`, then fetch the candidate branch from GitHub.
+Copy the approved WebP byte-for-byte to:
 
-The remote branch head must be exactly:
+`apps/web/public/art/cards/seal-of-the-curse.webp`
 
-`67405697628a3dec3fa8e9dab2cdb27c273b6af1`
+Then prove the production-path file remains identical to the approved source:
 
-Verify directly from fetched Git objects:
+- SHA-256 exact
+- Git blob SHA exact if applicable before/after commit
+- size `326508`
+- RIFF total `326508`
+- `1024x1536`
+- `VP8 `
+- full decode PASS
+- byte comparison / `cmp` PASS against the fetched approved candidate
 
-- `git cat-file -s origin/assets/seal-of-the-curse-candidate-v2:art-source/seal-of-the-curse.webp` == `326508`
-- SHA-256 of the materialized fetched blob == `699db6b797effe04c2fd2b8642391af62da506d9e290374369bd842630258261`
-- Git blob SHA == `95940017577f7152a28bf76122912c37e548c7e0`
-- dimensions == `1024 × 1536`
-- RIFF-declared total == `326508`
-- FourCC == plain `VP8 `
-- full decode == PASS
+Do not alter the artwork bytes.
 
-Also confirm the candidate commit is one commit above parent `d6428d2eb6cd07cfb8a26e49de6cfef64a8f441e` and its candidate delta is only:
+## Step 3 — canonical Card 02 data only
 
-`art-source/seal-of-the-curse.webp`
+Update only the canonical `seal-of-the-curse` entry in `apps/game-server/prisma/seed.ts`:
 
-If ANY integrity or scope value differs: **STOP — REJECTED / BLOCKED**. Do not repair, re-encode, regenerate, resize, substitute, force-push, or reuse the old 27-byte branch.
+- `artworkUrl: '/art/cards/seal-of-the-curse.webp'`
+- `rightsStatus: 'owned'`
 
-## Step 2 — local review staging only
+Do not change:
 
-Materialize the exact verified fetched blob to the existing gitignored review path:
+- type / rarity / cost / faction
+- card name or text
+- Curse mechanics or effect data
+- any other card
+- Prisma schema or migrations
 
-`apps/web/public/art-review-candidates/seal-of-the-curse.webp`
+## Step 4 — `/admin/art-review` production-path behavior
 
-Re-check SHA-256 after staging. It must remain canonical.
+Preserve the correct non-CHARACTER EVENT review path:
 
-Do not write the candidate into `apps/web/public/art/cards/` and do not change production card data.
+- EVENT must not render `CreatureSlot`
+- Card 02 must be marked as approved/final rather than candidate
+- review must resolve through `/art/cards/seal-of-the-curse.webp`, not the gitignored candidate slot
+- CHARACTER behavior must remain unchanged
 
-If `seal-of-the-curse` needs `/admin/art-review` registration, make only the smallest review-only support change on a narrow QA branch/PR. Candidate bytes themselves remain gitignored review material and must never be altered.
+Delete/remove the staged gitignored review candidate before final production-path QA so a network trace can prove the candidate slot is not being used.
 
-## Step 3 — required real visual QA
+## Step 5 — production-path real visual QA
 
-This card is an EVENT. `CreatureSlot` is **not** a review surface.
+Run the actual local stack and repeat the relevant surfaces against the production path:
 
-Review the exact candidate using the real app/components on all required surfaces:
-
-1. raw 2:3 master
+1. raw 2:3 / approved production asset
 2. `CardView` 3:4
 3. `CardDetailDrawer` 4:5
 4. `HandCardPreview` 7:9
 5. `/admin/art-review` desktop
-6. `/admin/art-review` at 390px
-7. 92px thumbnail
-8. 92px grayscale/value-only
+6. `/admin/art-review` 390 px
+7. 92 px thumbnail
+8. 92 px grayscale/value-only
+9. real Collection surface if available in the existing QA flow
 
-Use real rendering, not invented/mock component screenshots.
+Prove candidate isolation is gone and the only resolved Card 02 artwork request is the production path.
 
-Walk every reject/acceptance item in:
+The two owner-accepted caveats may remain. Any **new** crop, readability, layout, overflow, colour-language, rarity-hierarchy, anatomy, or component regression is a blocker and must be reported.
 
-`docs/art-review/seal-of-the-curse-master-art-brief.md`
+## Step 6 — Art Pack 03 documentation
 
-Mandatory visual gates include:
+Update the canonical Art Pack 03 documentation for Card 02 to **FINAL APPROVED**, including:
 
-- reads instantly as an attack physically sealed, not damage, corruption, or spellcasting
-- white/silver rune clamp is the primary focal point; hostile dark weapon hand is secondary
-- enemy arm reads dark by material, not SHADOW-style lighting
-- enemy remains faction-neutral
-- hand / fingers / weapon / guard geometry is coherent
-- clamp reads as a solid physical locking device around hand + guard/hilt, not floating magic
-- no crimson/red/violet/magenta/orange
-- no rot, veins, tendrils, void haze, embers, ash, corruption language
-- no caster, beam, projectile, explosion, or generic magical shield
-- essential story survives 3:4, 7:9, and especially 4:5
-- nothing essential lies above y≈260 or below y≈1280
-- 92px grayscale preserves strong tonal separation between the white/silver clamp and dark hostile hand
+- production artwork path
+- final verified integrity values
+- owner approval record
+- two accepted caveats as non-blocking notes
 
-At 92px compare side-by-side:
+Inspect the repository and use its existing Art Pack 03 documentation convention rather than inventing a parallel file structure.
 
-- Common `acolyte-of-the-white-rune`
-- Rare Event `seal-of-the-curse`
-- Legendary `high-warden-of-the-white-rune`
+## Step 7 — controlled production sync 11 → 12
 
-The visual hierarchy must read **Common < Rare < Legendary** without relying only on rarity frame treatment.
+Extend the existing controlled production card-art synchronization from **11 targets to 12** by adding only `seal-of-the-curse`, following the existing immutable-source / invariant pattern.
 
-Record any caveat, even if overall QA passes.
+Requirements:
 
-## Step 4 — validation if review code changes
+- script target list = 12 unique slugs
+- workflow target list = 12 unique slugs
+- lists identical
+- artwork files present = 12/12
+- seed source entries = 12/12 with `/art/cards/<slug>.webp` and `owned`
+- PRE-WRITE / APPLY / POST-WRITE assertions updated from 11 to 12 where appropriate
+- new exact confirmation string must be `SYNC-12-CARD-ART-PRODUCTION`
 
-If review-only code/config changes are necessary, run the repository's normal validation for the changed scope, including:
+**Important immutable-source rule:** before merge, the correct 12-card immutable source commit does not yet exist. Keep the current source pin intentionally stale/safe or otherwise preserve the existing fail-closed pattern used for the previous card. Record clearly that after the integration PR merges, the workflow/script source pin must be repointed to that merge commit before any dispatch.
+
+Do not dispatch any workflow in this task.
+
+## Step 8 — validation
+
+Run all relevant repository gates for the integration branch:
 
 - `git diff --check`
-- Prettier on changed files
+- Prettier on changed text/code files
 - lint
 - typecheck
-- existing tests
+- tests
 - production build
-- real visual QA after the change
+- non-mutating 12-card sync invariant/preflight checks
+- production-path real visual QA after all integration changes
 
-Do not commit large QA screenshots/artifacts.
+Do not access or mutate Railway/Vercel/production DB.
 
-## Hard exclusions
+## Step 9 — PR and handoff
 
-Do NOT:
+Open one narrow integration PR from the Card 02 integration branch into `main`.
 
-- modify `apps/game-server/prisma/seed.ts`
-- modify Prisma schema/migrations
-- modify gameplay, balance, or canonical card data
-- write to `apps/web/public/art/cards/`
-- modify production `artworkUrl` or `rightsStatus`
-- merge/promote the candidate
-- touch Battlefield gameplay/layout
-- modify or dispatch production sync workflows
-- access Railway, Vercel, or production DB
+PR/handoff must include:
+
+- base SHA and head SHA
+- exact changed files
+- proof production artwork is byte-identical to the approved candidate
+- exact seed diff for Card 02 only
+- production-path visual QA results
+- accepted caveats and confirmation that no new regression appeared
+- validation results
+- sync 11 → 12 invariant/preflight results
+- explicit statement that immutable source pin is intentionally not final until merge
+- explicit `Merged: NO`
+- explicit `Production sync dispatched: NO`
+- explicit `Production DB mutated: NO`
+
+Use `## AGENT HANDOFF — FINAL REPORT` in the PR comment per `CLAUDE.md`.
+
+Finally update `docs/AGENT_STATE.md` **last**, fetch it back from GitHub, and verify it before declaring completion.
+
+## Hard stop
+
+After the PR is ready and all gates are green, STOP for repository review.
+
+Do not:
+
+- merge the integration PR
+- dispatch `SYNC-12-CARD-ART-PRODUCTION`
+- mutate production DB
+- repoint the final immutable source SHA before the integration merge commit exists
 - begin Card 03
-- modify the accepted WebP bytes
-
-## Delivery
-
-1. Create a durable report under `docs/agent-reports/` with:
-   - exact candidate branch + commit
-   - all independent integrity results
-   - local staging SHA recheck
-   - each required QA surface
-   - complete brief checklist outcome
-   - 92px rarity hierarchy outcome
-   - any visual caveat
-2. If review-only code changed, keep it in a narrow QA branch/PR and report exact scope.
-3. Update `docs/AGENT_STATE.md` **last** and fetch it back from GitHub to verify.
-4. Final status must be exactly one of:
-   - **READY FOR OWNER VISUAL APPROVAL**
-   - **REJECTED / BLOCKED**
-5. Stop. No integration, promotion, production sync, or Card 03 work.
+- alter any unrelated gameplay, card, Battlefield, Railway, Vercel, schema, or migration state
