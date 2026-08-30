@@ -164,24 +164,30 @@ ending at **READY FOR OWNER VISUAL APPROVAL** or **REJECTED / BLOCKED**.
 
 ## Current hard gate
 
-This task is **planning only**.
+**Superseded 2026-08-30.** The previous gate here was the brief-writing gate and forbade generating
+Card 03 art. The owner has since approved the brief, so that prohibition no longer applies and has
+been replaced — do not act on it.
 
-Do not:
+**Now authorized:** producing a Card 03 master-art candidate against brief §13 / package §1, landing
+it on `assets/warden-of-the-barrier-candidate` via the proven transport, and running the nine-surface
+QA pass.
 
-- generate Card 03 art
-- create/transport candidate binary art
-- change canonical card/gameplay data
-- change production artwork fields
-- modify or dispatch production sync
-- access production infrastructure
-- begin Card 04
+**Still NOT authorized:**
 
-Final task status must be either:
+- integrating or promoting the candidate to `apps/web/public/art/cards/`
+- any change to `seed.ts`, canonical card/gameplay data, `artworkUrl` or `rightsStatus`
+- extending the controlled sync 12 → 13
+- modifying or dispatching any production sync workflow
+- accessing Railway / Vercel / production DB
+- beginning Card 04
 
-- **READY FOR OWNER CONCEPT / BRIEF APPROVAL**
-- **BLOCKED — OWNER DECISION REQUIRED**
+`SYNC-12-CARD-ART-PRODUCTION` is **CONSUMED**. A thirteenth card needs a fresh confirmation string
+and a source pin repointed at a new already-merged integration commit.
 
-No Card 03 image generation until explicit owner approval of the brief/concept.
+Candidate-delivery task status must end at either:
+
+- **READY FOR OWNER VISUAL APPROVAL**
+- **REJECTED / BLOCKED**
 
 ## Art Pack 03 progress
 
