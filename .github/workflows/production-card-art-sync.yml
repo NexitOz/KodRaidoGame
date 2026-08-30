@@ -21,16 +21,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      # DELIBERATELY STALE UNTIL THE CARD 02 INTEGRATION MERGES. Both pins still point at the
-      # eleven-card commit, whose seed.ts carries no production artwork fields for
-      # `seal-of-the-curse`, so a twelve-card run fails closed in `deriveDesiredValues` before it can
-      # read or write anything.
-      #
-      # AFTER the Card 02 integration PR merges, repoint both pins here and REQUIRED_SOURCE_COMMIT in
-      # apps/game-server/scripts/sync-production-card-art.ts to that merge commit. A sync may then be
-      # dispatched only with a fresh owner confirmation of SYNC-12-CARD-ART-PRODUCTION.
-      REQUIRED_SOURCE_COMMIT: 92cc662fb5a43963c934c6c5f0aa4f1d0e8269e9
-      SOURCE_COMMIT: 92cc662fb5a43963c934c6c5f0aa4f1d0e8269e9
+      # Pinned to the merged Card 02 integration commit containing the reviewed 12-card seed/art source of truth.
+      # Production dispatch still requires fresh explicit owner confirmation via the workflow input below.
+      REQUIRED_SOURCE_COMMIT: 8d41b6570e0a7a29ec7ecc38b0c6075aed8a4757
+      SOURCE_COMMIT: 8d41b6570e0a7a29ec7ecc38b0c6075aed8a4757
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
     steps:
