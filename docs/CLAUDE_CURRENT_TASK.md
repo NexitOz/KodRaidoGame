@@ -1,14 +1,16 @@
-# CURRENT TASK — Art Pack 03 Card 03: approved master candidate intake and QA
+# CURRENT TASK — Art Pack 03 Card 03: approved master v2 candidate intake + full visual QA
 
 ## Status
 
-Card 02 is COMPLETE END TO END and live in production.
+Card 02 `seal-of-the-curse` is COMPLETE END TO END and live in production.
 
-Card 03 `warden-of-the-barrier` / «Хранительница Барьера» now has an OWNER-APPROVED master image produced by ChatGPT. The previous generation blocker is superseded.
+Card 03 `warden-of-the-barrier` / «Хранительница Барьера» has a **NEW OWNER-APPROVED MASTER v2**, approved 2026-08-31. It supersedes every previous Card 03 candidate and every previous Card 03 integrity tuple.
+
+The prior 284002-byte candidate / SHA-256 `1a175635...` is **REJECTED HISTORICAL INPUT** and must never be reused for v2.
 
 No production operation is authorized.
 
-## Canonical Card 03 facts
+## Canonical card facts
 
 - slug: `warden-of-the-barrier`
 - name: «Хранительница Барьера»
@@ -19,54 +21,74 @@ No production operation is authorized.
 - attack / health: 2 / 5
 - ability: `При выходе: получает Щит. При Резонансе 5+: снимите Проклятие и Заглушение со всех союзников.`
 
-## Owner-approved visual source
+## Owner-approved master v2 — exact intake contract
 
-The approved source is the corrected vertical Card 03 master generated in ChatGPT on 2026-08-30.
+The approved source is the newest vertical master generated in ChatGPT and explicitly approved by the owner on 2026-08-31.
 
-The transport WebP prepared from that approved visual source has these expected properties:
+Transport WebP prepared from that exact approved visual source:
 
+- expected repository filename: `warden-of-the-barrier.webp`
 - dimensions: `1024 × 1536`
 - format: WebP
 - FourCC: plain `VP8 `
-- byte size: `284002`
-- RIFF total: `284002`
-- SHA-256: `1a175635a24e84c86f37f11e954299ca3cb4bb675c9f9b178c134ee0ab0ea27e`
+- actual byte size: `193038`
+- RIFF declared total: `193038`
+- SHA-256: `bf5814d345a652d119919c37d128d6a540cd65882d60d04f17432cb31c98239f`
 - full decode: PASS
 
-These values are verification gates for intake. Do not invent substitutes if the source bytes cannot be retrieved.
+These are hard verification gates. Do not substitute, re-encode, crop, regenerate, resize, optimise, recompress or otherwise change the artwork.
+
+A temporary owner transport copy exists at firestorage for manual transport only:
+
+`https://firestorage.ai/ja/f/0Dy-NYu7pX8_`
+
+Do **not** treat successful access to the HTML share page as proof of the file. Do not accept HTML, a screenshot, a thumbnail, a redirect page or any byte stream whose integrity does not match every gate above.
 
 ## Goal
 
-Land the exact approved master as a real candidate and run the full Card 03 candidate QA flow. Stop before production integration.
+Land the exact owner-approved v2 bytes on a fresh candidate branch, run the complete nine-surface QA against the approved Card 03 brief, and stop for owner visual approval.
 
-Expected candidate branch:
+Candidate branch:
 
-`assets/warden-of-the-barrier-candidate`
+`assets/warden-of-the-barrier-candidate-v2`
 
-Expected candidate path:
+Candidate path:
 
 `art-source/warden-of-the-barrier.webp`
 
-Local review staging path:
+Review staging path (gitignored):
 
 `apps/web/public/art-review-candidates/warden-of-the-barrier.webp`
 
-## Required work
+## Start condition
 
-1. Read `docs/AGENT_STATE.md`, this task, the approved brief, and the generation package.
-2. Retrieve the owner-approved WebP bytes supplied with the task or through the temporary transport URL.
-3. Verify the bytes BEFORE git:
+Before doing QA, inspect the candidate branch tree.
+
+If `art-source/warden-of-the-barrier.webp` is not present, or if it fails even one exact integrity gate, STOP as `REJECTED / BLOCKED` and report only the missing/failed gate. Do not create a substitute image and do not fall back to the old rejected candidate.
+
+If the exact file is already present, proceed without external download attempts.
+
+If transport is needed and the current Claude Code environment can reach the supplied source, retrieve the actual file only. If the source responds with 403 or HTML, do not keep retrying variants and do not mutate repository state. The owner can upload the exact v2 WebP through the GitHub web UI.
+
+## Required work after exact intake passes
+
+1. Read `docs/AGENT_STATE.md`, this task, `docs/art-review/warden-of-the-barrier-master-art-brief.md`, and the Card 03 generation package.
+2. Verify BEFORE git / QA:
    - `1024 × 1536`
-   - byte size `284002`
-   - RIFF total `284002`
-   - FourCC plain `VP8 `
-   - SHA-256 exactly `1a175635a24e84c86f37f11e954299ca3cb4bb675c9f9b178c134ee0ab0ea27e`
+   - size exactly `193038`
+   - RIFF total exactly `193038`
+   - plain `VP8 ` FourCC
+   - SHA-256 exactly `bf5814d345a652d119919c37d128d6a540cd65882d60d04f17432cb31c98239f`
    - full decode PASS
-4. Create `assets/warden-of-the-barrier-candidate` only after the real asset is present.
-5. Commit only the real candidate and any candidate-specific source/report metadata required by established repository convention.
-6. Re-verify the committed git object and fetched remote branch, including exact byte size, SHA-256, and Git blob SHA.
-7. Stage only to the gitignored review path. Do not wire production `artworkUrl`.
-8. Run all nine required surfaces:
+3. Ensure the real candidate branch is `assets/warden-of-the-barrier-candidate-v2`.
+4. Commit only the exact approved binary plus candidate-specific review metadata/code strictly required by existing convention.
+5. Re-verify the committed Git object and fetched remote branch:
+   - `git cat-file -s`
+   - Git blob SHA
+   - SHA-256 from committed blob
+   - exact byte size
+6. Stage a byte-identical copy only at the gitignored review path.
+7. Run all nine required review surfaces:
    - raw 2:3
    - CardView 3:4
    - CreatureSlot 3:4
@@ -76,25 +98,32 @@ Local review staging path:
    - `/admin/art-review` at 390 px
    - 92 px thumbnail
    - 92 px grayscale
-9. Walk the approved Card 03 brief against the real candidate. Report real deviations. Never silently alter the approved artwork.
+8. Walk every automatic reject and positive acceptance item in the approved brief against **v2**. Do not silently fix visual deviations.
+9. Pay special attention to the reasons the old candidate was rejected. v2 is expected to remove them, but verify rather than assume:
+   - no cathedral / spires / crowd / monumental background
+   - no star / compass / heraldic boss
+   - no broad gold ornamentation
+   - barrier clearly reads as a planted manufactured ward-screen with ground anchor
+   - background collapses at 92 px
+   - no baked lettering / rune text / logo / UI
 10. Confirm candidate isolation from production.
-11. Leave the durable handoff under `docs/agent-reports/`.
-12. Update `docs/AGENT_STATE.md` LAST and fetch it back to verify.
+11. Run the normal repository validation relevant to changed files: diff check, targeted Prettier, lint, typecheck, tests, build. Run real-stack Playwright surfaces if the environment has the required browser/database; otherwise report those specific surfaces as not captured, without inventing a PASS.
+12. Leave a durable report under `docs/agent-reports/`.
+13. Update `docs/AGENT_STATE.md` LAST and fetch it back from GitHub to verify.
 
 ## Hard exclusions
 
 Do NOT:
 
-- regenerate, redesign, recompose, crop, extend, replace, or creatively alter the approved artwork
-- integrate into `apps/web/public/art/cards/`
+- regenerate, redraw, redesign, crop, extend, recompose, resize or recompress the approved v2 art
+- reuse the old rejected `284002`-byte Card 03 candidate
+- integrate/promote to `apps/web/public/art/cards/`
 - change `seed.ts`, gameplay, balance, schema or migrations
 - change production `artworkUrl` or `rightsStatus`
 - extend production sync 12 → 13
-- dispatch production workflow
+- dispatch any production workflow
 - access or mutate Railway/Vercel/production DB
 - begin Card 04
-
-If the exact approved bytes are not retrievable or fail any integrity gate, stop as `REJECTED / BLOCKED` without creating an empty candidate branch or placeholder.
 
 ## Final status
 
@@ -102,3 +131,15 @@ Exactly one of:
 
 - **READY FOR OWNER VISUAL APPROVAL**
 - **REJECTED / BLOCKED**
+
+If READY, return:
+
+- candidate branch
+- exact HEAD SHA
+- asset path
+- SHA-256
+- Git blob SHA
+- byte size
+- QA report path
+- notable QA caveats, if any
+- final status
