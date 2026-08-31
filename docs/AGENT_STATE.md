@@ -11,7 +11,7 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** Card 02 **COMPLETE END TO END — LIVE IN PRODUCTION**; Card 03 **FINAL OWNER APPROVED — REPOSITORY INTEGRATION AUTHORIZED, NOT YET INTEGRATED**
+- **Status:** Card 02 **COMPLETE END TO END — LIVE IN PRODUCTION**; Card 03 **INTEGRATION PR OPEN — READY FOR INDEPENDENT PR REVIEW, NOT MERGED**
 - **Current target:** `warden-of-the-barrier` / «Хранительница Барьера»
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
 - **Current task commit:** `752cbd2113004b50a49a5bb8d7f94edbdf9c288c`
@@ -21,8 +21,15 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 - **Latest QA report:** `docs/agent-reports/2026-08-31-art-pack-03-card-03-candidate-v2-visual-qa.md`
 - **Candidate branch:** `assets/warden-of-the-barrier-candidate-v2`
 - **Candidate QA head:** `b4f35bb379d82584f0e0f28c92f3776d332752a8`
-- **Open blocker:** none for visual approval; next gate is **independent review of the integration PR**
-- **Integration / promotion authorized:** YES, repository only
+- **Integration PR:** **#39** — OPEN / NOT MERGED — `https://github.com/NexitOz/KodRaidoGame/pull/39`
+- **Integration branch:** `claude/card-03-final-integration`
+- **Integration base SHA:** `6503a3023c16c7bd6eb9b9f8d42262a671a10965`
+- **Integration head SHA:** `e0e7a472ed3f66133d5448600aab65e75f6a6a2d`
+- **Latest task-result commit:** `e0e7a472ed3f66133d5448600aab65e75f6a6a2d`
+- **PR handoff report:** PR #39 comment `## AGENT HANDOFF — FINAL REPORT` (`#issuecomment-5482812497`)
+- **CI:** run `33425847506` — success
+- **Open blocker:** **INDEPENDENT REVIEW OF PR #39.** After merge, the immutable-source repin task must run before any production authorization can be considered.
+- **Integration / promotion authorized:** YES, repository only — **executed, PR #39 open and unmerged**
 - **Production operation authorized:** NO
 - **Card 04 work authorized:** NO
 
@@ -126,9 +133,17 @@ Owner approval record:
 
 `docs/agent-reports/2026-08-31-art-pack-03-card-03-owner-approval.md`
 
-## Current integration authorization
+## Current integration authorization — EXECUTED
 
-Authorized now:
+All of the following were completed on `claude/card-03-final-integration` and are captured in PR #39.
+The exact approved bytes landed with the **identical Git blob SHA** `c4cb3f4e41f349e86b044712f267f9fdc678aa86`,
+so byte-identity is proven, not merely hash-matched. All nine surfaces were re-run against the
+canonical production path on the real stack, with **zero** requests to the candidate staging path
+even though that gitignored file still exists and is servable. Validation green: Prettier, diff
+check, typecheck, lint, 32/32 web tests, 156/156 game-server tests, both builds, CI run
+`33425847506`.
+
+Authorized and now done:
 
 - create a fresh narrow integration branch from current `main`
 - promote the exact approved v2 bytes to `apps/web/public/art/cards/warden-of-the-barrier.webp`
@@ -146,7 +161,7 @@ Authorized now:
 
 Still NOT authorized:
 
-- merging the integration PR without independent review
+- merging the integration PR without independent review — **PR #39 is open and must stay unmerged until reviewed**
 - production workflow dispatch
 - use of `SYNC-13-CARD-ART-PRODUCTION` as authorization
 - production DB mutation
@@ -157,7 +172,18 @@ Still NOT authorized:
 
 Current production synchronization is still the consumed 12-card state.
 
-The repository integration task may extend target definitions and assertions from 12 to 13, but the immutable source commit for Card 03 cannot be known until the integration PR is merged.
+The 12 → 13 extension is **done in repository code** on PR #39, and the old 12-card pin was
+deliberately kept. The resulting workflow is **non-dispatchable**, verified by running it rather
+than assumed:
+
+```
+$ npx tsx scripts/sync-production-card-art.ts --check
+Missing explicit production artwork fields in seed.ts for warden-of-the-barrier
+exit: 1
+```
+
+It aborts inside `deriveDesiredValues` reading `seed.ts` at the stale pin, before any database
+connection opens. The workflow's thirteen-file existence check fails the same way.
 
 Hard rule:
 
@@ -192,11 +218,26 @@ The current integration task must end at exactly one of:
 - **READY FOR INDEPENDENT PR REVIEW**
 - **BLOCKED / REJECTED**
 
-If READY, the PR must remain open and unmerged and the handoff must state that production synchronization is still unauthorized.
+It ended at **READY FOR INDEPENDENT PR REVIEW**. PR #39 is open and unmerged, and the handoff states
+that production synchronization remains unauthorized.
+
+## Next task after PR #39 merges
+
+Repoint every immutable-source pin to the exact Card 03 merge commit and revalidate:
+
+- `REQUIRED_SOURCE_COMMIT` in `apps/game-server/scripts/sync-production-card-art.ts`
+- `REQUIRED_SOURCE_COMMIT` and `SOURCE_COMMIT` in `.github/workflows/production-card-art-sync.yml`
+
+Only after that may the owner separately authorize `SYNC-13-CARD-ART-PRODUCTION`, which remains
+**RESERVED, NOT AUTHORIZED, NOT CONSUMED**.
+
+Also worth cleaning up once Card 03 is fully promoted: delete `transport/card03-v2-github-actions`
+(carries a `contents: write` workflow, must never be merged) and the superseded
+`assets/warden-of-the-barrier-candidate` branch (still holds the rejected v1 binary).
 
 ## Art Pack 03 progress
 
 - Card 01 `acolyte-of-the-white-rune` — COMPLETE END TO END, live in production
 - Card 02 `seal-of-the-curse` — COMPLETE END TO END, live in production
-- Card 03 `warden-of-the-barrier` — **FINAL OWNER APPROVED; repository integration authorized and pending**
+- Card 03 `warden-of-the-barrier` — **FINAL OWNER APPROVED; integration PR #39 OPEN, awaiting independent review; not merged, not synced**
 - Card 04 `rune-of-curse-breaking` — not started
