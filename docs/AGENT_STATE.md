@@ -11,13 +11,11 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** Card 02 **COMPLETE END TO END — LIVE IN PRODUCTION**; Card 03 **CANDIDATE INTAKE BLOCKED — APPROVED BYTES NEVER TRANSPORTED**
+- **Status:** Card 02 **COMPLETE END TO END — LIVE IN PRODUCTION**; Card 03 **NEW OWNER-APPROVED MASTER v2 — CANDIDATE INTAKE / QA NEXT**
 - **Current target:** `warden-of-the-barrier` / «Хранительница Барьера»
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
-- **Current task commit:** `1f90abbf08f3b014d67695aa85fd6c845926e1ad`
-- **Latest report:** `docs/agent-reports/2026-08-30-art-pack-03-card-03-candidate-not-transported.md`
-- **Latest task-result commit:** `564e8ea`
-- **Open blocker:** **OWNER ACTION REQUIRED** — the owner-approved WebP has never reached any location this environment can read. It was not attached to the task, no transport URL exists in this file or in `docs/CLAUDE_CURRENT_TASK.md`, and the candidate branch carries only an intake marker. Intake cannot start until the bytes are on the branch.
+- **Current task commit:** `ad138e4fcadbd30e86d30881a1aa4c9f59b00ca8`
+- **Current task type:** exact binary intake + candidate QA only
 - **Integration / promotion authorized:** NO
 - **Production operation authorized:** NO
 
@@ -47,37 +45,36 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
   - `ON_PLAY` → `SHIELD` / `SELF`
   - `ON_PLAY` + `RESONANCE_TIER_AT_LEAST 5` → `CLEANSE` / `FRIENDLY_ALL`
 
-## Card 03 owner approval and master
+## Card 03 — owner-approved master v2
 
-The Card 03 brief is OWNER APPROVED. Locked decisions remain:
+The earlier Card 03 candidate is rejected historical input and is superseded.
 
-- planted white-steel ward-screen, not a carried shield
-- restrained readable environment with a hard information ceiling
-- bare head
-- cinematic realistic premium CCG with subtle painterly finish
+The owner explicitly approved a **new master v2 on 2026-08-31**. It is the only Card 03 visual source authorized for the next candidate pass.
 
-ChatGPT generated the corrected vertical master and the owner explicitly approved it on 2026-08-30.
-
-The approved visual source has been converted only for repository transport to a WebP candidate with these exact intake gates:
+Exact transport WebP gates:
 
 - dimensions: `1024 × 1536`
 - FourCC: plain `VP8 `
-- byte size: `284002`
-- RIFF total: `284002`
-- SHA-256: `1a175635a24e84c86f37f11e954299ca3cb4bb675c9f9b178c134ee0ab0ea27e`
+- byte size: `193038`
+- RIFF total: `193038`
+- SHA-256: `bf5814d345a652d119919c37d128d6a540cd65882d60d04f17432cb31c98239f`
 - full decode: PASS
 
-The approved image exists **in the owner's possession**. It has never existed inside this repository.
-Both statements are true at once and must not be collapsed into either "no image exists" or
-"the image is available to the agent".
+**Do not reuse the old rejected tuple:** `284002` bytes / SHA-256 `1a175635a24e84c86f37f11e954299ca3cb4bb675c9f9b178c134ee0ab0ea27e`.
 
-## Candidate contract — CURRENT REALITY
+Temporary manual transport copy of v2:
 
-Expected real candidate branch:
+`https://firestorage.ai/ja/f/0Dy-NYu7pX8_`
 
-`assets/warden-of-the-barrier-candidate`
+This share URL is transport convenience only. A 403, HTML page, screenshot or thumbnail is not the approved binary. Intake is valid only if every exact gate above passes.
 
-Expected asset path:
+## Candidate v2 contract
+
+Fresh candidate branch:
+
+`assets/warden-of-the-barrier-candidate-v2`
+
+Candidate path:
 
 `art-source/warden-of-the-barrier.webp`
 
@@ -85,32 +82,24 @@ Local review staging:
 
 `apps/web/public/art-review-candidates/warden-of-the-barrier.webp`
 
-**Warning — the candidate branch already exists and is a decoy.** It sits at
-`f39b34d1f245e223c86a7d9f6b440eea1dbef90b` and its only difference from `main` is a single added
-file, `art-source/warden-of-the-barrier.INTAKE_PENDING.md`. It contains **no artwork**.
-`art-source/warden-of-the-barrier.webp` does not exist on it.
+Claude Code must inspect the branch tree first. If the exact file has already been landed, do not attempt external transport. If the file is absent and external retrieval cannot return the exact matching bytes, stop cleanly rather than using the old candidate or fabricating a substitute.
 
-Do not treat the branch's existence as evidence that intake started. Inspect the tree, not the
-branch name. The `INTAKE_PENDING` marker must survive until the real bytes land, and must be deleted
-in the same commit that lands them.
+## Why v2 exists
 
-## How the bytes can actually arrive
+The previous candidate was rejected because it violated approved-brief automatic rejects. v2 was generated specifically to remove those failures. QA must verify rather than assume:
 
-Egress from the agent container is a **GitHub-only allowlist** (re-measured 2026-08-30: `we.tl`,
-`wetransfer.com`, `firestorage.ai` all denied; `api.github.com` reachable). Viable transports, best
-first:
+- no cathedral / spires / crowd / monumental architecture
+- no star / compass / heraldic boss
+- no broad gold ornamentation
+- manufactured planted ward-screen with visible ground anchor
+- restrained background that collapses at thumbnail size
+- no baked lettering / rune text / logo / UI
 
-1. **GitHub web UI upload** — on the candidate branch, *Add file → Upload files*. Proven byte-exact
-   for Card 01 (`69e176e`). Sends multipart binary.
-2. **GitHub Release asset** — attach the WebP to a draft release; `objects.githubusercontent.com` is
-   reachable from the container.
-3. **Any public URL fetched by a GitHub Actions runner** — the runner has broader egress than the
-   container. This is how Card 02's master arrived (run `33117588154`).
+The approved brief remains:
 
-Never use the GitHub Contents API / base64-in-JSON path. It silently truncated three separate
-Card 02 candidates (14,999 / 15,042 / 27 bytes).
+`docs/art-review/warden-of-the-barrier-master-art-brief.md`
 
-## Required QA after intake
+## Required QA after exact intake
 
 Card 03 is a CHARACTER, so all nine surfaces are required:
 
@@ -124,44 +113,35 @@ Card 03 is a CHARACTER, so all nine surfaces are required:
 8. 92 px thumbnail
 9. 92 px grayscale
 
-Walk the approved brief against the real candidate and report deviations. Never silently alter the owner-approved artwork.
+Report real deviations. Never silently alter the owner-approved v2 artwork.
 
 ## Hard gate
 
 Authorized now:
 
-- exact candidate intake
-- candidate-only source/report metadata
+- exact v2 candidate intake
+- candidate-only review metadata/code required by existing convention
 - nine-surface QA
+- normal local repository validation relevant to changed files
 
 Still NOT authorized:
 
-- integration/promotion to `apps/web/public/art/cards/`
-- changes to `seed.ts`, gameplay, balance, schema or migrations
-- production `artworkUrl` / `rightsStatus` changes
-- extending sync 12 → 13
-- any production workflow dispatch
+- integrating/promoting to `apps/web/public/art/cards/`
+- changing `seed.ts`, gameplay, balance, schema or migrations
+- changing production `artworkUrl` / `rightsStatus`
+- extending controlled sync 12 → 13
+- dispatching any production workflow
 - Railway/Vercel/production DB access or mutation
 - Card 04 work
 
-Candidate task must stop at exactly one of:
+Candidate v2 task must end at exactly one of:
 
 - **READY FOR OWNER VISUAL APPROVAL**
 - **REJECTED / BLOCKED**
-
-Last dispatch stopped at **REJECTED / BLOCKED** (no source bytes). No QA was run and nothing was
-fabricated, which is the correct outcome, not a failure to be retried differently.
-
-## Recommended next action
-
-Owner lands `art-source/warden-of-the-barrier.webp` on `assets/warden-of-the-barrier-candidate`
-using one of the three transports above, then re-dispatches
-`docs/CLAUDE_CURRENT_TASK.md` unchanged. Intake will verify the six gates, delete the
-`INTAKE_PENDING` marker, stage to the gitignored review path, and run all nine surfaces.
 
 ## Art Pack 03 progress
 
 - Card 01 `acolyte-of-the-white-rune` — COMPLETE END TO END, live in production
 - Card 02 `seal-of-the-curse` — COMPLETE END TO END, live in production
-- Card 03 `warden-of-the-barrier` — brief APPROVED, master APPROVED by owner, but **bytes never transported into the repository; candidate intake BLOCKED on owner upload**
+- Card 03 `warden-of-the-barrier` — **new master v2 OWNER APPROVED; fresh candidate intake / QA next**
 - Card 04 `rune-of-curse-breaking` — not started
