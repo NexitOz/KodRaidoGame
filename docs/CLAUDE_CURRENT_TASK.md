@@ -1,36 +1,16 @@
-# CURRENT TASK — Art Pack 03 Card 04: close Card 03 docs + prepare master-art brief
+# CURRENT TASK — Art Pack 03 Card 04: approved master candidate intake + eight-surface QA
 
-## Owner authorization
+## Status
 
-The owner explicitly advanced the project on **2026-08-31** after Card 03 was independently verified LIVE IN PRODUCTION.
+Card 04 `rune-of-curse-breaking` / «Руна Разрушения Проклятий» has an **OWNER-APPROVED master art**.
 
-This authorizes exactly:
+Owner approval record:
 
-1. repository/documentation housekeeping needed to close Card 03 accurately;
-2. Art Pack 03 Card 04 **art-direction research, master-art brief, and generation package preparation**.
+`docs/agent-reports/2026-08-31-art-pack-03-card-04-owner-approval.md`
 
-It does **not** authorize Card 04 image generation by Claude, candidate intake, production-path integration, sync extension, workflow dispatch, Railway/production DB access, or any production mutation.
+This task authorizes **candidate intake and review only**. It does not authorize production integration or production access.
 
-## Status entering this task
-
-Cards 01–03 are **COMPLETE END TO END — LIVE IN PRODUCTION**.
-
-Card 03 production sync evidence:
-
-- workflow run: `33436786024` (run #9)
-- job: `99635055417`
-- conclusion: `success`
-- dispatched on `main` @ `80a751be8737a12e23f235989b2ca435bc30b420`
-- immutable source: `8b8322aad6fc52ca7e9ac796027605c5e1e9c78b`
-- PRE-WRITE: `TARGET_ROWS=13`, `UNIQUE_SLUGS=13`, `ROWS_REQUIRING_MUTATION=1`, `SOURCE_OF_TRUTH_MATCH=12/13`
-- APPLY: `TRANSACTION_COMMITTED=YES`, `ROWS_CHANGED=1`, `TARGET_ROWS_FINAL=13`, `SOURCE_OF_TRUTH_MATCH=13/13`, `NON_TARGET_FIELD_CHANGES=0`
-- POST-WRITE: `ROWS_REQUIRING_MUTATION=0`, `SOURCE_OF_TRUTH_MATCH=13/13`
-- only changed row: `warden-of-the-barrier`
-- `SYNC-13-CARD-ART-PRODUCTION`: **CONSUMED — MUST NOT BE REUSED**
-
-## Card 04 canonical facts
-
-Read them from current `main` and verify before writing the brief. Expected canonical values are:
+## Canonical card facts
 
 - slug: `rune-of-curse-breaking`
 - name: «Руна Разрушения Проклятий»
@@ -41,139 +21,127 @@ Read them from current `main` and verify before writing the brief. Expected cano
 - ability: `В начале каждого вашего хода снимите Проклятие и Заглушение со всех союзников.`
 - mechanic: `TURN_START` → `CLEANSE` / `FRIENDLY_ALL`
 
-Do not change gameplay, wording, cost, rarity, mechanic, schema, or seed data in this task.
+Gameplay facts are locked and out of scope.
+
+## Approved visual source
+
+Generation id:
+
+`f2e3d336-6db5-4d45-9d64-6bfebd8e9196`
+
+Approved concept: **The cleansing font**, with the owner-approved geometry refinement:
+
+- low, wide, faceted purification basin / reservoir;
+- integrated into a short stepped stone base;
+- elongated / faceted / octagonal rather than circular;
+- not a church font, decorative park fountain, tall pedestal basin, central-column fountain, upward jet, or circular symmetrical fountain;
+- water is cold, clear and almost colourless; it is a physical `CLEANSE` carrier, not blue elemental magic;
+- off-frame floor channels are the `FRIENDLY_ALL` reach device;
+- no people or figures.
+
+The master shown to and approved by the owner is the only approved visual source. Do not regenerate, redesign, crop, extend, recompose, repaint, sharpen or creatively alter it.
+
+## Approved transport WebP integrity contract
+
+A transport WebP was made from the approved 1024 × 1536 RGB PNG without crop, resize or recomposition.
+
+Expected exact values:
+
+- filename: `rune-of-curse-breaking.webp`
+- dimensions: `1024 × 1536`
+- FourCC: plain `VP8 `
+- actual byte size: `438894`
+- RIFF declared total: `438894`
+- SHA-256: `6f07380f1f64bee0efd8ec9819de1951dd14fd9dc127dd173ddda909b1c49dd5`
+- Git blob SHA: `e1ea12a2f03cc84e9931600e978cc8bf6b1eaccb`
+- full decode: PASS
+
+Temporary byte-preserving source, valid until 2026-09-14:
+
+`https://firestorage.ai/ja/f/8hmlyOzbah75`
+
+Candidate branch already exists:
+
+`assets/rune-of-curse-breaking-candidate-v1`
+
+## Retrieval rule
+
+Do not use an unrelated local image, placeholder, browser screenshot or reconstructed image.
+
+Retrieve the exact approved WebP by an available byte-preserving route. If the Firestorage share cannot be fetched in this environment, do not fabricate or substitute anything. Stop at **BLOCKED — APPROVED BINARY TRANSPORT REQUIRED** and report the precise transport blocker.
+
+A successful retrieval is valid only if all expected integrity values above match exactly.
 
 ## Required work
 
-### A. Close Card 03 documentation accurately
-
-Update `docs/art-pack-03.md` so the pack no longer claims Card 03 is "integration in review" or "not live in production".
-
-Required corrections:
-
-- top pack status: Cards 01, 02 and 03 live in production; Card 04 is next / brief in preparation;
-- Card 03 heading/status: **COMPLETE END TO END — LIVE IN PRODUCTION**;
-- replace obsolete Card 03 pre-production / deliberately-not-runnable 12→13 wording with the actual successful production sync facts listed above;
-- record `SYNC-13-CARD-ART-PRODUCTION` as CONSUMED;
-- preserve useful historical Card 01/02 records and do not rewrite unrelated sections merely for style.
-
-After editing, search the file for stale contradictory Card 03 phrases such as:
-
-- `integration in review`
-- `Not live in production`
-- `RESERVED, NOT AUTHORIZED, NOT CONSUMED`
-- `PREPARED, DELIBERATELY NOT RUNNABLE`
-
-No stale statement may remain if it describes the current Card 03 state.
-
-### B. Research Card 04 before proposing art
-
-Read and compare at minimum:
-
-- `docs/art-bible-01.md` PURIFICATION language;
-- `docs/art-pack-03.md` after housekeeping;
-- Card 01 brief: `docs/art-review/acolyte-of-the-white-rune-master-art-brief.md`;
-- Card 02 brief: `docs/art-review/seal-of-the-curse-master-art-brief.md`;
-- Card 03 brief: `docs/art-review/warden-of-the-barrier-master-art-brief.md`;
-- current seed entry for `rune-of-curse-breaking`;
-- real UI/component behavior for `RUNE` cards, including every shipped crop/review surface that actually applies.
-
-Do not infer Card 04's review surfaces from CHARACTER or EVENT cards. Verify them from the implementation and document the exact surface set.
-
-### C. Lock a distinct Card 04 concept
-
-Card 04 must read as PURIFICATION and EPIC while remaining clearly different from already approved silhouettes:
-
-- Card 01: small white-stone rune tablet / novice character;
-- Card 02: engineered binding clamp on an enemy weapon;
-- Card 03: planted segmented ward-screen;
-- flagship: large round rune shield / ceremonial guardian language.
-
-The mechanic is persistent and recurring (`TURN_START` every turn), so the visual concept should read as an **enduring cleansing rune/ward**, not a one-frame attack, explosion, or hand-cast spell.
-
-Use the established PURIFICATION material/palette rules from the art bible and approved cards. Do not import SHADOW / VEIL / COSMIC language. Rarity should read as **EPIC**, above the two RARE cards in complexity and authority but below the faction's LEGENDARY flagship.
-
-Before locking the brief, evaluate at least 3 distinct concept families against:
-
-- mechanic fidelity;
-- uniqueness versus Cards 01–03 and flagship;
-- 92 px silhouette/readability;
-- crop safety;
-- faction fidelity;
-- EPIC rarity read without overstepping into LEGENDARY ceremonial language.
-
-Choose one recommended concept and explain why the rejected alternatives are weaker.
-
-### D. Create the production-grade art brief
-
-Create:
-
-`docs/art-review/rune-of-curse-breaking-master-art-brief.md`
-
-The brief must be specific enough for deterministic generation/review and include at minimum:
-
-- canonical card facts and mechanic interpretation;
-- chosen visual thesis and uniqueness rationale;
-- focal hierarchy;
-- composition / camera / object placement;
-- exact material language;
-- lighting and palette constraints;
-- rarity hierarchy versus Common/Rare/Legendary references;
-- environment information ceiling;
-- crop-safe zones based on the real RUNE surfaces;
-- 92 px thumbnail/grayscale expectations;
-- explicit automatic-reject conditions;
-- acceptance checklist;
-- no text, lettering, watermark, signature, logo, UI, stats, or baked card frame in master art.
-
-Do not weaken established faction restrictions merely to make generation easier.
-
-### E. Create the generation package
-
-Create:
-
-`docs/art-review/rune-of-curse-breaking-generation-package.md`
-
-It must contain:
-
-- concise generation thesis;
-- approved-format master target (use the project-standard vertical master unless verified RUNE implementation requires otherwise);
-- positive generation prompt;
-- negative prompt / forbidden elements;
-- composition and crop anchors;
-- an explicit instruction that **Claude does not generate the image**;
-- handoff note that ChatGPT/image generation is the art-generation owner after owner brief approval.
-
-### F. Validation and durable handoff
-
-- run `git diff --check`;
-- run targeted formatting/docs checks if available;
-- audit that only documentation/art-direction files changed;
-- do not alter application code, seed, workflow, artwork bytes, schema, migrations, or production data;
-- leave a durable report at:
-  `docs/agent-reports/2026-08-31-art-pack-03-card-04-master-art-brief.md`;
-- if working through a PR, also leave the standard `## AGENT HANDOFF — FINAL REPORT` comment;
-- update `docs/AGENT_STATE.md` **LAST**, then fetch it back from GitHub and verify it.
+1. Read `CLAUDE.md`, `docs/AGENT_STATE.md`, the approved brief, generation package and owner approval report before touching the candidate.
+2. Work only on `assets/rune-of-curse-breaking-candidate-v1` for candidate intake. Refresh it from the intended base only if doing so does not discard the owner's reserved branch or approved object.
+3. Land the exact approved file at:
+   `art-source/rune-of-curse-breaking.webp`
+4. Hard-verify and record:
+   - dimensions;
+   - actual byte size;
+   - RIFF declared total = actual byte size;
+   - plain `VP8 ` FourCC;
+   - full decode PASS;
+   - SHA-256;
+   - Git blob SHA;
+   - `git cat-file -s` matches actual size;
+   - fetched remote branch re-verification matches the same values.
+5. Stage only for review at the gitignored candidate path:
+   `apps/web/public/art-review-candidates/rune-of-curse-breaking.webp`
+6. Run the **eight** Card 04 RUNE review surfaces established by the brief:
+   - raw 2:3;
+   - CardView 3:4;
+   - CardDetailDrawer 4:5;
+   - HandCardPreview 7:9;
+   - `/admin/art-review` desktop;
+   - `/admin/art-review` 390 px;
+   - 92 px thumbnail;
+   - 92 px grayscale.
+   `CreatureSlot` is N/A for RUNE and must not be invented as a ninth surface.
+7. Compare the real candidate against every automatic reject and acceptance item in:
+   `docs/art-review/rune-of-curse-breaking-master-art-brief.md`
+8. Specifically measure/check the generated reality rather than assuming prompt compliance:
+   - no figure;
+   - continuous visible overflow;
+   - straight/off-frame channels and no closed floor rune-circle;
+   - ornamental rim marks do not read as text/script;
+   - no watermark/UI/card frame;
+   - gold ≤ 4%;
+   - 92 px grayscale spread versus the brief target;
+   - water lip / subject hierarchy;
+   - uniqueness versus Cards 01–03, faction flagship and `rune-of-the-echoing-dusk`;
+   - crop safety on the real 3:4, 7:9 and binding 4:5 surfaces;
+   - no horizontal overflow at 390 px.
+9. Do not silently alter the artwork to fix a QA issue. Report deviations as they exist.
+10. Preserve complete production isolation.
 
 ## Hard exclusions
 
 Do NOT:
 
 - generate or edit Card 04 imagery;
-- create a candidate art binary;
-- integrate any Card 04 production artwork path;
-- modify Card 04 gameplay or seed data;
-- extend the production artwork sync 13→14;
-- create or consume any production confirmation string;
-- dispatch GitHub Actions production sync;
-- access or mutate Railway/Vercel production or production DB;
-- delete old transport/candidate branches in this task.
+- substitute another image if retrieval fails;
+- integrate into `apps/web/public/art/cards/`;
+- change `seed.ts`, `artworkUrl`, `rightsStatus`, gameplay, schema or migrations;
+- extend production artwork sync 13 → 14;
+- create or consume a production confirmation string;
+- dispatch production workflows;
+- access or mutate Railway, Vercel or production DB;
+- begin another card;
+- reuse `SYNC-13-CARD-ART-PRODUCTION`.
 
-## Final gate
+## Durable handoff
+
+Leave the standard durable candidate QA report. Update `docs/AGENT_STATE.md` **LAST**, fetch it back from GitHub and verify it.
+
+## Final status
 
 End at exactly one of:
 
-- **READY FOR OWNER CARD 04 BRIEF APPROVAL**
-- **BLOCKED / REJECTED**
+- **READY FOR OWNER VISUAL APPROVAL**
+- **REJECTED / BLOCKED**
+- **BLOCKED — APPROVED BINARY TRANSPORT REQUIRED**
 
-If READY, report the chosen concept, exact RUNE review surfaces, brief path, generation-package path, durable report path, branch/commit or PR information, and confirm that no image generation or production operation occurred.
+If READY, return branch, exact HEAD SHA, asset path, dimensions, byte size, SHA-256, Git blob SHA, QA report path and final status.
