@@ -21,23 +21,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      # DELIBERATELY STALE PIN - REQUIRES A POST-MERGE REPIN BEFORE THIS WORKFLOW CAN EVER RUN.
+      # Pinned to the merged Card 03 integration commit containing the reviewed 13-card seed/art
+      # source of truth. This is the merge commit of the independently reviewed PR #39 - the first
+      # commit on `main` carrying the Card 03 integration - and deliberately not the PR head, the
+      # candidate branch SHA, or a later docs-only commit.
       #
-      # This is still the merged Card 02 integration commit, which contains only the 12-card
-      # seed/art source of truth. The Card 03 integration commit does not exist until this PR is
-      # merged, and pinning an immutable source to an unmerged branch/head SHA would defeat the
-      # whole point of the check, so the old pin stays.
+      # This replaced the temporary Card 02 pin that intentionally held the workflow closed while
+      # Card 03 was unmerged. The immutable-source and thirteen-file checks below now resolve
+      # against a commit that actually contains all thirteen artwork files and their seed fields.
       #
-      # The consequence is intentional: this workflow is NON-DISPATCHABLE as it stands. The
-      # thirteen-file existence check below looks for warden-of-the-barrier at this commit, where
-      # it does not exist, and the immutable-source diff check fails once Card 03 lands on main.
-      # Both fail closed rather than syncing an unverified source.
-      #
-      # A separate post-merge task must repoint both pins to the exact Card 03 merge commit and
-      # revalidate. Only after that may the owner authorize SYNC-13-CARD-ART-PRODUCTION, which is
-      # RESERVED and NOT YET AUTHORIZED.
-      REQUIRED_SOURCE_COMMIT: 8d41b6570e0a7a29ec7ecc38b0c6075aed8a4757
-      SOURCE_COMMIT: 8d41b6570e0a7a29ec7ecc38b0c6075aed8a4757
+      # Production dispatch still requires fresh explicit owner confirmation via the workflow input
+      # below. SYNC-13-CARD-ART-PRODUCTION remains RESERVED, NOT AUTHORIZED, NOT CONSUMED.
+      REQUIRED_SOURCE_COMMIT: 8b8322aad6fc52ca7e9ac796027605c5e1e9c78b
+      SOURCE_COMMIT: 8b8322aad6fc52ca7e9ac796027605c5e1e9c78b
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
     steps:
