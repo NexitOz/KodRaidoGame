@@ -11,17 +11,22 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** Card 01 and Card 02 **COMPLETE END TO END — LIVE IN PRODUCTION**; Card 03 **FINAL OWNER APPROVED + REPOSITORY INTEGRATED + REPIN COMPLETE — ONE PRODUCTION DISPATCH NOW AUTHORIZED**
+- **Status:** Cards 01, 02 and 03 **ALL COMPLETE END TO END — LIVE IN PRODUCTION**
 - **Current target:** `warden-of-the-barrier` / «Хранительница Барьера»
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
 - **Current task commit:** `c9abf5307ace3960eb90b4988948d3c97e87b6cb`
 - **Current task type:** controlled 13-card production artwork sync execution
-- **Fresh owner authorization received:** YES, 2026-08-31
+- **Fresh owner authorization received:** YES, 2026-08-31 — **USED**
 - **Authorized exact string:** `SYNC-13-CARD-ART-PRODUCTION`
 - **Authorization scope:** exactly one new manual dispatch of `.github/workflows/production-card-art-sync.yml` on `main`
 - **Authorization consumption rule:** CONSUMED immediately when GitHub accepts the dispatch, even if the run later fails or is cancelled; any retry requires a fresh exact owner authorization
-- **Production operation authorized:** **YES, ONE DISPATCH ONLY**
-- **`SYNC-13-CARD-ART-PRODUCTION`:** **AUTHORIZED, NOT YET CONSUMED**
+- **Production sync run:** `33436786024` (run #9) — job `99635055417` — conclusion **success**
+- **Dispatched on:** `main` @ `80a751be8737a12e23f235989b2ca435bc30b420`
+- **Rows changed:** exactly **1**, only `warden-of-the-barrier` — non-target field changes: **0**
+- **Final source of truth:** **13/13**
+- **Execution report:** `docs/agent-reports/2026-08-31-art-pack-03-card-03-production-sync.md`
+- **Production operation authorized:** NO — the single authorized dispatch has been used
+- **`SYNC-13-CARD-ART-PRODUCTION`:** **CONSUMED** — must never be reused; a further sync needs a fresh explicit owner authorization
 - **Card 04 work authorized:** NO
 
 ## Card 03 canonical facts
@@ -116,13 +121,34 @@ The last completed production operation is Card 02:
 - non-target field changes: `0`
 - `SYNC-12-CARD-ART-PRODUCTION`: CONSUMED
 
-Card 03 current production row state has not been assumed. The authorized workflow must measure PRE-WRITE before any APPLY.
+## Production sync 12 → 13 — COMPLETED
 
-## Authorized production execution rules
+Card 03 is live in production. The controlled sync was extended 12 → 13 and executed successfully.
 
-The owner has now explicitly authorized one run with `SYNC-13-CARD-ART-PRODUCTION`.
+- run: `33436786024` (run #9)
+- job: `99635055417`
+- conclusion: success
+- dispatched on: `main` @ `80a751be8737a12e23f235989b2ca435bc30b420`
+- immutable source verified: `IMMUTABLE_SOURCE_SHA_VERIFIED=8b8322aad6fc52ca7e9ac796027605c5e1e9c78b`
+- `ARTWORK_FILES_PRESENT=13/13`
+- `PRODUCTION_SCOPE_VERIFIED=YES`, `READ_ONLY_DB_PREFLIGHT=YES`
+- PRE-WRITE: `TARGET_ROWS=13`, `UNIQUE_SLUGS=13`, `ROWS_REQUIRING_MUTATION=1`, `SOURCE_OF_TRUTH_MATCH=12/13`
+- APPLY: `TRANSACTION_COMMITTED=YES`, `ROWS_CHANGED=1`, `TARGET_ROWS_FINAL=13`, `SOURCE_OF_TRUTH_MATCH=13/13`, `NON_TARGET_FIELD_CHANGES=0`
+- POST-WRITE (independent re-read): `ROWS_REQUIRING_MUTATION=0`, `SOURCE_OF_TRUTH_MATCH=13/13`
+- `SYNC-13-CARD-ART-PRODUCTION`: **CONSUMED**
 
-Required behavior:
+The single changed row moved from an inline SVG placeholder with `rightsStatus: placeholder` to
+`/art/cards/warden-of-the-barrier.webp` with `rightsStatus: owned`. The other twelve targets
+reported `needsChange=NO` and were not written.
+
+**Card 03 is complete end to end:** briefed → generated → byte-verified → surface-reviewed →
+owner-approved → integrated → merged → repinned → synced to production.
+
+## Authorized production execution rules — CONSUMED, HISTORICAL
+
+The owner's single authorization was used on run `33436786024`. `SYNC-13-CARD-ART-PRODUCTION` is
+**CONSUMED and must never be reused.** The rules below are retained as the standing contract for any
+_future_ sync, which requires a fresh explicit owner authorization:
 
 - verify fresh `main` and immutable pins before dispatch;
 - dispatch `.github/workflows/production-card-art-sync.yml` exactly once on `main` with `confirmation=SYNC-13-CARD-ART-PRODUCTION`;
@@ -149,19 +175,18 @@ Do NOT:
 - alter Card 03 artwork;
 - begin Card 04 in this task.
 
-## Required durable handoff after execution
-
-After the single authorized run, create/update:
+## Durable handoff — WRITTEN
 
 `docs/agent-reports/2026-08-31-art-pack-03-card-03-production-sync.md`
 
-with exact run/job IDs, conclusion, PRE-WRITE mutation count and snapshot, APPLY result if executed, POST-WRITE result, non-target field result, production scope gates, and consumed authorization state.
+## Final gate — reached
 
-Then update `docs/AGENT_STATE.md` LAST and fetch back.
+The task ended at **COMPLETE END TO END — LIVE IN PRODUCTION**.
 
-## Final gate
+## Next
 
-End at exactly one of:
+Art Pack 03 Card 04 `rune-of-curse-breaking` is the next unstarted item and is **NOT authorized**.
 
-- **COMPLETE END TO END — LIVE IN PRODUCTION**
-- **PRODUCTION SYNC FAILED / BLOCKED — AUTHORIZATION CONSUMED, FRESH AUTH REQUIRED FOR RETRY**
+Optional cleanup, not done in this task: delete `transport/card03-v2-github-actions` (carries a
+`contents: write` workflow, must never be merged) and the superseded
+`assets/warden-of-the-barrier-candidate` branch (still holds the rejected v1 binary).
