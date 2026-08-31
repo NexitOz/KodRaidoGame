@@ -4,15 +4,15 @@ Production artwork for the PURIFICATION faction's non-flagship cards. The factio
 flagship, `high-warden-of-the-white-rune`, was approved earlier as part of Art Pack 01 and is not
 part of this pack — see [`art-bible-01.md`](art-bible-01.md).
 
-**Pack status:** IN PROGRESS — Cards 01 and 02 complete end to end and live in production; Card 03
-FINAL OWNER APPROVED with repository integration in review, not yet synced to production.
+**Pack status:** IN PROGRESS — Cards 01, 02 and 03 complete end to end and live in production;
+Card 04 is next, with its master-art brief in preparation.
 
-| #   | Slug                        | Type / Rarity / Cost   | Status                                           |
-| --- | --------------------------- | ---------------------- | ------------------------------------------------ |
-| 01  | `acolyte-of-the-white-rune` | CHARACTER / COMMON / 1 | **LIVE IN PRODUCTION**                           |
-| 02  | `seal-of-the-curse`         | EVENT / RARE / 2       | **LIVE IN PRODUCTION**                           |
-| 03  | `warden-of-the-barrier`     | CHARACTER / RARE / 3   | **FINAL OWNER APPROVED — integration in review** |
-| 04  | `rune-of-curse-breaking`    | RUNE / EPIC / 3        | not started                                      |
+| #   | Slug                        | Type / Rarity / Cost   | Status                 |
+| --- | --------------------------- | ---------------------- | ---------------------- |
+| 01  | `acolyte-of-the-white-rune` | CHARACTER / COMMON / 1 | **LIVE IN PRODUCTION** |
+| 02  | `seal-of-the-curse`         | EVENT / RARE / 2       | **LIVE IN PRODUCTION** |
+| 03  | `warden-of-the-barrier`     | CHARACTER / RARE / 3   | **LIVE IN PRODUCTION** |
+| 04  | `rune-of-curse-breaking`    | RUNE / EPIC / 3        | brief in preparation   |
 
 ## Card 01 — `acolyte-of-the-white-rune` — FINAL APPROVED
 
@@ -220,7 +220,7 @@ appears on the production artwork path.
    weapon. It is unlit dark steel with no COSMIC colour, glow or iridescence, and it disappears at
    92 px.
 
-## Card 03 — `warden-of-the-barrier` — FINAL OWNER APPROVED, INTEGRATION IN REVIEW
+## Card 03 — `warden-of-the-barrier` — COMPLETE END TO END — LIVE IN PRODUCTION
 
 Owner-approved 2026-08-31. Record:
 [`agent-reports/2026-08-31-art-pack-03-card-03-owner-approval.md`](agent-reports/2026-08-31-art-pack-03-card-03-owner-approval.md)
@@ -228,8 +228,9 @@ Owner-approved 2026-08-31. Record:
 Candidate QA:
 [`agent-reports/2026-08-31-art-pack-03-card-03-candidate-v2-visual-qa.md`](agent-reports/2026-08-31-art-pack-03-card-03-candidate-v2-visual-qa.md)
 
-**Not live in production.** The repository integration is open for review; the controlled sync has
-not been extended past its consumed 12-card state at runtime — see the 12 → 13 section below.
+**Live in production.** Repository integration merged as `8b8322aa`, the immutable source pin was
+repointed to that merge commit, and the controlled 13-card sync ran successfully — see the
+12 → 13 section below.
 
 ### Card facts
 
@@ -313,33 +314,48 @@ appears on the production artwork path.
 3. **Minor 4:5 anchor-base crop.** The binding crop trims only the very bottom lip of the base
    plate; the planted spike and displaced rubble that carry the read remain visible.
 
-## Production sync 12 → 13 — PREPARED, DELIBERATELY NOT RUNNABLE
+## Production sync 12 → 13 — COMPLETED
 
-Card 03's repository integration extends the controlled sync definition from 12 targets to 13 by
-adding only `warden-of-the-barrier`, in repository code only. `SYNC-13-CARD-ART-PRODUCTION` is
-**RESERVED, NOT AUTHORIZED, NOT CONSUMED**.
+Card 03 is live in production. The controlled sync was extended 12 → 13 and executed successfully.
 
-**The pin is intentionally not final.** `REQUIRED_SOURCE_COMMIT` and the workflow `SOURCE_COMMIT`
-still point at the twelve-card commit `8d41b657`, whose `seed.ts` has no explicit artwork fields for
-`warden-of-the-barrier`. The Card 03 integration commit does not exist until this PR merges, and
-pinning an immutable source to an unmerged branch SHA would defeat the check.
+| Item                  | Value                                                               |
+| --------------------- | ------------------------------------------------------------------- |
+| Workflow run          | **33436786024** (run 9), job `99635055417` — conclusion **success** |
+| Executed              | 2026-08-31                                                          |
+| Dispatched on         | `main` @ `80a751be8737a12e23f235989b2ca435bc30b420`                 |
+| Immutable source pin  | `8b8322aad6fc52ca7e9ac796027605c5e1e9c78b` (PR #39 merge)           |
+| Artwork files present | `13/13`                                                             |
+| Rows changed          | **1** — only `warden-of-the-barrier`                                |
+| Non-target changes    | **0**                                                               |
+| Final source of truth | `13/13`                                                             |
 
-The mismatch is deliberate and fails closed, verified by running it rather than assumed:
+The single changed row moved from an inline SVG placeholder with `rightsStatus: placeholder` to
+`/art/cards/warden-of-the-barrier.webp` with `rightsStatus: owned`. The other twelve targets
+reported `needsChange=NO` and were not written.
 
-```
-$ npx tsx scripts/sync-production-card-art.ts --check
-Missing explicit production artwork fields in seed.ts for warden-of-the-barrier
-exit: 1
-```
+Gates recorded from the run: `IMMUTABLE_SOURCE_SHA_VERIFIED=8b8322aa…`, `ARTWORK_FILES_PRESENT=13/13`,
+`PRODUCTION_SCOPE_VERIFIED=YES`, `READ_ONLY_DB_PREFLIGHT=YES`; PRE-WRITE `TARGET_ROWS=13`,
+`UNIQUE_SLUGS=13`, `ROWS_REQUIRING_MUTATION=1`; APPLY `TRANSACTION_COMMITTED=YES`,
+`TARGET_ROWS_FINAL=13`, `SOURCE_OF_TRUTH_MATCH=13/13`, `NON_TARGET_FIELD_CHANGES=0`; independent
+POST-WRITE `ROWS_REQUIRING_MUTATION=0`, `SOURCE_OF_TRUTH_MATCH=13/13`.
 
-It aborts inside `deriveDesiredValues` while reading `seed.ts` at the stale pin — before any database
-connection is opened. The workflow's thirteen-file existence check fails the same way, since
-`warden-of-the-barrier.webp` does not exist at that commit.
+`SYNC-13-CARD-ART-PRODUCTION` is **CONSUMED** and must never be reused. A future sync requires a
+fresh explicit owner authorization.
 
-After the Card 03 integration PR merges, a separate task must repoint `REQUIRED_SOURCE_COMMIT` in
-`apps/game-server/scripts/sync-production-card-art.ts` and both pins in
-`.github/workflows/production-card-art-sync.yml` to the exact merge commit and revalidate. Only then
-may the owner separately authorize the 13-card sync.
+### Immutable-source repin (PR #40)
+
+The integration PR deliberately kept the old 12-card pin `8d41b657`, because the Card 03 merge
+commit did not exist before merge — that pre-merge state was intentionally fail-closed. After the
+merge, PR #40 repointed all three pin sites to `8b8322aa`:
+
+- `REQUIRED_SOURCE_COMMIT` in `apps/game-server/scripts/sync-production-card-art.ts`
+- `REQUIRED_SOURCE_COMMIT` and `SOURCE_COMMIT` in `.github/workflows/production-card-art-sync.yml`
+
+Derivation then succeeded where it had previously aborted, and the pin's enforcement was re-verified
+by negative control (the old SHA is still rejected).
+
+**Card 03 is complete end to end:** briefed → generated → byte-verified → surface-reviewed →
+owner-approved → integrated → merged → repinned → synced to production.
 
 ## Production sync 11 → 12 — COMPLETED
 
