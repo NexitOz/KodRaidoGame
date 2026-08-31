@@ -11,11 +11,17 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** Cards 01, 02 and 03 **COMPLETE END TO END — LIVE IN PRODUCTION**; Card 04 **AUTHORIZED FOR DOCS + MASTER-ART BRIEF PREPARATION ONLY**
+- **Status:** Cards 01, 02 and 03 **COMPLETE END TO END — LIVE IN PRODUCTION**; Card 04 **BRIEF + GENERATION PACKAGE WRITTEN — READY FOR OWNER CARD 04 BRIEF APPROVAL**
 - **Current target:** `rune-of-curse-breaking` / «Руна Разрушения Проклятий»
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
 - **Current task commit:** `2e2f9878d0cc98e4d2a76d0d9c88435d44af8426`
 - **Current task type:** Card 03 documentation housekeeping + Card 04 art-direction research / brief / generation package
+- **Latest task-result commit:** `0aa9ea4`
+- **Card 04 brief:** `docs/art-review/rune-of-curse-breaking-master-art-brief.md`
+- **Card 04 generation package:** `docs/art-review/rune-of-curse-breaking-generation-package.md`
+- **Latest report:** `docs/agent-reports/2026-08-31-art-pack-03-card-04-master-art-brief.md`
+- **Card 03 documentation:** CLOSED — `docs/art-pack-03.md` records the successful 12 → 13 sync; no stale "integration in review" / "not live in production" text remains
+- **Open blocker:** **OWNER APPROVAL OF THE CARD 04 BRIEF.** Three decisions are named in the report: the locked concept, water as a new PURIFICATION material, and the off-frame reach device shared with Card 03.
 - **Card 04 image generation authorized:** NO — generation remains a ChatGPT/image-generation step after owner brief approval
 - **Card 04 repository integration authorized:** NO
 - **Production operation authorized:** NO
@@ -27,7 +33,7 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 - Card 01 `acolyte-of-the-white-rune` — **COMPLETE END TO END, LIVE IN PRODUCTION**
 - Card 02 `seal-of-the-curse` — **COMPLETE END TO END, LIVE IN PRODUCTION**
 - Card 03 `warden-of-the-barrier` — **COMPLETE END TO END, LIVE IN PRODUCTION**
-- Card 04 `rune-of-curse-breaking` — **BRIEF PREPARATION AUTHORIZED / NOT YET OWNER-APPROVED**
+- Card 04 `rune-of-curse-breaking` — **BRIEF + GENERATION PACKAGE WRITTEN; awaiting owner concept approval. No image generated, no candidate exists.**
 
 ## Card 03 closed production record
 
@@ -124,3 +130,42 @@ The Card 04 brief task must end at exactly one of:
 
 - **READY FOR OWNER CARD 04 BRIEF APPROVAL**
 - **BLOCKED / REJECTED**
+
+## Card 04 locked concept — pending owner approval
+
+**"The cleansing font"** — a low, wide white-stone basin on a stepped plinth, rim carved with a
+continuous band of angular rune marks, brimming and overflowing in thin continuous sheets that feed
+straight channels cut into the pale floor and run out of frame. **No figure at all.**
+
+Why: continuous overflow renders `TURN_START` recurrence as a steady state rather than an instant;
+water is the least ambiguous `CLEANSE` verb; radiating channels carry `FRIENDLY_ALL` without drawing
+allies, which is flagship-reserved language. A vessel is also a silhouette no other card in the set
+uses.
+
+Three alternatives were rejected with cause — a severed-chain stele (depicts the one instant the
+card must not show), a floor rune ring (**"floor rune-circle" is already a hard automatic reject**
+in this faction's language), a suspended rune-chime (collides with `TrackZone`'s waveform identity),
+and a keystone arch (third monumental-architecture setting, which the art bible warns against).
+
+### Card 04 review surfaces — verified from code, EIGHT not nine
+
+A `RUNE` takes the `hasBoardSlot === false` branch (`admin/art-review/page.tsx:154`), `RuneZone.tsx`
+renders a `⬡` glyph and never reads `artworkUrl`, and `CardPlayReveal.tsx:71` draws an icon. A
+RUNE's artwork therefore never appears on the battlefield. The surfaces are raw 2:3, CardView 3:4,
+CardDetailDrawer 4:5, HandCardPreview 7:9, `/admin/art-review` desktop and 390 px, 92 px thumbnail
+and 92 px grayscale.
+
+### Measured note carried into the brief
+
+Edge density does **not** track rarity in the shipped set: LEGENDARY spans 22.95–48.89 and the only
+shipped EPIC (`rune-of-the-echoing-dusk`) is the quietest image of all thirteen at 21.80. The brief
+therefore forbids adding clutter to signal EPIC and carries rarity through object authority instead.
+It also requires Card 04 to beat Card 03's 92 px grayscale spread of 122, so the faction does not
+ship a second flat-white card.
+
+## Next after owner brief approval
+
+Image generation is a ChatGPT / owner-generator step using the generation package. Claude resumes at
+byte-exact candidate intake and the eight-surface QA. Still NOT authorized: image generation by
+Claude, candidate integration, `artworkUrl` / `rightsStatus` changes, sync extension 13 → 14,
+workflow dispatch, and any production operation.
