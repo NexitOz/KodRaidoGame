@@ -11,7 +11,7 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** Card 02 **COMPLETE END TO END — LIVE IN PRODUCTION**; Card 03 **FINAL OWNER APPROVED + REPOSITORY INTEGRATED ON MAIN — NOT YET SYNCED TO PRODUCTION**
+- **Status:** Card 02 **COMPLETE END TO END — LIVE IN PRODUCTION**; Card 03 **INTEGRATED ON MAIN + REPIN PR OPEN — READY FOR INDEPENDENT REPIN PR REVIEW, NOT SYNCED TO PRODUCTION**
 - **Current target:** `warden-of-the-barrier` / «Хранительница Барьера»
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
 - **Current task commit:** `a78114815197268d10cf8a2a6b1331009d97410d`
@@ -23,8 +23,16 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 - **Exact integration merge commit / immutable source to repin to:** `8b8322aad6fc52ca7e9ac796027605c5e1e9c78b`
 - **Independent review:** PASS; durable PR review submitted as review id `5070287737`
 - **Integration CI:** run `33425847506` — success
-- **Open blocker:** post-merge immutable-source repin PR must be completed and independently reviewed before any production authorization can be considered
+- **Repin PR:** **#40** — OPEN / NOT MERGED — `https://github.com/NexitOz/KodRaidoGame/pull/40`
+- **Repin branch:** `claude/card-03-postmerge-repin`
+- **Repin base SHA:** `28b2ccab3f92c6d6de39ad2436f2e3d7c9d48acd`
+- **Latest task-result commit:** `b1ff9e3d3a7c4f205a30c287aa437d15b62a845a`
+- **Repin PR handoff report:** PR #40 comment `## AGENT HANDOFF — FINAL REPORT` (`#issuecomment-5483495877`)
+- **Repin CI:** run `33431221072` — success
+- **Repin status:** all three pins now `8b8322aad6fc52ca7e9ac796027605c5e1e9c78b`; no `8d41b657` reference remains in the active sync script or workflow
+- **Open blocker:** **INDEPENDENT REVIEW OF REPIN PR #40.** Until it is reviewed and merged, `main` still carries the stale 12-card pin and the 13-card sync stays fail-closed.
 - **Repository integration authorized:** completed
+- **Post-merge repin authorized:** completed on branch; **awaiting independent review of PR #40**
 - **Production operation authorized:** NO
 - **`SYNC-13-CARD-ART-PRODUCTION`:** RESERVED, NOT AUTHORIZED, NOT CONSUMED
 - **Card 04 work authorized:** NO
@@ -129,23 +137,36 @@ Exact merge commit:
 
 `8b8322aad6fc52ca7e9ac796027605c5e1e9c78b`
 
-This is now the only correct immutable source commit for the upcoming 13-card repin task. Do not pin to the integration head, candidate branch, or later docs-only commits.
+This is the only correct immutable source commit for the 13-card sync. Do not pin to the integration head, candidate branch, or later docs-only commits. The repin to this SHA is **done on branch** and open for review as PR #40.
 
-## Production sync 12 → 13 — MERGED BUT NOT YET REPINNED
+## Production sync 12 → 13 — REPIN DONE ON BRANCH, AWAITING REVIEW
 
 The merged repository code contains the intended 13-target definition and reserved confirmation string `SYNC-13-CARD-ART-PRODUCTION`.
 
 However, the integration PR deliberately kept the old 12-card immutable source pin `8d41b6570e0a7a29ec7ecc38b0c6075aed8a4757` because the merge commit did not exist before merge. That pre-merge state was intentionally fail-closed.
 
-The immediate next task is to repoint exactly these three pin sites to the merge commit `8b8322aad6fc52ca7e9ac796027605c5e1e9c78b`:
+All three pin sites were repointed to `8b8322aad6fc52ca7e9ac796027605c5e1e9c78b` on PR #40:
 
 - `REQUIRED_SOURCE_COMMIT` in `apps/game-server/scripts/sync-production-card-art.ts`;
 - `REQUIRED_SOURCE_COMMIT` in `.github/workflows/production-card-art-sync.yml`;
 - `SOURCE_COMMIT` in `.github/workflows/production-card-art-sync.yml`.
 
-Then validate the merged 13-card source of truth in repository/local read-only conditions and open a narrow repin PR for independent review.
+No `8d41b657` reference remains in the active sync script or workflow on that branch. The
+deliberately-stale-pin comments were replaced with accurate post-merge ones.
 
-Still forbidden during the repin task:
+Verified at the merge commit: art blob `c4cb3f4e41f349e86b044712f267f9fdc678aa86`, `193038` bytes,
+SHA-256 `bf5814d3…`; seed carries `/art/cards/warden-of-the-barrier.webp` and `rightsStatus: 'owned'`;
+exactly one target added beyond the previous twelve; `ARTWORK_FILES_PRESENT=13/13`.
+
+Derivation now succeeds where it previously failed closed — read-only `--check` against a local test
+database returned `TARGET_ROWS=13`, `UNIQUE_SLUGS=13`, `SOURCE_OF_TRUTH_MATCH=13/13`,
+`ROWS_REQUIRING_MUTATION=0`, exit 0. Pin enforcement was re-verified by negative control: the old
+SHA is still rejected, and `--apply` still demands a fresh snapshot. No check was weakened.
+
+**`main` itself still carries the stale 12-card pin until PR #40 merges**, so the 13-card sync
+remains fail-closed on `main` right now.
+
+Still forbidden until PR #40 is reviewed and merged:
 
 - workflow dispatch;
 - production DB mutation;
@@ -153,7 +174,8 @@ Still forbidden during the repin task:
 - any artwork/gameplay/schema change;
 - Card 04 work.
 
-Only after the repin PR is independently reviewed and merged may the owner separately consider authorizing the exact string `SYNC-13-CARD-ART-PRODUCTION`.
+Only after PR #40 is independently reviewed and merged may the owner separately consider authorizing
+the exact string `SYNC-13-CARD-ART-PRODUCTION`.
 
 ## Current task final gate
 
@@ -162,9 +184,23 @@ The post-merge repin task must end at exactly one of:
 - **READY FOR INDEPENDENT REPIN PR REVIEW**
 - **BLOCKED / REJECTED**
 
+It ended at **READY FOR INDEPENDENT REPIN PR REVIEW**. PR #40 is open and unmerged. No production
+workflow was dispatched and no production database or Railway endpoint was accessed; the only
+database touched was the local test Postgres, read-only.
+
+## Next task after PR #40 merges
+
+Nothing further is required in the repository. The 13-card sync becomes technically runnable, but it
+must not run until the owner separately and explicitly authorizes `SYNC-13-CARD-ART-PRODUCTION`,
+which remains RESERVED, NOT AUTHORIZED, NOT CONSUMED.
+
+Optional cleanup, once Card 03 is fully promoted: delete `transport/card03-v2-github-actions`
+(carries a `contents: write` workflow, must never be merged) and the superseded
+`assets/warden-of-the-barrier-candidate` branch (still holds the rejected v1 binary).
+
 ## Art Pack 03 progress
 
 - Card 01 `acolyte-of-the-white-rune` — COMPLETE END TO END, live in production
 - Card 02 `seal-of-the-curse` — COMPLETE END TO END, live in production
-- Card 03 `warden-of-the-barrier` — **FINAL OWNER APPROVED + repository integrated on main; post-merge repin next; not yet synced to production**
+- Card 03 `warden-of-the-barrier` — **FINAL OWNER APPROVED + repository integrated on main; repin PR #40 OPEN awaiting independent review; not yet synced to production**
 - Card 04 `rune-of-curse-breaking` — not started
