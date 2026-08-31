@@ -37,7 +37,6 @@ jobs:
 
           api = os.environ['API_BASE'].rstrip('/')
           share = os.environ['SHARE_ID']
-          expected_name = os.environ['EXPECTED_NAME']
           expected_size = int(os.environ['EXPECTED_SIZE'])
           expected_sha = os.environ['EXPECTED_SHA256'].lower()
           rejected_sha = os.environ['REJECTED_SHA256'].lower()
@@ -51,19 +50,20 @@ jobs:
           for f in files:
               print('PROVIDER_ENTRY=', f.get('fileId'), f.get('fileName'), f.get('contentType'), f.get('sizeBytes'))
 
-          # The v2 fileId was not published with the task, so match on the declared
-          # name + size + MIME instead of pre-asserting an id.
+          # Select by size + MIME, not by filename: `warden-of-the-barrier.webp` is the
+          # repository path, while the owner's share names the object
+          # `warden-of-the-barrier-v2.webp`. The SHA-256 gate below is what actually
+          # proves identity, so filename is recorded but never trusted.
           matches = [
               f for f in files
-              if f.get('fileName') == expected_name and int(f.get('sizeBytes', -1)) == expected_size
+              if int(f.get('sizeBytes', -1)) == expected_size and f.get('contentType') == 'image/webp'
           ]
           if len(matches) != 1:
-              raise SystemExit(f'Expected exactly one {expected_name} of {expected_size} bytes, found {len(matches)}')
+              raise SystemExit(f'Expected exactly one image/webp of {expected_size} bytes, found {len(matches)}')
           entry = matches[0]
           file_id = entry.get('fileId')
-          if entry.get('contentType') != 'image/webp':
-              raise SystemExit(f'Provider MIME mismatch: {entry.get("contentType")}')
           print('SELECTED_FILE_ID=', file_id)
+          print('SELECTED_FILE_NAME=', entry.get('fileName'))
           print('PROVIDER_METADATA_GATE=PASS')
 
           dl_api = f'{api}/shares/{share}/files/{file_id}/download'
