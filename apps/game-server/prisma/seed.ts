@@ -859,6 +859,9 @@ const PURIFICATION_CARDS: SeedCard[] = [
     health: 5,
     abilityText:
       'При выходе: получает Щит. При Резонансе 5+: снимите Проклятие и Заглушение со всех союзников.',
+    // Art Pack 03 Card 03 - owner-approved production artwork.
+    artworkUrl: '/art/cards/warden-of-the-barrier.webp',
+    rightsStatus: 'owned',
     effectJson: [
       { trigger: 'ON_PLAY', conditions: [], effects: [{ type: 'SHIELD', target: 'SELF' }] },
       {

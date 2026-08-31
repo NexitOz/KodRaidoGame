@@ -5,14 +5,14 @@ flagship, `high-warden-of-the-white-rune`, was approved earlier as part of Art P
 part of this pack — see [`art-bible-01.md`](art-bible-01.md).
 
 **Pack status:** IN PROGRESS — Cards 01 and 02 complete end to end and live in production; Card 03
-next (planning).
+FINAL OWNER APPROVED with repository integration in review, not yet synced to production.
 
-| #   | Slug                        | Type / Rarity / Cost   | Status                 |
-| --- | --------------------------- | ---------------------- | ---------------------- |
-| 01  | `acolyte-of-the-white-rune` | CHARACTER / COMMON / 1 | **LIVE IN PRODUCTION** |
-| 02  | `seal-of-the-curse`         | EVENT / RARE / 2       | **LIVE IN PRODUCTION** |
-| 03  | `warden-of-the-barrier`     | CHARACTER / RARE / 3   | planning — brief next  |
-| 04  | `rune-of-curse-breaking`    | RUNE / EPIC / 3        | not started            |
+| #   | Slug                        | Type / Rarity / Cost   | Status                                           |
+| --- | --------------------------- | ---------------------- | ------------------------------------------------ |
+| 01  | `acolyte-of-the-white-rune` | CHARACTER / COMMON / 1 | **LIVE IN PRODUCTION**                           |
+| 02  | `seal-of-the-curse`         | EVENT / RARE / 2       | **LIVE IN PRODUCTION**                           |
+| 03  | `warden-of-the-barrier`     | CHARACTER / RARE / 3   | **FINAL OWNER APPROVED — integration in review** |
+| 04  | `rune-of-curse-breaking`    | RUNE / EPIC / 3        | not started                                      |
 
 ## Card 01 — `acolyte-of-the-white-rune` — FINAL APPROVED
 
@@ -219,6 +219,127 @@ appears on the production artwork path.
 2. **Star emblem on the enemy pommel.** Reject #13 covers insignia on enemy _armour_; this is on the
    weapon. It is unlit dark steel with no COSMIC colour, glow or iridescence, and it disappears at
    92 px.
+
+## Card 03 — `warden-of-the-barrier` — FINAL OWNER APPROVED, INTEGRATION IN REVIEW
+
+Owner-approved 2026-08-31. Record:
+[`agent-reports/2026-08-31-art-pack-03-card-03-owner-approval.md`](agent-reports/2026-08-31-art-pack-03-card-03-owner-approval.md)
+
+Candidate QA:
+[`agent-reports/2026-08-31-art-pack-03-card-03-candidate-v2-visual-qa.md`](agent-reports/2026-08-31-art-pack-03-card-03-candidate-v2-visual-qa.md)
+
+**Not live in production.** The repository integration is open for review; the controlled sync has
+not been extended past its consumed 12-card state at runtime — see the 12 → 13 section below.
+
+### Card facts
+
+| Field                      | Value                                                                                               |
+| -------------------------- | --------------------------------------------------------------------------------------------------- |
+| `slug`                     | `warden-of-the-barrier`                                                                             |
+| `name`                     | Хранительница Барьера                                                                               |
+| `type` / `rarity` / `cost` | CHARACTER / RARE / 3                                                                                |
+| `attack` / `health`        | 2 / 5                                                                                               |
+| `tags`                     | `['Purification']`                                                                                  |
+| `abilityText`              | При выходе: получает Щит. При Резонансе 5+: снимите Проклятие и Заглушение со всех союзников.       |
+| `effectJson`               | `ON_PLAY` → `SHIELD` / `SELF`; `ON_PLAY` + `RESONANCE_TIER_AT_LEAST 5` → `CLEANSE` / `FRIENDLY_ALL` |
+
+None of the above was changed by the art integration.
+
+### Production artwork
+
+| Property            | Value                                                                                            |
+| ------------------- | ------------------------------------------------------------------------------------------------ |
+| Path                | `apps/web/public/art/cards/warden-of-the-barrier.webp`                                           |
+| Dimensions          | 1024 × 1536 (vertical 2:3)                                                                       |
+| Byte size           | 193038                                                                                           |
+| RIFF-declared total | 193038 (equals byte size)                                                                        |
+| Container fourcc    | plain `VP8 ` (original export, not a `VP8X` transcode)                                           |
+| SHA-256             | `bf5814d345a652d119919c37d128d6a540cd65882d60d04f17432cb31c98239f`                               |
+| Git blob SHA        | `c4cb3f4e41f349e86b044712f267f9fdc678aa86`                                                       |
+| Candidate source    | `assets/warden-of-the-barrier-candidate-v2` @ `3dda92e`, `art-source/warden-of-the-barrier.webp` |
+
+The production copy was taken byte-for-byte from the candidate git object via `git show` and
+re-verified at the production path: identical SHA-256 and byte size, declared size equal to actual,
+plain `VP8 `, 1024 × 1536, and a clean full decode of 4,718,592 RGB bytes. The production file's
+blob SHA equals the candidate's unchanged. No re-encode, resize or sharpen was applied.
+
+`seed.ts` carries `artworkUrl: '/art/cards/warden-of-the-barrier.webp'` and `rightsStatus: 'owned'`.
+
+### Rejected historical input
+
+A v1 candidate (`284002` bytes, SHA-256
+`1a175635a24e84c86f37f11e954299ca3cb4bb675c9f9b178c134ee0ab0ea27e`) was rejected for violating the
+brief's automatic rejects and must never be substituted. It still sits on the superseded
+`assets/warden-of-the-barrier-candidate` branch.
+
+### Visual direction
+
+Approved brief:
+[`art-review/warden-of-the-barrier-master-art-brief.md`](art-review/warden-of-the-barrier-master-art-brief.md)
+
+The Warden **plants a barrier** rather than carrying a shield: a hinged, segmented white-steel
+ward-screen spiked into the ground, with a lit rune channel running off both frame edges. The
+flagship `high-warden-of-the-white-rune` already owns the large rune-engraved round shield with a
+compass/star emblem, so the device had to differ. The off-frame channel carries the `FRIENDLY_ALL`
+cleanse read without drawing a crowd of allies, which is flagship-reserved language.
+
+### Verification at approval
+
+All nine surfaces were captured against the real running stack — local Postgres + Redis + the API +
+Next.js on the real 41-card roster. Card 03 is a CHARACTER, so `hasBoardSlot` is true and the
+CreatureSlot board slot is a real surface, unlike Cards 02/04.
+
+Every v1 automatic-reject reason was re-measured on v2 rather than assumed, and all cleared: no
+cathedral / spires / crowd / monumental architecture; no star / compass / heraldic boss; gold
+coverage `0.01%` against a 3% limit; the barrier reads as a planted manufactured ward-screen with a
+bolted spike, base plate and displaced rubble; the background collapses at 92 px; no baked lettering,
+rune text, logo or UI.
+
+At 92 px the card measures edge density `29.82` and grayscale spread `122` (p5 `109`) — mid-pack
+across the shipped set, and closest of all thirteen to `acolyte-of-the-white-rune` (`27.85` / `129` /
+`101`), the other PURIFICATION character. The high-key profile is the established PURIFICATION
+treatment, not an outlier.
+
+### Accepted caveats — non-blocking
+
+The owner reviewed and explicitly accepted all three. None is to be reopened unless a new regression
+appears on the production artwork path.
+
+1. **A single pale classical column remains** in the background. The scene is not fully empty, but
+   the column stays pale, soft and subordinate, collapses to a background band at thumbnail size,
+   and does not recreate the rejected v1 cathedral / spires / crowd language.
+2. **High-key value profile.** Card 03 is the palest card measured in the shipped set (`p5 = 109`),
+   consistent with the already approved `acolyte-of-the-white-rune`.
+3. **Minor 4:5 anchor-base crop.** The binding crop trims only the very bottom lip of the base
+   plate; the planted spike and displaced rubble that carry the read remain visible.
+
+## Production sync 12 → 13 — PREPARED, DELIBERATELY NOT RUNNABLE
+
+Card 03's repository integration extends the controlled sync definition from 12 targets to 13 by
+adding only `warden-of-the-barrier`, in repository code only. `SYNC-13-CARD-ART-PRODUCTION` is
+**RESERVED, NOT AUTHORIZED, NOT CONSUMED**.
+
+**The pin is intentionally not final.** `REQUIRED_SOURCE_COMMIT` and the workflow `SOURCE_COMMIT`
+still point at the twelve-card commit `8d41b657`, whose `seed.ts` has no explicit artwork fields for
+`warden-of-the-barrier`. The Card 03 integration commit does not exist until this PR merges, and
+pinning an immutable source to an unmerged branch SHA would defeat the check.
+
+The mismatch is deliberate and fails closed, verified by running it rather than assumed:
+
+```
+$ npx tsx scripts/sync-production-card-art.ts --check
+Missing explicit production artwork fields in seed.ts for warden-of-the-barrier
+exit: 1
+```
+
+It aborts inside `deriveDesiredValues` while reading `seed.ts` at the stale pin — before any database
+connection is opened. The workflow's thirteen-file existence check fails the same way, since
+`warden-of-the-barrier.webp` does not exist at that commit.
+
+After the Card 03 integration PR merges, a separate task must repoint `REQUIRED_SOURCE_COMMIT` in
+`apps/game-server/scripts/sync-production-card-art.ts` and both pins in
+`.github/workflows/production-card-art-sync.yml` to the exact merge commit and revalidate. Only then
+may the owner separately authorize the 13-card sync.
 
 ## Production sync 11 → 12 — COMPLETED
 
