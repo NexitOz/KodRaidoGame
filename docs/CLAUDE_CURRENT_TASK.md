@@ -1,14 +1,20 @@
-# CURRENT TASK — Art Pack 03 Card 03: approved master v2 candidate intake + full visual QA
+# CURRENT TASK — Art Pack 03 Card 03: final repository integration
 
 ## Status
 
-Card 02 `seal-of-the-curse` is COMPLETE END TO END and live in production.
+Card 02 `seal-of-the-curse` is **COMPLETE END TO END — LIVE IN PRODUCTION**.
 
-Card 03 `warden-of-the-barrier` / «Хранительница Барьера» has a **NEW OWNER-APPROVED MASTER v2**, approved 2026-08-31. It supersedes every previous Card 03 candidate and every previous Card 03 integrity tuple.
+Card 03 `warden-of-the-barrier` / «Хранительница Барьера» has completed exact binary intake and full nine-surface QA. The owner gave **FINAL VISUAL APPROVAL FOR INTEGRATION on 2026-08-31** and explicitly accepted all documented QA judgement items.
 
-The prior 284002-byte candidate / SHA-256 `1a175635...` is **REJECTED HISTORICAL INPUT** and must never be reused for v2.
+Owner approval record:
 
-No production operation is authorized.
+`docs/agent-reports/2026-08-31-art-pack-03-card-03-owner-approval.md`
+
+QA report:
+
+`docs/agent-reports/2026-08-31-art-pack-03-card-03-candidate-v2-visual-qa.md`
+
+This task authorizes **repository integration only**. It does not authorize production workflow dispatch or production DB mutation.
 
 ## Canonical card facts
 
@@ -20,126 +26,142 @@ No production operation is authorized.
 - cost: 3
 - attack / health: 2 / 5
 - ability: `При выходе: получает Щит. При Резонансе 5+: снимите Проклятие и Заглушение со всех союзников.`
+- mechanics:
+  - `ON_PLAY` → `SHIELD` / `SELF`
+  - `ON_PLAY` + `RESONANCE_TIER_AT_LEAST 5` → `CLEANSE` / `FRIENDLY_ALL`
 
-## Owner-approved master v2 — exact intake contract
+Do not change gameplay, cost, stats, ability text, mechanics, schema or migrations.
 
-The approved source is the newest vertical master generated in ChatGPT and explicitly approved by the owner on 2026-08-31.
+## Exact approved artwork source
 
-Transport WebP prepared from that exact approved visual source:
+Only the following Card 03 v2 binary is approved:
 
-- expected repository filename: `warden-of-the-barrier.webp`
-- dimensions: `1024 × 1536`
-- format: WebP
-- FourCC: plain `VP8 `
-- actual byte size: `193038`
-- RIFF declared total: `193038`
+- candidate branch: `assets/warden-of-the-barrier-candidate-v2`
+- candidate QA head: `b4f35bb379d82584f0e0f28c92f3776d332752a8`
+- exact binary source commit: `3dda92ef0d427b943c71212b8e24c95f659dbce5`
+- source path: `art-source/warden-of-the-barrier.webp`
+- Git blob SHA: `c4cb3f4e41f349e86b044712f267f9fdc678aa86`
 - SHA-256: `bf5814d345a652d119919c37d128d6a540cd65882d60d04f17432cb31c98239f`
+- byte size: `193038`
+- RIFF total: `193038`
+- FourCC: plain `VP8 `
+- dimensions: `1024 × 1536`
 - full decode: PASS
 
-These are hard verification gates. Do not substitute, re-encode, crop, regenerate, resize, optimise, recompress or otherwise change the artwork.
+The rejected v1 tuple remains forbidden:
 
-A temporary owner transport copy exists at firestorage for manual transport only:
+- `284002` bytes
+- SHA-256 `1a175635a24e84c86f37f11e954299ca3cb4bb675c9f9b178c134ee0ab0ea27e`
 
-`https://firestorage.ai/ja/f/0Dy-NYu7pX8_`
+Never regenerate, re-encode, crop, resize, optimise or otherwise alter the approved v2 bytes.
 
-Do **not** treat successful access to the HTML share page as proof of the file. Do not accept HTML, a screenshot, a thumbnail, a redirect page or any byte stream whose integrity does not match every gate above.
+## Owner-accepted QA judgement items
+
+These are **accepted and closed**, not blockers during integration unless the canonical production path introduces a new regression:
+
+1. one pale classical column remains in the background;
+2. the card has a high-key PURIFICATION value profile (`p5 = 109`);
+3. the 4:5 crop cuts only the very bottom lip of the anchor base plate while preserving the planted spike and displaced rubble.
 
 ## Goal
 
-Land the exact owner-approved v2 bytes on a fresh candidate branch, run the complete nine-surface QA against the approved Card 03 brief, and stop for owner visual approval.
+Create a narrow Card 03 integration PR from fresh `main` that promotes the exact approved v2 artwork into the repository source of truth, updates only the required art metadata/review/docs/sync-definition surfaces, proves the canonical production artwork path on all relevant UI surfaces, and stops for independent repository review.
 
-Candidate branch:
+Suggested integration branch:
 
-`assets/warden-of-the-barrier-candidate-v2`
+`claude/card-03-final-integration`
 
-Candidate path:
+Do not work directly on `main` except for the permanent handoff/state documents required by protocol after the task is complete.
 
-`art-source/warden-of-the-barrier.webp`
+## Required work
 
-Review staging path (gitignored):
-
-`apps/web/public/art-review-candidates/warden-of-the-barrier.webp`
-
-## Start condition
-
-Before doing QA, inspect the candidate branch tree.
-
-If `art-source/warden-of-the-barrier.webp` is not present, or if it fails even one exact integrity gate, STOP as `REJECTED / BLOCKED` and report only the missing/failed gate. Do not create a substitute image and do not fall back to the old rejected candidate.
-
-If the exact file is already present, proceed without external download attempts.
-
-If transport is needed and the current Claude Code environment can reach the supplied source, retrieve the actual file only. If the source responds with 403 or HTML, do not keep retrying variants and do not mutate repository state. The owner can upload the exact v2 WebP through the GitHub web UI.
-
-## Required work after exact intake passes
-
-1. Read `docs/AGENT_STATE.md`, this task, `docs/art-review/warden-of-the-barrier-master-art-brief.md`, and the Card 03 generation package.
-2. Verify BEFORE git / QA:
+1. Read `CLAUDE.md`, `docs/AGENT_STATE.md`, this task, the owner approval report, the candidate QA report, the master-art brief, and the existing Card 01/Card 02 integration pattern before editing.
+2. Start from fresh current `main`. Record the base SHA in the handoff.
+3. Fetch `assets/warden-of-the-barrier-candidate-v2` and verify the exact approved binary again from the committed Git object before promotion:
+   - blob `c4cb3f4e41f349e86b044712f267f9fdc678aa86`
+   - size `193038`
+   - SHA-256 `bf5814d345a652d119919c37d128d6a540cd65882d60d04f17432cb31c98239f`
+   - RIFF total `193038`
+   - plain `VP8 `
    - `1024 × 1536`
-   - size exactly `193038`
-   - RIFF total exactly `193038`
-   - plain `VP8 ` FourCC
-   - SHA-256 exactly `bf5814d345a652d119919c37d128d6a540cd65882d60d04f17432cb31c98239f`
    - full decode PASS
-3. Ensure the real candidate branch is `assets/warden-of-the-barrier-candidate-v2`.
-4. Commit only the exact approved binary plus candidate-specific review metadata/code strictly required by existing convention.
-5. Re-verify the committed Git object and fetched remote branch:
-   - `git cat-file -s`
-   - Git blob SHA
-   - SHA-256 from committed blob
-   - exact byte size
-6. Stage a byte-identical copy only at the gitignored review path.
-7. Run all nine required review surfaces:
+4. Promote those exact bytes, byte-for-byte, to:
+
+   `apps/web/public/art/cards/warden-of-the-barrier.webp`
+
+   Do not merge the candidate branch wholesale. Do not merge the temporary transport branch. Bring only the required reviewed code/art changes into the integration branch.
+5. Re-verify the production-path file after the copy. Its SHA-256 and byte size must remain exact. Verify the committed Git object after commit as well.
+6. Update only Card 03 art fields in `apps/game-server/prisma/seed.ts`:
+
+   - `artworkUrl: '/art/cards/warden-of-the-barrier.webp'`
+   - `rightsStatus: 'owned'`
+
+   Preserve every non-art Card 03 field byte-for-byte where practical and report the exact seed diff.
+7. Update `/admin/art-review` using the established pattern so Card 03 is labelled FINAL/APPROVED and reads the canonical production path through:
+
+   `reviewArtworkUrl: '/art/cards/warden-of-the-barrier.webp'`
+
+   Card 03 is a CHARACTER, so preserve the real `CreatureSlot` review surface. Do not leave it wired to `art-review-candidates`.
+8. Update `docs/art-pack-03.md` and only other directly relevant Card 03 documentation required by the established project convention so Card 03 is recorded as **FINAL OWNER APPROVED / repository integration in review**. Do not mark it live in production yet.
+9. Extend the controlled production card-art synchronization definition from 12 to 13 targets **in repository code only**:
+   - add `warden-of-the-barrier` to the target list in `apps/game-server/scripts/sync-production-card-art.ts`;
+   - update `.github/workflows/production-card-art-sync.yml` from twelve/12 to thirteen/13 everywhere that represents target count, file presence, labels or assertions;
+   - change the future workflow confirmation text/check to the new reserved string `SYNC-13-CARD-ART-PRODUCTION`;
+   - add `warden-of-the-barrier` to the committed-art existence check.
+10. **Fail-closed immutable-source rule:** the exact merged integration commit does not exist until this PR is merged. Therefore do **not** repoint `REQUIRED_SOURCE_COMMIT` / `SOURCE_COMMIT` to an integration-branch commit and do not weaken/remove the immutable-source checks. Leave the existing 12-card source pin in place with an explicit comment that a post-merge repin is required. The resulting pre-merge workflow must remain non-dispatchable for Card 03 because the stale immutable pin cannot validate the new seed/art source. A separate post-merge task will repoint every source pin to the exact merge commit before any production authorization can be considered.
+11. Run canonical production-path visual QA using `/art/cards/warden-of-the-barrier.webp`, not the candidate staging path. For Card 03 verify all nine surfaces again:
    - raw 2:3
    - CardView 3:4
    - CreatureSlot 3:4
    - CardDetailDrawer 4:5
    - HandCardPreview 7:9
    - `/admin/art-review` desktop
-   - `/admin/art-review` at 390 px
+   - `/admin/art-review` 390 px
    - 92 px thumbnail
    - 92 px grayscale
-8. Walk every automatic reject and positive acceptance item in the approved brief against **v2**. Do not silently fix visual deviations.
-9. Pay special attention to the reasons the old candidate was rejected. v2 is expected to remove them, but verify rather than assume:
-   - no cathedral / spires / crowd / monumental background
-   - no star / compass / heraldic boss
-   - no broad gold ornamentation
-   - barrier clearly reads as a planted manufactured ward-screen with ground anchor
-   - background collapses at 92 px
-   - no baked lettering / rune text / logo / UI
-10. Confirm candidate isolation from production.
-11. Run the normal repository validation relevant to changed files: diff check, targeted Prettier, lint, typecheck, tests, build. Run real-stack Playwright surfaces if the environment has the required browser/database; otherwise report those specific surfaces as not captured, without inventing a PASS.
-12. Leave a durable report under `docs/agent-reports/`.
-13. Update `docs/AGENT_STATE.md` LAST and fetch it back from GitHub to verify.
+12. Explicitly verify candidate isolation is gone from the integrated review path:
+   - no request for `/art-review-candidates/warden-of-the-barrier.webp`
+   - review row requests `/art/cards/warden-of-the-barrier.webp`
+   - Card 03 displays `rightsStatus: owned` from the repository seed/source-of-truth setup used by the local stack
+13. Run normal validation for every affected workspace/file:
+   - `git diff --check`
+   - targeted Prettier without reformatting unrelated pre-existing drift
+   - lint
+   - typecheck
+   - relevant tests
+   - production build
+   - any sync-script tests/static checks that exist
+14. Audit scope before committing and before PR creation. No unrelated files.
+15. Open a narrow PR to `main`. Do **not** merge it.
+16. Leave the permanent PR handoff comment headed exactly:
+
+   `## AGENT HANDOFF — FINAL REPORT`
+
+   The handoff must include: base SHA, branch/head SHA, PR number, exact changed files, asset SHA/blob/size, seed diff, all nine production-path QA results, validation results, sync 13-target preparation status, confirmation that immutable source pin is intentionally still the old 12-card pin pending merge, and all untouched production areas.
+17. Update `docs/AGENT_STATE.md` **LAST** after the PR/handoff exists, then fetch it back from GitHub and verify it.
 
 ## Hard exclusions
 
 Do NOT:
 
-- regenerate, redraw, redesign, crop, extend, recompose, resize or recompress the approved v2 art
-- reuse the old rejected `284002`-byte Card 03 candidate
-- integrate/promote to `apps/web/public/art/cards/`
-- change `seed.ts`, gameplay, balance, schema or migrations
-- change production `artworkUrl` or `rightsStatus`
-- extend production sync 12 → 13
-- dispatch any production workflow
-- access or mutate Railway/Vercel/production DB
+- alter the approved Card 03 pixels or bytes
+- reuse the rejected v1 candidate
+- merge `assets/warden-of-the-barrier-candidate-v2` wholesale
+- merge `transport/card03-v2-github-actions`
+- merge the integration PR
+- repoint immutable source pins to a branch/head SHA
+- dispatch `.github/workflows/production-card-art-sync.yml`
+- use `SYNC-13-CARD-ART-PRODUCTION` as authorization; the string is reserved but **NOT owner-authorized yet**
+- mutate production DB
+- access/mutate Railway or Vercel production
+- change any non-art gameplay/balance/schema/migration field
 - begin Card 04
 
 ## Final status
 
-Exactly one of:
+End at exactly one of:
 
-- **READY FOR OWNER VISUAL APPROVAL**
-- **REJECTED / BLOCKED**
+- **READY FOR INDEPENDENT PR REVIEW**
+- **BLOCKED / REJECTED**
 
-If READY, return:
-
-- candidate branch
-- exact HEAD SHA
-- asset path
-- SHA-256
-- Git blob SHA
-- byte size
-- QA report path
-- notable QA caveats, if any
-- final status
+If READY, stop with the PR open and unmerged. Production synchronization remains unauthorized until after independent PR review, merge, exact post-merge immutable-source repinning, validation of the merged source, and a fresh explicit owner confirmation for `SYNC-13-CARD-ART-PRODUCTION`.
