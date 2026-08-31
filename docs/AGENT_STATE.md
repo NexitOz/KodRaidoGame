@@ -11,147 +11,116 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** Cards 01, 02 and 03 **COMPLETE END TO END — LIVE IN PRODUCTION**
-- **Current target:** none active; Card 03 is closed
+- **Status:** Cards 01, 02 and 03 **COMPLETE END TO END — LIVE IN PRODUCTION**; Card 04 **AUTHORIZED FOR DOCS + MASTER-ART BRIEF PREPARATION ONLY**
+- **Current target:** `rune-of-curse-breaking` / «Руна Разрушения Проклятий»
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
-- **Current task commit:** `005a6cb59ac114210f5aeab1c13716bd4dbca442`
-- **Current task type:** waiting gate / documentation housekeeping remains; Card 04 not authorized
-- **Production operation authorized:** **NO**
+- **Current task commit:** `2e2f9878d0cc98e4d2a76d0d9c88435d44af8426`
+- **Current task type:** Card 03 documentation housekeeping + Card 04 art-direction research / brief / generation package
+- **Card 04 image generation authorized:** NO — generation remains a ChatGPT/image-generation step after owner brief approval
+- **Card 04 repository integration authorized:** NO
+- **Production operation authorized:** NO
+- **Card 04 production sync authorized:** NO
 - **`SYNC-13-CARD-ART-PRODUCTION`:** **CONSUMED — MUST NOT BE REUSED**
-- **Card 04 work authorized:** **NO**
 
 ## Art Pack 03 progress
 
 - Card 01 `acolyte-of-the-white-rune` — **COMPLETE END TO END, LIVE IN PRODUCTION**
 - Card 02 `seal-of-the-curse` — **COMPLETE END TO END, LIVE IN PRODUCTION**
 - Card 03 `warden-of-the-barrier` — **COMPLETE END TO END, LIVE IN PRODUCTION**
-- Card 04 `rune-of-curse-breaking` — **NOT STARTED / NOT AUTHORIZED**
+- Card 04 `rune-of-curse-breaking` — **BRIEF PREPARATION AUTHORIZED / NOT YET OWNER-APPROVED**
 
-## Card 03 canonical facts
+## Card 03 closed production record
 
-- slug: `warden-of-the-barrier`
-- name: «Хранительница Барьера»
-- faction: PURIFICATION
-- type: CHARACTER
-- rarity: RARE
-- cost: 3
-- attack / health: 2 / 5
-- ability: `При выходе: получает Щит. При Резонансе 5+: снимите Проклятие и Заглушение со всех союзников.`
-- mechanics:
-  - `ON_PLAY` → `SHIELD` / `SELF`
-  - `ON_PLAY` + `RESONANCE_TIER_AT_LEAST 5` → `CLEANSE` / `FRIENDLY_ALL`
+Card 03 exact approved artwork:
 
-## Card 03 approved artwork
-
-- candidate branch: `assets/warden-of-the-barrier-candidate-v2`
-- exact binary source commit: `3dda92ef0d427b943c71212b8e24c95f659dbce5`
-- candidate path: `art-source/warden-of-the-barrier.webp`
-- canonical production path: `apps/web/public/art/cards/warden-of-the-barrier.webp`
+- canonical path: `apps/web/public/art/cards/warden-of-the-barrier.webp`
 - Git blob SHA: `c4cb3f4e41f349e86b044712f267f9fdc678aa86`
 - dimensions: `1024 × 1536`
 - FourCC: plain `VP8 `
 - byte size / RIFF total: `193038`
 - SHA-256: `bf5814d345a652d119919c37d128d6a540cd65882d60d04f17432cb31c98239f`
-- full decode: PASS
 - owner approval: FINAL APPROVED
-- candidate QA: all 9 required surfaces PASS
-- production-path QA: all 9 required surfaces PASS
+- all required candidate/production-path QA surfaces: PASS
 
-Rejected historical v1 remains forbidden:
+Repository integration / repin:
 
-- branch: `assets/warden-of-the-barrier-candidate`
-- size: `284002`
-- SHA-256: `1a175635a24e84c86f37f11e954299ca3cb4bb675c9f9b178c134ee0ab0ea27e`
+- PR #39 merge / immutable source: `8b8322aad6fc52ca7e9ac796027605c5e1e9c78b`
+- PR #40 repin merge: `c3c6e0c491fb4e48c94b32749bd0474b047305c9`
+- all three active 13-card immutable-source pins resolve to `8b8322aad6fc52ca7e9ac796027605c5e1e9c78b`
 
-## Repository integration — COMPLETE
+Production sync 12 → 13:
 
-PR #39 `art(card-03): integrate approved Warden of the Barrier master v2`:
-
-- integration head: `e0e7a472ed3f66133d5448600aab65e75f6a6a2d`
-- independent review: PASS
-- CI: `33425847506` success
-- merged: YES
-- exact integration merge commit / immutable source: `8b8322aad6fc52ca7e9ac796027605c5e1e9c78b`
-
-## Post-merge immutable-source repin — COMPLETE
-
-PR #40 `chore(sync): repin immutable source to the merged Card 03 commit`:
-
-- head: `b1ff9e3d3a7c4f205a30c287aa437d15b62a845a`
-- CI: `33431221072` success
-- independent review: PASS, review id `5070471676`
-- merged: YES
-- repin merge commit: `c3c6e0c491fb4e48c94b32749bd0474b047305c9`
-
-All three active immutable-source pins resolve to:
-
-`8b8322aad6fc52ca7e9ac796027605c5e1e9c78b`
-
-## Production sync 12 → 13 — COMPLETE
-
-The owner supplied one explicit authorization `SYNC-13-CARD-ART-PRODUCTION`. It was single-use and is now consumed.
-
-Verified actual GitHub Actions execution:
-
-- workflow: `One-time production card artwork sync`
-- run: `33436786024` (run #9)
+- workflow run: `33436786024` (run #9)
 - job: `99635055417`
 - event: `workflow_dispatch`
 - conclusion: **success**
 - dispatched on `main` @ `80a751be8737a12e23f235989b2ca435bc30b420`
-- immutable source: `8b8322aad6fc52ca7e9ac796027605c5e1e9c78b`
 - `ARTWORK_FILES_PRESENT=13/13`
-- `TOKEN_PROJECT_ID_VERIFIED=YES`
-- `TOKEN_ENVIRONMENT_ID_VERIFIED=YES`
-- `GAME_SERVER_DB_LINK_VERIFIED=YES`
-- `PRODUCTION_SCOPE_VERIFIED=YES`
-- `READ_ONLY_DB_PREFLIGHT=YES`
+- production scope/read-only connectivity gates: PASS
+- PRE-WRITE: `TARGET_ROWS=13`, `UNIQUE_SLUGS=13`, `ROWS_REQUIRING_MUTATION=1`, `SOURCE_OF_TRUTH_MATCH=12/13`
+- changed row: only `warden-of-the-barrier`, placeholder → `/art/cards/warden-of-the-barrier.webp`, `placeholder` → `owned`
+- APPLY: `TRANSACTION_COMMITTED=YES`, `ROWS_CHANGED=1`, `TARGET_ROWS_FINAL=13`, `SOURCE_OF_TRUTH_MATCH=13/13`, `NON_TARGET_FIELD_CHANGES=0`
+- POST-WRITE: `ROWS_REQUIRING_MUTATION=0`, `SOURCE_OF_TRUTH_MATCH=13/13`
+- durable report: `docs/agent-reports/2026-08-31-art-pack-03-card-03-production-sync.md`
+- `SYNC-13-CARD-ART-PRODUCTION`: **CONSUMED**
 
-PRE-WRITE:
+Card 03 is closed. Do not reopen accepted visual caveats or repeat its production sync without a completely new owner decision and authorization.
 
-- `TARGET_ROWS=13`
-- `UNIQUE_SLUGS=13`
-- `ROWS_REQUIRING_MUTATION=1`
-- `SOURCE_OF_TRUTH_MATCH=12/13`
-- changed candidate: only `warden-of-the-barrier`
-- before: inline SVG placeholder + `rightsStatus=placeholder`
-- desired: `/art/cards/warden-of-the-barrier.webp` + `rightsStatus=owned`
+## Card 04 canonical facts
 
-APPLY:
+Expected from current `main`, to be re-verified by the executing agent before writing the brief:
 
-- `TRANSACTION_STARTED=YES`
-- `TRANSACTION_COMMITTED=YES`
-- `ROWS_CHANGED=1`
-- `TARGET_ROWS_FINAL=13`
-- `SOURCE_OF_TRUTH_MATCH=13/13`
-- `NON_TARGET_FIELD_CHANGES=0`
+- slug: `rune-of-curse-breaking`
+- name: «Руна Разрушения Проклятий»
+- faction/tag: PURIFICATION / `Purification`
+- type: `RUNE`
+- rarity: `EPIC`
+- cost: `3`
+- ability: `В начале каждого вашего хода снимите Проклятие и Заглушение со всех союзников.`
+- mechanic: `TURN_START` → `CLEANSE` / `FRIENDLY_ALL`
 
-Independent POST-WRITE:
+These gameplay facts are locked and must not be edited during art work.
 
-- `TARGET_ROWS=13`
-- `UNIQUE_SLUGS=13`
-- `ROWS_REQUIRING_MUTATION=0`
-- `SOURCE_OF_TRUTH_MATCH=13/13`
+## Current authorized task
 
-Durable execution report:
+Execute `docs/CLAUDE_CURRENT_TASK.md` exactly.
 
-`docs/agent-reports/2026-08-31-art-pack-03-card-03-production-sync.md`
+The task must:
 
-**Card 03 is COMPLETE END TO END — LIVE IN PRODUCTION.**
+1. correct stale Card 03 wording in `docs/art-pack-03.md` using the verified successful production run;
+2. research real RUNE rendering/review surfaces from implementation;
+3. compare at least three distinct Card 04 visual concept families;
+4. lock one recommended PURIFICATION / EPIC concept that does not duplicate Card 01 tablet, Card 02 clamp, Card 03 planted ward-screen, or the Legendary round shield;
+5. create:
+   - `docs/art-review/rune-of-curse-breaking-master-art-brief.md`
+   - `docs/art-review/rune-of-curse-breaking-generation-package.md`
+   - `docs/agent-reports/2026-08-31-art-pack-03-card-04-master-art-brief.md`
+6. perform documentation/repository validation only;
+7. update this file LAST and fetch it back.
 
-## Authorization state
+## Role split
 
-`SYNC-13-CARD-ART-PRODUCTION` is **CONSUMED**. Do not dispatch again using this authorization, even for a no-op retry. Any future production operation requires a fresh explicit owner authorization.
+- **ChatGPT / image generation:** creates or edits Card 04 imagery after owner approves the brief.
+- **Claude/Codex:** repository research, brief/package documentation, candidate intake, QA, integration, production tooling when separately authorized.
 
-## Open housekeeping
+Claude must not generate or creatively replace Card 04 artwork in the current task.
 
-`docs/art-pack-03.md` still contains stale pre-production wording for Card 03 and should be corrected in a dedicated documentation housekeeping pass before Card 04 begins.
+## Hard safety state
 
-Optional branch cleanup remains unperformed and requires explicit owner approval:
+Do NOT:
 
-- `transport/card03-v2-github-actions` is transport-only, carries a `contents: write` workflow, and must never be merged;
-- `assets/warden-of-the-barrier-candidate` contains rejected v1 and is superseded.
+- generate Card 04 imagery in Claude;
+- create or integrate a Card 04 binary candidate;
+- alter `seed.ts`, gameplay, schema, migrations, or artwork bytes;
+- extend production artwork sync 13 → 14;
+- dispatch production workflows;
+- access/mutate Railway or production DB;
+- delete historical transport/candidate branches in this task;
+- reuse `SYNC-13-CARD-ART-PRODUCTION`.
 
-## Final gate
+## Current final gate
 
-**AWAITING OWNER DIRECTION — CARD 03 CLOSED / CARD 04 NOT AUTHORIZED**
+The Card 04 brief task must end at exactly one of:
+
+- **READY FOR OWNER CARD 04 BRIEF APPROVAL**
+- **BLOCKED / REJECTED**
