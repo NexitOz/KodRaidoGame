@@ -96,6 +96,14 @@ const REVIEW_TARGETS: ReviewTarget[] = [
     referenceLabel: 'ART PACK 03 — APPROVED 02',
     reviewArtworkUrl: '/art/cards/seal-of-the-curse.webp',
   },
+  // Card 03 is a CHARACTER, so unlike Cards 02/04 above it takes the `hasBoardSlot` true path and
+  // shows all five surfaces including the real CreatureSlot board slot.
+  {
+    slug: 'warden-of-the-barrier',
+    faction: 'PURIFICATION',
+    referenceLabel: 'ART PACK 03 — APPROVED 03',
+    reviewArtworkUrl: '/art/cards/warden-of-the-barrier.webp',
+  },
 ];
 
 function FlagshipRow({
