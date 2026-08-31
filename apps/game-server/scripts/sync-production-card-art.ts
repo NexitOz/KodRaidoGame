@@ -4,18 +4,18 @@ import { execFileSync } from 'node:child_process';
 
 import { PrismaClient, RightsStatus } from '@prisma/client';
 
-// DELIBERATELY STALE PIN - REQUIRES A POST-MERGE REPIN BEFORE ANY 13-CARD SYNC CAN RUN.
+// Pinned to the merged Card 03 integration commit, whose seed.ts and committed art are the reviewed
+// source of truth for all thirteen production artwork targets, including Art Pack 03 Card 03
+// (`warden-of-the-barrier`).
 //
-// This is still the merged Card 02 commit, whose seed.ts and committed art are the reviewed source
-// of truth for only twelve targets. Art Pack 03 Card 03 (`warden-of-the-barrier`) is now in
-// TARGET_SLUGS below, but its integration commit does not exist until that PR is merged, and
-// pinning an immutable source to an unmerged branch SHA would defeat the check entirely.
+// This is the merge commit of the independently reviewed PR #39 - the first commit on `main` that
+// carries the Card 03 integration - and deliberately not the PR head, the candidate branch SHA, or a
+// later docs-only commit. Repinning here replaced the temporary Card 02 pin that made this script
+// fail closed while Card 03 was still unmerged.
 //
-// The mismatch is intentional and fails closed: `deriveDesiredValues` reads seed.ts at this commit,
-// where `warden-of-the-barrier` has no explicit artwork fields, so it throws before any database
-// connection is opened. A separate post-merge task must repoint this to the exact Card 03 merge
-// commit and revalidate before the owner can authorize SYNC-13-CARD-ART-PRODUCTION.
-const REQUIRED_SOURCE_COMMIT = '8d41b6570e0a7a29ec7ecc38b0c6075aed8a4757';
+// Production dispatch still requires fresh explicit owner confirmation; SYNC-13-CARD-ART-PRODUCTION
+// remains RESERVED, NOT AUTHORIZED, NOT CONSUMED.
+const REQUIRED_SOURCE_COMMIT = '8b8322aad6fc52ca7e9ac796027605c5e1e9c78b';
 const TARGET_SLUGS = [
   'necromancer-of-the-twilight-order',
   'high-warden-of-the-white-rune',
