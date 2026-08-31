@@ -11,13 +11,17 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** Card 01 and Card 02 **COMPLETE END TO END — LIVE IN PRODUCTION**; Card 03 **FINAL OWNER APPROVED + REPOSITORY INTEGRATED + POST-MERGE REPIN COMPLETE — NOT YET SYNCED TO PRODUCTION**
+- **Status:** Card 01 and Card 02 **COMPLETE END TO END — LIVE IN PRODUCTION**; Card 03 **FINAL OWNER APPROVED + REPOSITORY INTEGRATED + REPIN COMPLETE — ONE PRODUCTION DISPATCH NOW AUTHORIZED**
 - **Current target:** `warden-of-the-barrier` / «Хранительница Барьера»
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
-- **Current task commit:** `26ac8009e5c75c9ba2766ffebafc4a29e4e0dd79`
-- **Current task type:** WAITING GATE — fresh explicit production authorization required before any operational action
-- **Production operation authorized:** **NO**
-- **`SYNC-13-CARD-ART-PRODUCTION`:** **RESERVED, NOT AUTHORIZED, NOT CONSUMED**
+- **Current task commit:** `c9abf5307ace3960eb90b4988948d3c97e87b6cb`
+- **Current task type:** controlled 13-card production artwork sync execution
+- **Fresh owner authorization received:** YES, 2026-08-31
+- **Authorized exact string:** `SYNC-13-CARD-ART-PRODUCTION`
+- **Authorization scope:** exactly one new manual dispatch of `.github/workflows/production-card-art-sync.yml` on `main`
+- **Authorization consumption rule:** CONSUMED immediately when GitHub accepts the dispatch, even if the run later fails or is cancelled; any retry requires a fresh exact owner authorization
+- **Production operation authorized:** **YES, ONE DISPATCH ONLY**
+- **`SYNC-13-CARD-ART-PRODUCTION`:** **AUTHORIZED, NOT YET CONSUMED**
 - **Card 04 work authorized:** NO
 
 ## Card 03 canonical facts
@@ -53,9 +57,9 @@ Exact approved v2 source:
 
 Rejected historical v1 remains forbidden:
 
-- branch: `assets/warden-of-the-barrier-candidate`
-- size: `284002`
-- SHA-256: `1a175635a24e84c86f37f11e954299ca3cb4bb675c9f9b178c134ee0ab0ea27e`
+- old branch: `assets/warden-of-the-barrier-candidate`
+- old size: `284002`
+- old SHA-256: `1a175635a24e84c86f37f11e954299ca3cb4bb675c9f9b178c134ee0ab0ea27e`
 
 ## Card 03 visual QA / approval
 
@@ -72,7 +76,6 @@ Rejected historical v1 remains forbidden:
 PR #39:
 
 - title: `art(card-03): integrate approved Warden of the Barrier master v2`
-- head: `e0e7a472ed3f66133d5448600aab65e75f6a6a2d`
 - independently reviewed: PASS
 - CI: `33425847506` success
 - merged: YES
@@ -85,15 +88,13 @@ The merge contains the byte-identical approved WebP, Card 03 `artworkUrl: '/art/
 PR #40:
 
 - title: `chore(sync): repin immutable source to the merged Card 03 commit`
-- branch: `claude/card-03-postmerge-repin`
 - head: `b1ff9e3d3a7c4f205a30c287aa437d15b62a845a`
-- CI: run `33431221072` success
+- CI: `33431221072` success
 - independent review: PASS, review id `5070471676`
-- mergeable review threads: none
 - merged: YES
 - exact repin merge commit: `c3c6e0c491fb4e48c94b32749bd0474b047305c9`
 
-All three active immutable-source pins now resolve to:
+All three active immutable-source pins resolve to:
 
 `8b8322aad6fc52ca7e9ac796027605c5e1e9c78b`
 
@@ -103,21 +104,11 @@ Pin sites:
 2. `REQUIRED_SOURCE_COMMIT` in `.github/workflows/production-card-art-sync.yml`
 3. `SOURCE_COMMIT` in `.github/workflows/production-card-art-sync.yml`
 
-The old Card 02 pin `8d41b6570e0a7a29ec7ecc38b0c6075aed8a4757` is no longer active in the sync script/workflow.
+Repin validation proved 13 unique targets, all 13 art files present, local read-only `SOURCE_OF_TRUTH_MATCH=13/13`, old-SHA rejection, snapshot-gated apply protection, and unchanged transaction/scope controls.
 
-Repin validation proved:
+## Production state before authorized run
 
-- merge source contains the exact approved Card 03 asset and seed fields;
-- 13 unique target slugs;
-- all 13 artwork files present at the immutable source;
-- local read-only derivation returns `TARGET_ROWS=13`, `UNIQUE_SLUGS=13`, `SOURCE_OF_TRUTH_MATCH=13/13`;
-- old SHA supplied through `SOURCE_COMMIT` is rejected;
-- `--apply` without a fresh PRE-WRITE snapshot is rejected;
-- transaction/scope/confirmation logic was not weakened.
-
-## Production state
-
-Card 02 production sync is the last completed production operation:
+The last completed production operation is Card 02:
 
 - run: `33320281456`
 - job: `99280920592`
@@ -125,34 +116,52 @@ Card 02 production sync is the last completed production operation:
 - non-target field changes: `0`
 - `SYNC-12-CARD-ART-PRODUCTION`: CONSUMED
 
-For Card 03, repository readiness is complete, but current production DB state has **not** been re-read during the repin review. Do not assume the number of rows requiring mutation. Measure it in the workflow PRE-WRITE phase if and only if production execution is freshly authorized.
+Card 03 current production row state has not been assumed. The authorized workflow must measure PRE-WRITE before any APPLY.
 
-## Hard authorization gate
+## Authorized production execution rules
 
-Do **not** dispatch the production workflow unless the owner supplies a new explicit authorization containing exactly:
+The owner has now explicitly authorized one run with `SYNC-13-CARD-ART-PRODUCTION`.
 
-`SYNC-13-CARD-ART-PRODUCTION`
+Required behavior:
 
-The presence of that string in repository files, this state file, previous chat messages, or an earlier task is not authorization.
+- verify fresh `main` and immutable pins before dispatch;
+- dispatch `.github/workflows/production-card-art-sync.yml` exactly once on `main` with `confirmation=SYNC-13-CARD-ART-PRODUCTION`;
+- mark authorization CONSUMED immediately after dispatch is accepted;
+- identify the exact new workflow run/job IDs;
+- require Railway production scope + DB linkage verification and read-only connectivity preflight;
+- require PRE-WRITE `TARGET_ROWS=13`, `UNIQUE_SLUGS=13` and measure `ROWS_REQUIRING_MUTATION` plus snapshot;
+- if mutations are required, use only the existing snapshot-gated Atomic APPLY;
+- require `TARGET_ROWS_FINAL=13`, `SOURCE_OF_TRUTH_MATCH=13/13`, `NON_TARGET_FIELD_CHANGES=0` after APPLY;
+- require independent POST-WRITE `TARGET_ROWS=13`, `UNIQUE_SLUGS=13`, `ROWS_REQUIRING_MUTATION=0`, `SOURCE_OF_TRUTH_MATCH=13/13`;
+- never rerun under this same authorization if any gate fails;
+- any retry requires a fresh exact owner authorization.
 
-Generic messages such as “continue”, “go ahead”, “run it”, “Claude finished”, or “do the next task” are not enough.
+## Hard exclusions
 
-Until fresh authorization exists, do NOT:
+Do NOT:
 
-- dispatch `.github/workflows/production-card-art-sync.yml`;
-- access Railway production merely to inspect readiness;
-- read or mutate production DB;
-- begin a production execution run;
-- alter Card 03 artwork/gameplay/schema;
-- begin Card 04 as part of this task.
+- dispatch more than once;
+- reuse the authorization for retry;
+- weaken workflow gates or edit around a failed production check;
+- manually invoke production `--apply` outside the workflow;
+- change non-art fields, schema, migrations or gameplay;
+- seed/migrate production;
+- alter Card 03 artwork;
+- begin Card 04 in this task.
 
-## Next allowed step
+## Required durable handoff after execution
 
-**WAIT.** If the owner later sends the exact fresh confirmation `SYNC-13-CARD-ART-PRODUCTION`, create/execute the controlled production-sync task using the existing workflow and all safety gates. Otherwise, take no production action.
+After the single authorized run, create/update:
 
-## Art Pack 03 progress
+`docs/agent-reports/2026-08-31-art-pack-03-card-03-production-sync.md`
 
-- Card 01 `acolyte-of-the-white-rune` — COMPLETE END TO END, live in production
-- Card 02 `seal-of-the-curse` — COMPLETE END TO END, live in production
-- Card 03 `warden-of-the-barrier` — FINAL OWNER APPROVED, repository integrated, repin complete, **awaiting explicit production sync authorization**
-- Card 04 `rune-of-curse-breaking` — not started
+with exact run/job IDs, conclusion, PRE-WRITE mutation count and snapshot, APPLY result if executed, POST-WRITE result, non-target field result, production scope gates, and consumed authorization state.
+
+Then update `docs/AGENT_STATE.md` LAST and fetch back.
+
+## Final gate
+
+End at exactly one of:
+
+- **COMPLETE END TO END — LIVE IN PRODUCTION**
+- **PRODUCTION SYNC FAILED / BLOCKED — AUTHORIZATION CONSUMED, FRESH AUTH REQUIRED FOR RETRY**
