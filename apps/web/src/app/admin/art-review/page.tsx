@@ -96,6 +96,15 @@ const REVIEW_TARGETS: ReviewTarget[] = [
     referenceLabel: 'ART PACK 03 — APPROVED 02',
     reviewArtworkUrl: '/art/cards/seal-of-the-curse.webp',
   },
+  // Card 03 is a CHARACTER, so unlike Cards 02/04 above it takes the `hasBoardSlot` true path and
+  // shows all five surfaces including CreatureSlot. Deliberately no `reviewArtworkUrl`: this row
+  // reads the gitignored candidate file so the master can be reviewed before any promotion to
+  // `/art/cards/`. Add `reviewArtworkUrl` only once the owner approves and the art is integrated.
+  {
+    slug: 'warden-of-the-barrier',
+    faction: 'PURIFICATION',
+    referenceLabel: 'ART PACK 03 — CANDIDATE 03 (v2, pending owner approval)',
+  },
 ];
 
 function FlagshipRow({
