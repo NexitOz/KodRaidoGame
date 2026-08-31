@@ -1,10 +1,22 @@
-# CURRENT TASK — Art Pack 03 Card 03: await explicit production sync authorization
+# CURRENT TASK — Art Pack 03 Card 03: execute authorized 13-card production artwork sync
 
-## Status
+## Authorization
 
-Card 03 `warden-of-the-barrier` / «Хранительница Барьера» is FINAL OWNER APPROVED, repository-integrated, and post-merge immutable-source repinning is complete on `main`.
+The owner supplied a fresh explicit authorization on **2026-08-31** containing exactly:
 
-Repository integration PR #39 merge commit:
+`SYNC-13-CARD-ART-PRODUCTION`
+
+This authorization permits **exactly one new manual dispatch** of the existing controlled workflow:
+
+`.github/workflows/production-card-art-sync.yml`
+
+for the Card 03 promotion / 13-card production artwork metadata synchronization.
+
+Treat this authorization as **single-use**. It becomes **CONSUMED immediately when the workflow dispatch is accepted by GitHub**, regardless of whether the run later succeeds or fails. Never use the same authorization for a retry. Any retry after a failed/cancelled run requires a new explicit owner authorization.
+
+## Canonical source
+
+Card 03 repository integration PR #39 merge commit:
 
 `8b8322aad6fc52ca7e9ac796027605c5e1e9c78b`
 
@@ -12,72 +24,81 @@ Post-merge repin PR #40 merge commit:
 
 `c3c6e0c491fb4e48c94b32749bd0474b047305c9`
 
-All three active immutable-source pins now point to the exact Card 03 integration merge commit:
+All three active immutable-source pins must remain exactly:
 
 `8b8322aad6fc52ca7e9ac796027605c5e1e9c78b`
 
-The 13-card sync is technically prepared. It is **NOT AUTHORIZED TO RUN**.
+Approved Card 03 asset:
 
-`SYNC-13-CARD-ART-PRODUCTION` is **RESERVED, NOT AUTHORIZED, NOT CONSUMED**.
-
-## Current instruction
-
-Do nothing operational until the owner provides a fresh explicit authorization containing the exact confirmation string:
-
-`SYNC-13-CARD-ART-PRODUCTION`
-
-A generic instruction such as “continue”, “run the current task”, “go ahead”, “Claude finished”, or any earlier approval is **not** production authorization.
-
-Until the exact fresh authorization is supplied, do not create a production execution branch/task and do not dispatch the workflow.
-
-## Verified readiness
-
-Repository review has already established:
-
-- Card 03 production artwork path: `apps/web/public/art/cards/warden-of-the-barrier.webp`
-- approved Git blob SHA: `c4cb3f4e41f349e86b044712f267f9fdc678aa86`
+- slug: `warden-of-the-barrier`
+- canonical artwork path: `apps/web/public/art/cards/warden-of-the-barrier.webp`
+- Git blob SHA: `c4cb3f4e41f349e86b044712f267f9fdc678aa86`
 - byte size: `193038`
 - SHA-256: `bf5814d345a652d119919c37d128d6a540cd65882d60d04f17432cb31c98239f`
-- seed fields: `/art/cards/warden-of-the-barrier.webp` + `rightsStatus: 'owned'`
-- target list: 13 unique cards
-- confirmation string: `SYNC-13-CARD-ART-PRODUCTION`
-- workflow/source pins: `8b8322aad6fc52ca7e9ac796027605c5e1e9c78b`
-- local read-only derivation: `SOURCE_OF_TRUTH_MATCH=13/13`
-- pin enforcement negative controls: PASS
-- PR #40 CI: run `33431221072` success
-- independent repin review: PASS
+- seed artworkUrl: `/art/cards/warden-of-the-barrier.webp`
+- seed rightsStatus: `owned`
 
-These readiness checks do not establish current production database state and do not authorize production access.
+## Required execution
 
-## If fresh authorization is later supplied
+1. Fetch fresh `main` and read `CLAUDE.md`, `docs/AGENT_STATE.md`, this task, and the existing workflow before any production action.
+2. Verify PR #40 is merged and current `main` contains all three immutable-source pins set to `8b8322aad6fc52ca7e9ac796027605c5e1e9c78b`.
+3. Verify there is no drift from the immutable source on the protected source paths used by the workflow: `apps/game-server/prisma/seed.ts`, `apps/game-server/prisma/schema.prisma`, `apps/web/public/art/cards`.
+4. Verify the workflow still requires exact input `SYNC-13-CARD-ART-PRODUCTION`, has 13 unique target slugs, checks all 13 artwork files, and retains Railway scope verification, read-only PRE-WRITE, snapshot-gated APPLY, Serializable transaction, non-target fingerprint checks, and independent POST-WRITE verification.
+5. Dispatch `.github/workflows/production-card-art-sync.yml` **once**, on `main`, with workflow input:
 
-Only then may a production execution task be created. It must use the existing controlled workflow and preserve all established safeguards:
+   `confirmation = SYNC-13-CARD-ART-PRODUCTION`
 
-1. verify current `main` and immutable pins before dispatch;
-2. verify the exact confirmation string;
-3. use the existing Railway production identity/scope gates;
-4. perform the workflow's read-only PRE-WRITE phase first;
-5. require the exact PRE-WRITE snapshot for APPLY;
-6. allow changes only to `artworkUrl` and `rightsStatus` for the 13 allowlisted slugs;
-7. require `NON_TARGET_FIELD_CHANGES=0`;
-8. run independent POST-WRITE verification;
-9. record the exact workflow run/job IDs, rows changed, source-of-truth match, and consumed confirmation state;
-10. stop and report on any failed gate rather than weakening a check.
+6. As soon as GitHub accepts the dispatch, consider this owner authorization **CONSUMED**. Do not dispatch again under any circumstance in this task.
+7. Resolve the exact new workflow run ID and job ID. Do not confuse it with prior 12-card or CI runs.
+8. Follow the run through completion. Do not modify workflow/code/secrets or weaken a gate if it fails.
+9. Capture and report these gates from the actual production run logs:
+   - exact confirmation gate PASS
+   - `IMMUTABLE_SOURCE_SHA_VERIFIED=8b8322aad6fc52ca7e9ac796027605c5e1e9c78b`
+   - `ARTWORK_FILES_PRESENT=13/13`
+   - Railway token/project/environment/game-server DB linkage verification
+   - `PRODUCTION_SCOPE_VERIFIED=YES`
+   - `READ_ONLY_DB_PREFLIGHT=YES`
+   - PRE-WRITE `TARGET_ROWS=13`
+   - PRE-WRITE `UNIQUE_SLUGS=13`
+   - PRE-WRITE `ROWS_REQUIRING_MUTATION=<measured>`
+   - PRE-WRITE snapshot value
+10. If PRE-WRITE reports `ROWS_REQUIRING_MUTATION=0`, verify the workflow takes the already-synchronized branch and **does not run Atomic APPLY**.
+11. If PRE-WRITE reports one or more mutations, allow the existing snapshot-gated `Atomic APPLY` step to run unchanged and require:
+   - `TRANSACTION_STARTED=YES`
+   - `TRANSACTION_COMMITTED=YES`
+   - `ROWS_CHANGED=<measured>`
+   - `TARGET_ROWS_FINAL=13`
+   - `SOURCE_OF_TRUTH_MATCH=13/13`
+   - `NON_TARGET_FIELD_CHANGES=0`
+12. Require independent POST-WRITE verification to report:
+   - `TARGET_ROWS=13`
+   - `UNIQUE_SLUGS=13`
+   - `ROWS_REQUIRING_MUTATION=0`
+   - `SOURCE_OF_TRUTH_MATCH=13/13`
+13. If any gate fails, stop and report the failure. **Do not rerun** with this authorization and do not patch around a failed gate.
+14. Do not make repository changes merely to record success unless the permanent protocol explicitly requires a report/state update. No production data outside `artworkUrl` and `rightsStatus` for the 13 allowlisted slugs may be changed.
+15. Leave a durable execution report at `docs/agent-reports/2026-08-31-art-pack-03-card-03-production-sync.md` recording run/job IDs, final conclusion, measured rows changed, all safety gates, post-write result, and that `SYNC-13-CARD-ART-PRODUCTION` is CONSUMED.
+16. Update `docs/AGENT_STATE.md` **LAST**, then fetch it back from GitHub and verify it.
 
-Expected production intent for Card 03 is one metadata change if production still reflects the current 12-card state, but the actual PRE-WRITE result must be measured rather than assumed.
-
-## Hard exclusions while authorization is absent
+## Hard exclusions
 
 Do NOT:
 
-- dispatch `.github/workflows/production-card-art-sync.yml`;
-- access Railway production merely to inspect readiness;
-- read or mutate the production database;
-- treat the reserved confirmation string in repository files as authorization;
-- reuse `SYNC-12-CARD-ART-PRODUCTION`;
-- alter Card 03 artwork, gameplay, balance, schema, or migrations;
-- begin Card 04 as part of this task.
+- dispatch more than once;
+- reuse this confirmation for a retry;
+- edit or bypass workflow safety gates;
+- manually run `--apply` outside the controlled workflow;
+- mutate non-art fields;
+- seed or migrate production;
+- alter Card 03 artwork bytes;
+- change gameplay, balance, schema, migrations, or other cards;
+- start Card 04 in this task.
 
-## Current final status
+## Final status
 
-**AWAITING FRESH EXPLICIT OWNER AUTHORIZATION**
+End at exactly one of:
+
+- **COMPLETE END TO END — LIVE IN PRODUCTION**
+- **PRODUCTION SYNC FAILED / BLOCKED — AUTHORIZATION CONSUMED, FRESH AUTH REQUIRED FOR RETRY**
+
+The success status is allowed only if the workflow run itself concludes success and independent POST-WRITE reports `SOURCE_OF_TRUTH_MATCH=13/13`, `ROWS_REQUIRING_MUTATION=0`, with no non-target field changes.
