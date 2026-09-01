@@ -11,12 +11,18 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** Cards 01, 02 and 03 **COMPLETE END TO END — LIVE IN PRODUCTION**; Card 04 **OWNER-APPROVED MASTER EXISTS — CANDIDATE INTAKE / EIGHT-SURFACE QA NEXT**
+- **Status:** Cards 01, 02 and 03 **COMPLETE END TO END — LIVE IN PRODUCTION**; Card 04 **CANDIDATE LANDED + EIGHT-SURFACE QA DONE — READY FOR OWNER VISUAL APPROVAL**
 - **Current target:** `rune-of-curse-breaking` / «Руна Разрушения Проклятий»
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
 - **Current task commit:** `379f5fcf82c9cde3f9f4af62c1519a4a772f619f`
 - **Current task type:** Card 04 approved-master binary intake + review only
 - **Candidate branch:** `assets/rune-of-curse-breaking-candidate-v1`
+- **Candidate head SHA:** `185126c`
+- **Candidate asset:** `art-source/rune-of-curse-breaking.webp` — `438894` bytes, SHA-256 `6f07380f1f64bee0efd8ec9819de1951dd14fd9dc127dd173ddda909b1c49dd5`, blob `e1ea12a2f03cc84e9931600e978cc8bf6b1eaccb`, `1024 × 1536`, plain `VP8 `, full decode PASS — all gates re-verified independently of the transport job
+- **Transport:** Actions-runner run `33553187344` (success); the session itself cannot reach firestorage (proxy CONNECT 403, zero bytes). Transport branch `transport/card04-github-actions` **must not be merged**.
+- **Latest QA report:** `docs/agent-reports/2026-08-31-art-pack-03-card-04-candidate-qa.md`
+- **Latest task-result commit:** `185126c` (candidate branch head)
+- **Open blocker:** **OWNER VISUAL APPROVAL.** Two items are named in the report — the water lip is the highest-contrast but darkest zone (brief reject #22 is half-broken as literally written), and background architecture sits above the brief's §13 information ceiling.
 - **Card 04 repository integration authorized:** NO
 - **Production operation authorized:** NO
 - **Card 04 production sync authorized:** NO
@@ -27,7 +33,7 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 - Card 01 `acolyte-of-the-white-rune` — **COMPLETE END TO END, LIVE IN PRODUCTION**
 - Card 02 `seal-of-the-curse` — **COMPLETE END TO END, LIVE IN PRODUCTION**
 - Card 03 `warden-of-the-barrier` — **COMPLETE END TO END, LIVE IN PRODUCTION**
-- Card 04 `rune-of-curse-breaking` — **MASTER OWNER-APPROVED; CANDIDATE QA NOT YET COMPLETE**
+- Card 04 `rune-of-curse-breaking` — **candidate landed and QA complete; READY FOR OWNER VISUAL APPROVAL**, not integrated, not synced
 
 ## Card 03 closed production record
 
@@ -155,3 +161,36 @@ The Card 04 candidate task must end at exactly one of:
 - **READY FOR OWNER VISUAL APPROVAL**
 - **REJECTED / BLOCKED**
 - **BLOCKED — APPROVED BINARY TRANSPORT REQUIRED**
+
+## Card 04 candidate QA summary — pending owner approval
+
+Eight surfaces captured against the real running stack. **`CreatureSlot` is correctly N/A** and was
+confirmed empirically, not assumed: the live review row rendered exactly four in-app panels (RAW
+MASTER, CARDVIEW, CARDDETAILDRAWER, HANDCARDPREVIEW) with no board-slot panel at either viewport.
+No horizontal overflow at 1440 or 390.
+
+Measured against the brief: no figure; continuous laminar overflow; straight radiating channels with
+**no closed floor rune-circle**; rim marks ornamental rather than script; no text/watermark/UI; gold
+**0.00 %** against a 4 % limit; 92 px grayscale spread **142** against the >122 target (p5 = 78 versus
+Card 03's 109). Approved geometry confirmed — faceted octagonal basin on a stepped base, not
+circular, not a pedestal or column fountain. Uniqueness at 92 px is unambiguous: Card 04 is the only
+low, wide, horizontal mass in the set.
+
+### Two items for owner judgement
+
+1. **Water lip is the darkest zone, not the brightest.** Measured at 92 px, the basin zone is the
+   highest-contrast (edge 32.69, highest of four zones) but the darkest (mean L 107.2 against the
+   mid-floor's 185.7). Brief reject #22 asks for "brightest, highest-contrast", so it is half-broken
+   as written. The brief carried a latent tension — it also demanded a dark anchor so Card 04 would
+   not be a second flat-white card — and the master resolves it by making the basin that anchor,
+   which is why the spread clears the target. Reported, not fixed.
+2. **Background architecture above the §13 ceiling.** Pale marble piers in the upper third, soft and
+   low-contrast, collapsing at 92 px. None of the named rejects (cathedral facade, rose window,
+   banners, crowd) is present, but it exceeds the "single soft column" maximum the brief set.
+
+## Next after owner visual approval
+
+Repository integration is a separate authorized task. Still NOT authorized: integration into
+`apps/web/public/art/cards/`, `seed.ts` / `artworkUrl` / `rightsStatus` changes, sync extension
+13 → 14, workflow dispatch, and any production operation. `SYNC-13-CARD-ART-PRODUCTION` remains
+CONSUMED and must never be reused.
