@@ -11,19 +11,18 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** Cards 01, 02 and 03 **COMPLETE END TO END — LIVE IN PRODUCTION**; Card 04 **CANDIDATE LANDED + EIGHT-SURFACE QA DONE — READY FOR OWNER VISUAL APPROVAL**
+- **Status:** Cards 01, 02 and 03 **COMPLETE END TO END — LIVE IN PRODUCTION**; Card 04 **FINAL OWNER APPROVED AFTER EIGHT-SURFACE QA — REPOSITORY INTEGRATION PR NEXT**
 - **Current target:** `rune-of-curse-breaking` / «Руна Разрушения Проклятий»
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
-- **Current task commit:** `379f5fcf82c9cde3f9f4af62c1519a4a772f619f`
-- **Current task type:** Card 04 approved-master binary intake + review only
-- **Candidate branch:** `assets/rune-of-curse-breaking-candidate-v1`
-- **Candidate head SHA:** `185126c`
-- **Candidate asset:** `art-source/rune-of-curse-breaking.webp` — `438894` bytes, SHA-256 `6f07380f1f64bee0efd8ec9819de1951dd14fd9dc127dd173ddda909b1c49dd5`, blob `e1ea12a2f03cc84e9931600e978cc8bf6b1eaccb`, `1024 × 1536`, plain `VP8 `, full decode PASS — all gates re-verified independently of the transport job
-- **Transport:** Actions-runner run `33553187344` (success); the session itself cannot reach firestorage (proxy CONNECT 403, zero bytes). Transport branch `transport/card04-github-actions` **must not be merged**.
+- **Current task commit:** `1c7470dd8c17f64a294b600aa302429ad8c4f6ac`
+- **Current task type:** prepare narrow Card 04 repository integration PR; no merge and no production sync
+- **Latest owner approval:** `docs/agent-reports/2026-09-01-art-pack-03-card-04-post-qa-owner-approval.md`
 - **Latest QA report:** `docs/agent-reports/2026-08-31-art-pack-03-card-04-candidate-qa.md`
-- **Latest task-result commit:** `185126c` (candidate branch head)
-- **Open blocker:** **OWNER VISUAL APPROVAL.** Two items are named in the report — the water lip is the highest-contrast but darkest zone (brief reject #22 is half-broken as literally written), and background architecture sits above the brief's §13 information ceiling.
-- **Card 04 repository integration authorized:** NO
+- **Candidate branch:** `assets/rune-of-curse-breaking-candidate-v1`
+- **Candidate HEAD:** `185126c8b402dc4134245f984d9d0e7cddc6db8a`
+- **Open blocker:** NONE for artwork or repository integration preparation. Next gate after PR is **OWNER MERGE APPROVAL**.
+- **Card 04 repository integration authorized:** PR PREPARATION ONLY
+- **Card 04 integration PR merge authorized:** NO
 - **Production operation authorized:** NO
 - **Card 04 production sync authorized:** NO
 - **`SYNC-13-CARD-ART-PRODUCTION`:** **CONSUMED — MUST NOT BE REUSED**
@@ -33,7 +32,7 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 - Card 01 `acolyte-of-the-white-rune` — **COMPLETE END TO END, LIVE IN PRODUCTION**
 - Card 02 `seal-of-the-curse` — **COMPLETE END TO END, LIVE IN PRODUCTION**
 - Card 03 `warden-of-the-barrier` — **COMPLETE END TO END, LIVE IN PRODUCTION**
-- Card 04 `rune-of-curse-breaking` — **candidate landed and QA complete; READY FOR OWNER VISUAL APPROVAL**, not integrated, not synced
+- Card 04 `rune-of-curse-breaking` — **FINAL OWNER APPROVED AFTER QA; integration PR next; not yet live in production**
 
 ## Card 03 closed production record
 
@@ -47,9 +46,9 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 - `NON_TARGET_FIELD_CHANGES=0`
 - `SYNC-13-CARD-ART-PRODUCTION`: CONSUMED
 
-Card 03 is closed. Do not reopen accepted visual caveats or rerun its production sync without a completely new owner decision and authorization.
+Card 03 is closed. Do not reopen it without a new owner decision.
 
-## Card 04 canonical facts
+## Card 04 canonical card facts
 
 - slug: `rune-of-curse-breaking`
 - name: «Руна Разрушения Проклятий»
@@ -60,64 +59,66 @@ Card 03 is closed. Do not reopen accepted visual caveats or rerun its production
 - ability: `В начале каждого вашего хода снимите Проклятие и Заглушение со всех союзников.`
 - mechanic: `TURN_START` → `CLEANSE` / `FRIENDLY_ALL`
 
-Gameplay facts are locked and must not be edited during art work.
+Gameplay facts are locked and must not be edited during art integration.
 
-## Card 04 brief / generation package
+## Card 04 approved visual source
 
-- brief: `docs/art-review/rune-of-curse-breaking-master-art-brief.md`
-- generation package: `docs/art-review/rune-of-curse-breaking-generation-package.md`
-- brief research report: `docs/agent-reports/2026-08-31-art-pack-03-card-04-master-art-brief.md`
-- owner approval record: `docs/agent-reports/2026-08-31-art-pack-03-card-04-owner-approval.md`
-- chosen concept: **The cleansing font**
-- owner decision: **FINAL OWNER APPROVED**
+Chosen concept: **The cleansing font**.
 
-Owner-approved geometry refinement:
+Approved geometry:
 
 - low, wide, faceted purification basin / reservoir;
 - short stepped stone base;
 - elongated / faceted / octagonal rather than circular;
 - no church-font read, decorative park-fountain read, tall pedestal, central column, upward jet or circular symmetrical fountain;
-- water is physical cleansing medium, not a blue elemental faction identity;
-- straight off-frame water channels are the `FRIENDLY_ALL` reach device;
+- water is a cold, clear physical cleansing medium, not blue elemental magic;
+- straight off-frame channels communicate `FRIENDLY_ALL` reach;
 - no people or figures.
-
-## Card 04 approved generated master
 
 Generation id:
 
 `f2e3d336-6db5-4d45-9d64-6bfebd8e9196`
 
-Approved source PNG:
+## Card 04 exact approved binary
 
+Exact candidate:
+
+- branch: `assets/rune-of-curse-breaking-candidate-v1`
+- HEAD: `185126c8b402dc4134245f984d9d0e7cddc6db8a`
+- asset path: `art-source/rune-of-curse-breaking.webp`
 - dimensions: `1024 × 1536`
-- RGB
-- byte size: `2676337`
-
-Approved transport WebP produced without crop, resize or recomposition:
-
-- filename: `rune-of-curse-breaking.webp`
-- dimensions: `1024 × 1536`
+- byte size / RIFF total: `438894`
 - FourCC: plain `VP8 `
-- byte size / RIFF declared total: `438894`
 - SHA-256: `6f07380f1f64bee0efd8ec9819de1951dd14fd9dc127dd173ddda909b1c49dd5`
-- expected Git blob SHA: `e1ea12a2f03cc84e9931600e978cc8bf6b1eaccb`
+- Git blob SHA: `e1ea12a2f03cc84e9931600e978cc8bf6b1eaccb`
 - full decode: PASS
 
-Temporary byte-preserving share, expires 2026-09-14:
+Transport commit:
 
-`https://firestorage.ai/ja/f/8hmlyOzbah75`
+`7234e7a0c1341bc543bb4d11b7823ce19acc94c4`
 
-The candidate branch is reserved and currently contains the latest pre-state task/approval commits but no approved binary yet:
+Review-row commit:
 
-`assets/rune-of-curse-breaking-candidate-v1`
+`185126c8b402dc4134245f984d9d0e7cddc6db8a`
 
-If the approved file cannot be retrieved byte-exactly in the executing environment, stop and report **BLOCKED — APPROVED BINARY TRANSPORT REQUIRED**. Never substitute or regenerate.
+The candidate branch is two commits ahead of the reserved task base and contains only the exact approved WebP plus the +8-line candidate review-row change.
 
-## Card 04 review surfaces — EIGHT
+## Card 04 transport proof
 
-Verified from implementation. RUNE artwork does not render in `RuneZone` or `CardPlayReveal`, and `CreatureSlot` is N/A.
+GitHub-hosted Actions runner route:
 
-Required surfaces:
+- transport branch: `transport/card04-github-actions`
+- run: `33553187344`
+- conclusion: success
+- **must not be merged into main**
+
+The workflow and independent candidate QA proved the exact size, SHA-256, Git blob SHA, RIFF total, FourCC, dimensions and full decode before and after Git push/fetch.
+
+## Card 04 eight-surface QA
+
+Status before owner ruling: `READY FOR OWNER VISUAL APPROVAL`.
+
+Verified surfaces:
 
 1. raw master 2:3
 2. CardView 3:4
@@ -128,69 +129,83 @@ Required surfaces:
 7. 92 px thumbnail
 8. 92 px grayscale
 
-## Current authorized task
+`CreatureSlot` is N/A for RUNE and was confirmed empirically from the live review row.
 
-Execute `docs/CLAUDE_CURRENT_TASK.md` exactly.
+Key QA facts:
 
-Candidate intake may verify/stage the approved binary and run all eight review surfaces. It may not modify artwork or cross the owner visual approval gate.
+- no figure;
+- continuous laminar overflow;
+- straight radiating channels and no closed floor rune-circle;
+- rim marks are ornamental rather than script;
+- no text/watermark/UI;
+- gold `0.00%` against a 4% limit;
+- grayscale spread `142` against the >122 target;
+- binding 4:5 crop fully safe;
+- unique low-wide silhouette at 92 px;
+- no horizontal overflow at 1440 or 390.
 
-## Role split
+## Card 04 post-QA owner ruling — FINAL
 
-- **ChatGPT / image generation:** creates or edits imagery and owns artistic regeneration.
-- **Claude/Codex:** repository research, binary intake, QA, integration and production tooling only when separately authorized.
+On 2026-09-01 the owner explicitly approved the exact candidate **after** the eight-surface QA and accepted both reported caveats without artwork modification:
 
-Claude must not generate, redesign or silently repair Card 04 artwork.
+1. **Dark basin/water lip accepted.** It is the highest-contrast zone but not the brightest zone. This is accepted as the image's dark anchor and supports the measured thumbnail separation.
+2. **Soft upper-third architecture accepted.** It exceeds the brief's literal information ceiling but stays pale, low-contrast, collapses at 92 px and does not introduce forbidden monumental/cathedral cues.
+
+These two caveats are closed for the exact approved bytes. Do not reopen them during integration unless the bytes or rendering surfaces change.
+
+Approval record:
+
+`docs/agent-reports/2026-09-01-art-pack-03-card-04-post-qa-owner-approval.md`
+
+## Current authorized task — integration PR only
+
+Execute `docs/CLAUDE_CURRENT_TASK.md` @ `1c7470dd8c17f64a294b600aa302429ad8c4f6ac`.
+
+Required intent:
+
+1. fresh `main`;
+2. re-verify exact candidate bytes from `assets/rune-of-curse-breaking-candidate-v1`;
+3. create fresh integration branch;
+4. do **not** merge/cherry-pick candidate branch wholesale;
+5. copy exact bytes to `apps/web/public/art/cards/rune-of-curse-breaking.webp`;
+6. update only Card 04 seed artwork fields to production path + `rightsStatus: 'owned'`;
+7. add approved Card 04 row to `/admin/art-review` with production `reviewArtworkUrl`;
+8. update `docs/art-pack-03.md` truthfully as repository-integrated / not yet production-synced;
+9. validate and create PR;
+10. leave `## AGENT HANDOFF — FINAL REPORT` on PR;
+11. update this file last to `READY FOR OWNER MERGE APPROVAL` and fetch-verify;
+12. stop without merging.
 
 ## Hard safety state
 
 Do NOT:
 
-- substitute/regenerate Card 04 imagery;
-- integrate into `apps/web/public/art/cards/`;
-- alter `seed.ts`, `artworkUrl`, `rightsStatus`, gameplay, schema or migrations;
-- extend production artwork sync 13 → 14;
-- dispatch production workflows;
-- access/mutate Railway, Vercel or production DB;
-- delete historical transport/candidate branches in this task;
-- reuse `SYNC-13-CARD-ART-PRODUCTION`.
+- regenerate, edit, crop, resize or re-encode Card 04 artwork;
+- merge the candidate or transport branch wholesale;
+- alter Card 04 gameplay/balance fields or any other card seed row;
+- merge the integration PR without a new owner decision;
+- extend/modify/dispatch production artwork sync in this task;
+- create/consume a production confirmation string;
+- access or mutate Railway, Vercel or production DB;
+- reuse `SYNC-13-CARD-ART-PRODUCTION`;
+- begin another card.
 
-## Current final gate
+## Production boundary after repository integration
 
-The Card 04 candidate task must end at exactly one of:
+After the integration PR is audited and separately approved/merged, production sync becomes a separate 14-card operation. It will require a **new exact one-use owner confirmation**. `SYNC-13-CARD-ART-PRODUCTION` is permanently consumed and invalid for Card 04.
 
-- **READY FOR OWNER VISUAL APPROVAL**
-- **REJECTED / BLOCKED**
-- **BLOCKED — APPROVED BINARY TRANSPORT REQUIRED**
+## Art binary transport standing rule
 
-## Card 04 candidate QA summary — pending owner approval
+The user is not a manual file courier.
 
-Eight surfaces captured against the real running stack. **`CreatureSlot` is correctly N/A** and was
-confirmed empirically, not assumed: the live review row rendered exactly four in-app panels (RAW
-MASTER, CARDVIEW, CARDDETAILDRAWER, HANDCARDPREVIEW) with no board-slot panel at either viewport.
-No horizontal overflow at 1440 or 390.
+For generated masters when Claude Code has GitHub-only egress:
 
-Measured against the brief: no figure; continuous laminar overflow; straight radiating channels with
-**no closed floor rune-circle**; rim marks ornamental rather than script; no text/watermark/UI; gold
-**0.00 %** against a 4 % limit; 92 px grayscale spread **142** against the >122 target (p5 = 78 versus
-Card 03's 109). Approved geometry confirmed — faceted octagonal basin on a stepped base, not
-circular, not a pedestal or column fountain. Uniqueness at 92 px is unambiguous: Card 04 is the only
-low, wide, horizontal mass in the set.
+1. keep/upload exact bytes through a provider with a machine-readable raw file API;
+2. use an isolated GitHub Actions transport branch to fetch raw bytes on a GitHub-hosted runner;
+3. hard-gate size + SHA-256 + Git blob SHA + RIFF/FourCC + dimensions + full decode before Git;
+4. commit exact bytes via normal git, push, fetch back and re-verify remote bytes;
+5. never merge temporary transport workflows into `main`;
+6. Claude/Codex independently verifies candidate bytes before QA/integration;
+7. manual owner upload is fallback-only.
 
-### Two items for owner judgement
-
-1. **Water lip is the darkest zone, not the brightest.** Measured at 92 px, the basin zone is the
-   highest-contrast (edge 32.69, highest of four zones) but the darkest (mean L 107.2 against the
-   mid-floor's 185.7). Brief reject #22 asks for "brightest, highest-contrast", so it is half-broken
-   as written. The brief carried a latent tension — it also demanded a dark anchor so Card 04 would
-   not be a second flat-white card — and the master resolves it by making the basin that anchor,
-   which is why the spread clears the target. Reported, not fixed.
-2. **Background architecture above the §13 ceiling.** Pale marble piers in the upper third, soft and
-   low-contrast, collapsing at 92 px. None of the named rejects (cathedral facade, rose window,
-   banners, crowd) is present, but it exceeds the "single soft column" maximum the brief set.
-
-## Next after owner visual approval
-
-Repository integration is a separate authorized task. Still NOT authorized: integration into
-`apps/web/public/art/cards/`, `seed.ts` / `artworkUrl` / `rightsStatus` changes, sync extension
-13 → 14, workflow dispatch, and any production operation. `SYNC-13-CARD-ART-PRODUCTION` remains
-CONSUMED and must never be reused.
+Never use GitHub Contents-API binary/base64 transport for generated masters; this project has already observed truncation through that route.
