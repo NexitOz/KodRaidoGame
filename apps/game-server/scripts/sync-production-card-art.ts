@@ -4,18 +4,22 @@ import { execFileSync } from 'node:child_process';
 
 import { PrismaClient, RightsStatus } from '@prisma/client';
 
-// Pinned to the merged Card 03 integration commit, whose seed.ts and committed art are the reviewed
-// source of truth for all thirteen production artwork targets, including Art Pack 03 Card 03
-// (`warden-of-the-barrier`).
+// Pinned to the merged Card 04 integration commit, whose seed.ts and committed art are the reviewed
+// source of truth for all fourteen production artwork targets, including Art Pack 03 Card 04
+// (`rune-of-curse-breaking`).
 //
-// This is the merge commit of the independently reviewed PR #39 - the first commit on `main` that
-// carries the Card 03 integration - and deliberately not the PR head, the candidate branch SHA, or a
-// later docs-only commit. Repinning here replaced the temporary Card 02 pin that made this script
-// fail closed while Card 03 was still unmerged.
+// This is the merge commit of the independently reviewed PR #41 - the first commit on `main` that
+// carries the Card 04 integration - and deliberately not the PR head, the candidate branch SHA, or a
+// later docs-only commit. Repinning here replaced the Card 03 pin (`8b8322aa`), which covered only
+// thirteen targets and would have made this script fail closed on the fourteenth.
 //
-// Production dispatch still requires fresh explicit owner confirmation; SYNC-13-CARD-ART-PRODUCTION
-// remains RESERVED, NOT AUTHORIZED, NOT CONSUMED.
-const REQUIRED_SOURCE_COMMIT = '8b8322aad6fc52ca7e9ac796027605c5e1e9c78b';
+// Authorization state:
+//   SYNC-13-CARD-ART-PRODUCTION - CONSUMED (Card 03 sync, run 33436786024). Must never be reused.
+//   SYNC-14-CARD-ART-PRODUCTION - RESERVED, NOT AUTHORIZED, NOT CONSUMED.
+//
+// Production dispatch still requires a fresh explicit owner confirmation. The presence of the
+// fourteen-card phrase in this repository is not authorization to run it.
+const REQUIRED_SOURCE_COMMIT = 'b792be37b32f73906d104642689afaa88a47b1c2';
 const TARGET_SLUGS = [
   'necromancer-of-the-twilight-order',
   'high-warden-of-the-white-rune',
@@ -30,6 +34,7 @@ const TARGET_SLUGS = [
   'acolyte-of-the-white-rune',
   'seal-of-the-curse',
   'warden-of-the-barrier',
+  'rune-of-curse-breaking',
 ] as const;
 
 type Mode = 'check' | 'apply';
