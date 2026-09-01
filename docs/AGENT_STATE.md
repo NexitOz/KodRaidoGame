@@ -11,101 +11,65 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** Card 04 **FINAL OWNER APPROVED + REPOSITORY INTEGRATED + 14-CARD SYNC PREPARATION MERGED ON `main` — NOT YET LIVE IN PRODUCTION**
-- **Current target:** production authorization gate for the controlled 14-card artwork sync
+- **Status:** Card 04 **FINAL OWNER APPROVED + REPOSITORY INTEGRATED + 14-CARD SYNC PREPARED ON `main` — PRODUCTION DISPATCH AUTHORIZED, NOT YET DISPATCHED**
+- **Current target:** execute exactly one controlled 14-card production artwork sync and audit it end to end
+- **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
+- **Current task commit:** `600aed56eb0b724fa6ccb6522818a5bb82adbbaa`
 - **Card 04 integration PR:** `#41` — MERGED
 - **Card 04 integration merge / immutable artwork source:** `b792be37b32f73906d104642689afaa88a47b1c2`
 - **14-card sync preparation PR:** `#42` — MERGED
 - **14-card sync preparation merge commit:** `81a550200b06a889a751f3c78535c1b917bd5b41`
 - **Prepared target count:** `14`
 - **Prepared workflow gate:** `SYNC-14-CARD-ART-PRODUCTION`
-- **Production operation authorized:** **NO**
-- **Card 04 production sync authorized:** **NO**
-- **Production workflow dispatched:** **NO**
-- **Railway / production DB accessed for Card 04 sync:** **NO**
+- **Owner production authorization:** **YES — explicit exact phrase supplied on 2026-09-01**
 - **`SYNC-13-CARD-ART-PRODUCTION`:** **CONSUMED — MUST NOT BE REUSED**
-- **`SYNC-14-CARD-ART-PRODUCTION`:** **RESERVED / NOT AUTHORIZED / NOT CONSUMED**
-- **Open blocker:** fresh explicit owner authorization of the exact 14-card production confirmation string
+- **`SYNC-14-CARD-ART-PRODUCTION`:** **AUTHORIZED / NOT YET CONSUMED**
+- **Production workflow dispatched:** **NO**
+- **Railway / production DB accessed for this authorized run:** **NO**
+- **Open blocker:** execution agent must perform one `workflow_dispatch`; current ChatGPT GitHub connector cannot create a new workflow dispatch, so the authorized task is delegated through the canonical Claude task without requiring the owner to repeat the confirmation
 
-`docs/CLAUDE_CURRENT_TASK.md` describes the now-completed sync-preparation task and must be treated as **STALE / DO NOT RE-RUN** until explicitly replaced.
+## Active one-use production authorization
+
+The owner explicitly supplied:
+
+`SYNC-14-CARD-ART-PRODUCTION`
+
+This authorizes exactly one dispatch of `.github/workflows/production-card-art-sync.yml` on `main` with that exact confirmation input.
+
+The authorization is **not consumed merely by being recorded here**. It becomes **CONSUMED** the moment GitHub accepts a new workflow run. After a run exists, no second dispatch and no rerun are allowed without a fresh owner decision, regardless of success/failure/cancellation.
+
+If dispatch is rejected before a run is created, stop and report BLOCKED rather than inventing another production route.
+
+## Required production evidence
+
+The active task requires the execution agent to audit actual workflow logs and require:
+
+- immutable source `b792be37b32f73906d104642689afaa88a47b1c2` verified;
+- `ARTWORK_FILES_PRESENT=14/14`;
+- production-scope and read-only preflight gates all PASS;
+- PRE-WRITE `TARGET_ROWS=14`, `UNIQUE_SLUGS=14`, valid snapshot and actual mutation count;
+- APPLY, if needed: transaction committed, rows changed equals pre-write count, `TARGET_ROWS_FINAL=14`, `SOURCE_OF_TRUTH_MATCH=14/14`, `NON_TARGET_FIELD_CHANGES=0`;
+- POST-WRITE: `TARGET_ROWS=14`, `UNIQUE_SLUGS=14`, `ROWS_REQUIRING_MUTATION=0`, `SOURCE_OF_TRUTH_MATCH=14/14`.
+
+Only after every gate passes may Card 04 be marked **LIVE IN PRODUCTION**.
 
 ## Art Pack 03 progress
 
 - Card 01 `acolyte-of-the-white-rune` — **COMPLETE END TO END, LIVE IN PRODUCTION**
 - Card 02 `seal-of-the-curse` — **COMPLETE END TO END, LIVE IN PRODUCTION**
 - Card 03 `warden-of-the-barrier` — **COMPLETE END TO END, LIVE IN PRODUCTION**
-- Card 04 `rune-of-curse-breaking` — **FINAL OWNER APPROVED, REPOSITORY INTEGRATED, 14-CARD SYNC PREPARED ON `main`, NOT LIVE IN PRODUCTION**
+- Card 04 `rune-of-curse-breaking` — **FINAL OWNER APPROVED, REPOSITORY INTEGRATED, 14-CARD SYNC AUTHORIZED BUT NOT YET DISPATCHED**
 
-## Card 04 repository integration record
-
-Owner approved Card 04 after eight-surface QA and explicitly accepted both reported visual caveats for the exact approved bytes.
-
-PR #41 was owner-approved and merged on 2026-09-01.
-
-- merge commit: `b792be37b32f73906d104642689afaa88a47b1c2`
-- production path: `apps/web/public/art/cards/rune-of-curse-breaking.webp`
-- dimensions: `1024 × 1536`
-- byte size / RIFF total: `438894`
-- FourCC: plain `VP8 `
-- SHA-256: `6f07380f1f64bee0efd8ec9819de1951dd14fd9dc127dd173ddda909b1c49dd5`
-- Git blob SHA: `e1ea12a2f03cc84e9931600e978cc8bf6b1eaccb`
-- seed artwork path: `/art/cards/rune-of-curse-breaking.webp`
-- rights status: `owned`
-
-Gameplay facts remain locked:
-
-- type / rarity / cost: `RUNE / EPIC / 3`
-- faction/tag: `PURIFICATION / Purification`
-- mechanic: `TURN_START` → `CLEANSE` / `FRIENDLY_ALL`
-
-## 14-card controlled sync preparation — MERGED
-
-PR #42 was explicitly owner-approved and merged on 2026-09-01.
-
-Merge commit:
-
-`81a550200b06a889a751f3c78535c1b917bd5b41`
-
-Repository state after merge:
-
-- `apps/game-server/scripts/sync-production-card-art.ts` targets 14 cards;
-- the only new target versus the previous production set is `rune-of-curse-breaking`;
-- script `REQUIRED_SOURCE_COMMIT` is pinned to `b792be37b32f73906d104642689afaa88a47b1c2`;
-- workflow `REQUIRED_SOURCE_COMMIT` and `SOURCE_COMMIT` are pinned to the same immutable Card 04 integration merge;
-- committed-art verification expects `14/14` files;
-- PRE-WRITE expects `TARGET_ROWS=14` and `UNIQUE_SLUGS=14`;
-- APPLY expects `TARGET_ROWS_FINAL=14`, `SOURCE_OF_TRUTH_MATCH=14/14`, `NON_TARGET_FIELD_CHANGES=0`;
-- POST-WRITE expects `TARGET_ROWS=14`, `UNIQUE_SLUGS=14`, `ROWS_REQUIRING_MUTATION=0`, `SOURCE_OF_TRUTH_MATCH=14/14`;
-- exact workflow confirmation literal is `SYNC-14-CARD-ART-PRODUCTION`.
-
-Safety semantics remain intact: production-scope verification, immutable-source drift checks, pre-write snapshot gate, Serializable transaction, non-target fingerprints and independent post-write verification were not weakened.
-
-Preparation validation before merge established:
-
-- `ARTWORK_FILES_PRESENT=14/14` at the immutable source;
-- `SEED_SOURCE_OF_TRUTH=14/14` at the immutable source;
-- Card 04 exact blob and seed fields present;
-- old pin fails closed;
-- `--apply` without the immediately preceding snapshot refuses to run;
-- repository CI green.
-
-## Production boundary — HARD GATE
-
-The 14-card sync is technically prepared but **not authorized**.
+## Safety boundary
 
 Do NOT:
 
-- dispatch `.github/workflows/production-card-art-sync.yml`;
-- access or mutate Railway / production DB for this sync;
-- treat the presence of `SYNC-14-CARD-ART-PRODUCTION` in repository code as authorization;
-- reuse `SYNC-13-CARD-ART-PRODUCTION`;
-- begin Card 05 before Card 04 production closeout unless the owner explicitly changes priority.
-
-The next production action requires the owner to explicitly provide the exact one-use confirmation:
-
-`SYNC-14-CARD-ART-PRODUCTION`
-
-Only after that explicit authorization may the controlled workflow be dispatched. The run must then be audited through PRE-WRITE, APPLY (if required), and POST-WRITE evidence before Card 04 can be marked live in production.
+- dispatch more than once;
+- rerun a failed/cancelled run or job without fresh owner approval;
+- reuse either consumed confirmation;
+- bypass immutable-source, production-scope, snapshot, Serializable transaction, non-target-field or post-write checks;
+- perform ad-hoc production DB repairs;
+- begin another card before Card 04 production closeout is recorded.
 
 ## Card 03 closed production record
 
@@ -119,22 +83,6 @@ Only after that explicit authorization may the controlled workflow be dispatched
 - `NON_TARGET_FIELD_CHANGES=0`
 - `SYNC-13-CARD-ART-PRODUCTION`: **CONSUMED**
 
-Card 03 is closed. Do not reopen it without a new owner decision.
-
 ## Art binary transport standing rule
 
-The user is not a manual file courier.
-
-For generated masters when Claude Code has GitHub-only egress:
-
-1. keep/upload exact bytes through a provider with a machine-readable raw file API;
-2. use an isolated GitHub Actions transport branch to fetch raw bytes on a GitHub-hosted runner;
-3. hard-gate size + SHA-256 + Git blob SHA + RIFF/FourCC + dimensions + full decode before Git;
-4. commit exact bytes via normal git, push, fetch back and re-verify remote bytes;
-5. never merge temporary transport workflows into `main`;
-6. Claude/Codex independently verifies candidate bytes before QA/integration;
-7. manual owner upload is fallback-only.
-
-Never use GitHub Contents-API binary/base64 transport for generated masters; this project has already observed truncation through that route.
-
-Optional cleanup after Card 04 is fully live: delete `transport/card04-github-actions`; it carries a `contents: write` workflow and must never be merged.
+The user is not a manual file courier. Use the established GitHub Actions transport path with hard binary integrity gates for future generated masters when needed.
