@@ -1,147 +1,97 @@
-# CURRENT TASK — Art Pack 03 Card 04: approved master candidate intake + eight-surface QA
+# CURRENT TASK — Art Pack 03 Card 04: final repository integration PR
 
 ## Status
 
-Card 04 `rune-of-curse-breaking` / «Руна Разрушения Проклятий» has an **OWNER-APPROVED master art**.
+Card 04 `rune-of-curse-breaking` / «Руна Разрушения Проклятий» is **FINAL OWNER APPROVED AFTER EIGHT-SURFACE QA**.
 
-Owner approval record:
+Post-QA owner approval:
 
-`docs/agent-reports/2026-08-31-art-pack-03-card-04-owner-approval.md`
+`docs/agent-reports/2026-09-01-art-pack-03-card-04-post-qa-owner-approval.md`
 
-This task authorizes **candidate intake and review only**. It does not authorize production integration or production access.
+Candidate QA:
 
-## Canonical card facts
+`docs/agent-reports/2026-08-31-art-pack-03-card-04-candidate-qa.md`
 
-- slug: `rune-of-curse-breaking`
-- name: «Руна Разрушения Проклятий»
-- faction/tag: PURIFICATION / `Purification`
-- type: `RUNE`
-- rarity: `EPIC`
-- cost: `3`
-- ability: `В начале каждого вашего хода снимите Проклятие и Заглушение со всех союзников.`
-- mechanic: `TURN_START` → `CLEANSE` / `FRIENDLY_ALL`
+This task authorizes **repository integration PR preparation only**. It does not authorize production sync, production DB access or workflow dispatch.
 
-Gameplay facts are locked and out of scope.
+## Exact approved source
 
-## Approved visual source
+Use only:
 
-Generation id:
-
-`f2e3d336-6db5-4d45-9d64-6bfebd8e9196`
-
-Approved concept: **The cleansing font**, with the owner-approved geometry refinement:
-
-- low, wide, faceted purification basin / reservoir;
-- integrated into a short stepped stone base;
-- elongated / faceted / octagonal rather than circular;
-- not a church font, decorative park fountain, tall pedestal basin, central-column fountain, upward jet, or circular symmetrical fountain;
-- water is cold, clear and almost colourless; it is a physical `CLEANSE` carrier, not blue elemental magic;
-- off-frame floor channels are the `FRIENDLY_ALL` reach device;
-- no people or figures.
-
-The master shown to and approved by the owner is the only approved visual source. Do not regenerate, redesign, crop, extend, recompose, repaint, sharpen or creatively alter it.
-
-## Approved transport WebP integrity contract
-
-A transport WebP was made from the approved 1024 × 1536 RGB PNG without crop, resize or recomposition.
-
-Expected exact values:
-
-- filename: `rune-of-curse-breaking.webp`
+- candidate branch: `assets/rune-of-curse-breaking-candidate-v1`
+- candidate HEAD: `185126c8b402dc4134245f984d9d0e7cddc6db8a`
+- candidate asset: `art-source/rune-of-curse-breaking.webp`
 - dimensions: `1024 × 1536`
+- byte size / RIFF total: `438894`
 - FourCC: plain `VP8 `
-- actual byte size: `438894`
-- RIFF declared total: `438894`
 - SHA-256: `6f07380f1f64bee0efd8ec9819de1951dd14fd9dc127dd173ddda909b1c49dd5`
 - Git blob SHA: `e1ea12a2f03cc84e9931600e978cc8bf6b1eaccb`
 - full decode: PASS
 
-Temporary byte-preserving source, valid until 2026-09-14:
+The two QA caveats are explicitly accepted by the owner for these exact bytes: dark-rather-than-bright basin/water lip, and the soft upper-third architecture. Do not regenerate, alter or reopen those caveats unless the bytes/rendering change.
 
-`https://firestorage.ai/ja/f/8hmlyOzbah75`
+## Goal
 
-Candidate branch already exists:
+Prepare a narrow, auditable PR that integrates the exact approved Card 04 artwork into repository production paths, but **does not perform production synchronization**.
 
-`assets/rune-of-curse-breaking-candidate-v1`
+## Required sequence
 
-## Retrieval rule
-
-Do not use an unrelated local image, placeholder, browser screenshot or reconstructed image.
-
-Retrieve the exact approved WebP by an available byte-preserving route. If the Firestorage share cannot be fetched in this environment, do not fabricate or substitute anything. Stop at **BLOCKED — APPROVED BINARY TRANSPORT REQUIRED** and report the precise transport blocker.
-
-A successful retrieval is valid only if all expected integrity values above match exactly.
-
-## Required work
-
-1. Read `CLAUDE.md`, `docs/AGENT_STATE.md`, the approved brief, generation package and owner approval report before touching the candidate.
-2. Work only on `assets/rune-of-curse-breaking-candidate-v1` for candidate intake. Refresh it from the intended base only if doing so does not discard the owner's reserved branch or approved object.
-3. Land the exact approved file at:
-   `art-source/rune-of-curse-breaking.webp`
-4. Hard-verify and record:
-   - dimensions;
-   - actual byte size;
-   - RIFF declared total = actual byte size;
-   - plain `VP8 ` FourCC;
-   - full decode PASS;
-   - SHA-256;
-   - Git blob SHA;
-   - `git cat-file -s` matches actual size;
-   - fetched remote branch re-verification matches the same values.
-5. Stage only for review at the gitignored candidate path:
-   `apps/web/public/art-review-candidates/rune-of-curse-breaking.webp`
-6. Run the **eight** Card 04 RUNE review surfaces established by the brief:
-   - raw 2:3;
-   - CardView 3:4;
-   - CardDetailDrawer 4:5;
-   - HandCardPreview 7:9;
-   - `/admin/art-review` desktop;
-   - `/admin/art-review` 390 px;
-   - 92 px thumbnail;
-   - 92 px grayscale.
-   `CreatureSlot` is N/A for RUNE and must not be invented as a ninth surface.
-7. Compare the real candidate against every automatic reject and acceptance item in:
-   `docs/art-review/rune-of-curse-breaking-master-art-brief.md`
-8. Specifically measure/check the generated reality rather than assuming prompt compliance:
-   - no figure;
-   - continuous visible overflow;
-   - straight/off-frame channels and no closed floor rune-circle;
-   - ornamental rim marks do not read as text/script;
-   - no watermark/UI/card frame;
-   - gold ≤ 4%;
-   - 92 px grayscale spread versus the brief target;
-   - water lip / subject hierarchy;
-   - uniqueness versus Cards 01–03, faction flagship and `rune-of-the-echoing-dusk`;
-   - crop safety on the real 3:4, 7:9 and binding 4:5 surfaces;
-   - no horizontal overflow at 390 px.
-9. Do not silently alter the artwork to fix a QA issue. Report deviations as they exist.
-10. Preserve complete production isolation.
+1. Read `CLAUDE.md`, `docs/AGENT_STATE.md`, this task, the post-QA owner approval and candidate QA report.
+2. Sync fresh `main` and confirm the task source is current.
+3. Fetch `assets/rune-of-curse-breaking-candidate-v1` and independently re-verify the exact candidate tuple above before copying anything.
+4. Create a fresh integration branch from current `main`, preferably:
+   `claude/integrate-rune-of-curse-breaking-art`
+5. Do **not** merge/cherry-pick the candidate review branch wholesale. Bring only the approved binary and the deliberate integration changes listed below.
+6. Copy the exact approved bytes to:
+   `apps/web/public/art/cards/rune-of-curse-breaking.webp`
+   Then prove the production-path file remains byte-identical to the candidate by size + SHA-256 + Git blob SHA + dimensions + full decode.
+7. Update only the Card 04 seed artwork fields in `apps/game-server/prisma/seed.ts`:
+   - `artworkUrl: '/art/cards/rune-of-curse-breaking.webp'`
+   - `rightsStatus: 'owned'`
+   Do not change gameplay, ability, cost, rarity, faction, tags or any other card field.
+8. Add Card 04 to the canonical `/admin/art-review` approved targets, following Cards 01–03:
+   - slug `rune-of-curse-breaking`
+   - faction `PURIFICATION`
+   - label `ART PACK 03 — APPROVED 04`
+   - `reviewArtworkUrl: '/art/cards/rune-of-curse-breaking.webp'`
+   Preserve the RUNE/no-`CreatureSlot` behavior.
+9. Update `docs/art-pack-03.md` to record Card 04 as **FINAL OWNER APPROVED / REPOSITORY INTEGRATION** (not live in production yet). Keep production status truthful.
+10. Update any minimal provenance/status documentation genuinely required to point at the immutable approved candidate and post-QA approval. Do not broaden scope.
+11. Run scope diff checks, Prettier on changed text/code files, relevant lint/typecheck/tests, and production build if the normal art integration checklist requires it.
+12. Verify exact changed-file list. Expected core scope is:
+    - `apps/web/public/art/cards/rune-of-curse-breaking.webp`
+    - `apps/game-server/prisma/seed.ts`
+    - `apps/web/src/app/admin/art-review/page.tsx`
+    - `docs/art-pack-03.md`
+    - minimal integration handoff/provenance docs only
+13. Create a PR to `main` with a clear Card 04 integration title/body.
+14. Add the standard PR comment:
+    `## AGENT HANDOFF — FINAL REPORT`
+    including exact integrity tuple, changed files, validation results, and explicit statement that production sync was not run.
+15. Update `docs/AGENT_STATE.md` last to point at the PR and status **READY FOR OWNER MERGE APPROVAL**, then fetch it back from GitHub and verify.
+16. Stop. **Do not merge the PR.**
 
 ## Hard exclusions
 
 Do NOT:
 
-- generate or edit Card 04 imagery;
-- substitute another image if retrieval fails;
-- integrate into `apps/web/public/art/cards/`;
-- change `seed.ts`, `artworkUrl`, `rightsStatus`, gameplay, schema or migrations;
-- extend production artwork sync 13 → 14;
+- regenerate/edit/re-encode/crop/resize the artwork;
+- merge the candidate branch wholesale;
+- change Card 04 gameplay or balance fields;
+- change other cards' seed rows;
+- extend or modify production sync logic 13 → 14 in this task;
 - create or consume a production confirmation string;
 - dispatch production workflows;
-- access or mutate Railway, Vercel or production DB;
+- access/mutate Railway, Vercel or production DB;
+- reuse `SYNC-13-CARD-ART-PRODUCTION`;
 - begin another card;
-- reuse `SYNC-13-CARD-ART-PRODUCTION`.
-
-## Durable handoff
-
-Leave the standard durable candidate QA report. Update `docs/AGENT_STATE.md` **LAST**, fetch it back from GitHub and verify it.
+- merge the integration PR.
 
 ## Final status
 
 End at exactly one of:
 
-- **READY FOR OWNER VISUAL APPROVAL**
+- **READY FOR OWNER MERGE APPROVAL**
 - **REJECTED / BLOCKED**
-- **BLOCKED — APPROVED BINARY TRANSPORT REQUIRED**
 
-If READY, return branch, exact HEAD SHA, asset path, dimensions, byte size, SHA-256, Git blob SHA, QA report path and final status.
+No production action is authorized by this task.
