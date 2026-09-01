@@ -11,17 +11,52 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 04 — BOND / «Дом Весеннего Света»
-- **Status:** **OWNER MASTER APPROVED — CANDIDATE TRANSPORT / NINE-SURFACE QA NEXT**
+- **Status:** **REJECTED / BLOCKED — NO INTEGRATION.** Candidate transport failed: the provider reports the supplied Firestorage share does not exist. No candidate bytes exist, so the nine-surface QA could not run.
 - **Current target:** `child-of-the-spring-light` / «Дитя Весеннего Света»
-- **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
+- **Current task:** `docs/CLAUDE_CURRENT_TASK.md` — executed, ended BLOCKED at the transport step
 - **Current task commit:** `da7bac4f43c1c57749421539ea659e3142694c7e`
+- **Latest task-result commit:** `5a49aad7befd6610a2d6887b7538c00e2c267dab`
+- **Latest report:** `docs/agent-reports/2026-09-02-art-pack-04-card-01-candidate-qa.md`
 - **Canonical brief:** `docs/art-review/child-of-the-spring-light-master-art-brief.md`
 - **Owner master approval:** `docs/agent-reports/2026-09-02-art-pack-04-card-01-owner-master-approval.md`
 - **Pack document:** `docs/art-pack-04.md`
+- **Artwork bytes in the repository:** **NONE** — nothing was committed on any branch
+- **Nine-surface QA:** **NOT RUN** — no QA result exists and none may be inferred
 - **Production operation authorized:** **NO**
 - **Production workflow dispatch authorized:** **NO**
 - **Railway / production DB / Vercel authorized:** **NO**
-- **Open blocker:** candidate transport and objective nine-surface QA must complete before any post-QA owner decision or integration
+- **Open blocker — owner action required:** the approved master is not reachable. Re-upload the exact WebP (`596976` bytes, SHA-256 `bc2e5abcfcedacfad6b98816229c0bb1205cb71d7177f09e88568442ecaaf9c2`) and supply a fresh share link; then re-run the transport by pushing to `transport/art-pack-04-card01-github-actions`, which already carries the correct expected tuple.
+
+## Card 01 candidate transport — BLOCKED, source not found
+
+The runner-owned transport failed at the first provider call. Evidence in
+`docs/agent-reports/2026-09-02-art-pack-04-card-01-candidate-qa.md`.
+
+| Item                             | Value                                                                    |
+| -------------------------------- | ------------------------------------------------------------------------ |
+| Transport run                    | `33565829125`, job `100048651134` — **failure** at the provider lookup   |
+| Read-only probes                 | `33565969881`, `33566091089` — both success, both confirming the 404     |
+| Supplied share                   | `aZIlHM-TkPI7` → **404 `{"detail":"Share link not found"}`**             |
+| Positive control (Card 04 share) | `8hmlyOzbah75` → **HTTP 200** — endpoint and method are healthy          |
+| Candidate branch                 | `assets/child-of-the-spring-light-candidate-v1` @ `730efda` — no artwork |
+| Transport branch                 | `transport/art-pack-04-card01-github-actions` @ `73c6b96` — never merge  |
+| Production path for this card    | does not exist                                                           |
+
+Three further findings, so nobody re-litigates them:
+
+1. The share **page** returns HTTP 200 but proves nothing — it is a client-rendered shell that renders
+   for any id and carries no share id, file id, filename or size. Only the API is authoritative.
+   A share is live when `https://api.firestorage.ai/prod/file/shares/<SHARE_ID>/files?maxResults=1000`
+   returns 200.
+2. The supplied file id `fl_f0555165aaff4598bed07f2e0f44c487` is 35 characters; the API rejects it as
+   too long (max 32), so it was never an API file id. The transport does not need it anyway — the
+   file is selected from the listing by **size + MIME**, never by filename.
+3. Expiry is not the cause: the record claims `2026-09-16` and the probes ran on 2026-09-01. A bounded
+   check of the ambiguous capital-`I` / lowercase-`l` positions in the id returned 404 on all seven
+   alternatives.
+
+Nothing was substituted, re-rendered, re-encoded or reconstructed, and no alternative transport route
+was improvised after the provider route failed.
 
 ## Card 01 canonical facts
 
@@ -106,7 +141,7 @@ Measure every gate from brief §16, including actual crop geometry, edge density
 
 ## Art Pack 04 roster
 
-- Card 01 `child-of-the-spring-light` — **OWNER MASTER APPROVED, CANDIDATE QA NEXT**
+- Card 01 `child-of-the-spring-light` — **OWNER MASTER APPROVED, TRANSPORT BLOCKED — needs a fresh share link before QA can run**
 - Card 02 `keeper-of-the-promise` — planned, not briefed
 - Card 03 `light-of-the-hearth` — planned, not briefed
 - Card 04 `rune-of-reflected-light` — planned, not briefed
