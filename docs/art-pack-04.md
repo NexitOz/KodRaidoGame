@@ -5,12 +5,13 @@ Production artwork for the BOND faction's non-flagship cards. The faction's LEGE
 this pack — it is the faction anchor every card here is measured against. See
 [`art-bible-01.md`](art-bible-01.md).
 
-**Pack status:** IN PROGRESS — Card 01 brief and generated master are owner-approved. Exact candidate
-transport and the full nine-surface QA are next. Nothing has been integrated or synced.
+**Pack status:** BLOCKED — Card 01's brief and generated master are owner-approved, but candidate
+transport failed: the provider reports the supplied Firestorage share does not exist, so no candidate
+bytes exist and the nine-surface QA could not run. Nothing has been integrated or synced.
 
 | #   | Slug                            | Type / Rarity / Cost      | Status                                                           |
 | --- | ------------------------------- | ------------------------- | ---------------------------------------------------------------- |
-| 01  | `child-of-the-spring-light`     | CHARACTER / COMMON / 1    | **OWNER MASTER APPROVED — CANDIDATE TRANSPORT / QA NEXT**        |
+| 01  | `child-of-the-spring-light`     | CHARACTER / COMMON / 1    | **BLOCKED — transport source missing; needs a fresh share link** |
 | 02  | `keeper-of-the-promise`         | CHARACTER / RARE / 3      | Planned — not briefed                                            |
 | 03  | `light-of-the-hearth`           | TRACK / RARE / 2          | Planned — not briefed                                            |
 | 04  | `rune-of-reflected-light`       | RUNE / EPIC / 3           | Planned — not briefed                                            |
@@ -37,7 +38,7 @@ Measured at 92 px (method in the Card 01 brief §9): edge density **43.46**, gra
 mean luminance **131.4**, R−B **+62.0**, saturation **42.1 %** — the second-busiest and by far the
 warmest image in the shipped set.
 
-## Card 01 — `child-of-the-spring-light` — OWNER MASTER APPROVED
+## Card 01 — `child-of-the-spring-light` — OWNER MASTER APPROVED, TRANSPORT BLOCKED
 
 Canonical brief:
 [`art-review/child-of-the-spring-light-master-art-brief.md`](art-review/child-of-the-spring-light-master-art-brief.md)
@@ -105,6 +106,41 @@ Machine-owned temporary source: `https://firestorage.ai/ja/f/aZIlHM-TkPI7`, expi
 
 The WebP still requires objective candidate QA against the canonical brief. Owner approval does not
 silently waive crop or metric criteria.
+
+### Candidate transport — BLOCKED, source not found
+
+Full evidence:
+[`agent-reports/2026-09-02-art-pack-04-card-01-candidate-qa.md`](agent-reports/2026-09-02-art-pack-04-card-01-candidate-qa.md)
+
+The runner-owned transport failed at the first provider call. The Firestorage API answers
+`404 {"detail":"Share link not found"}` for share `aZIlHM-TkPI7`, and a read-only probe confirmed it
+three ways: the share metadata endpoint also 404s; the supplied file id
+`fl_f0555165aaff4598bed07f2e0f44c487` is rejected as too long for an API file id (max 32 characters);
+and the share **page** returning HTTP 200 proves nothing, because it is a client-rendered shell that
+renders for any id and carries no ids, filename or size in its HTML.
+
+A positive control settles it: the Art Pack 03 Card 04 share `8hmlyOzbah75` still returns HTTP 200
+today, so the endpoint, the API contract, the runner egress and the transport method are all healthy.
+The failure is specific to this share. Expiry is not the cause — the record claims
+`2026-09-16` and the probes ran on 2026-09-01. A bounded check of the ambiguous capital-`I` /
+lowercase-`l` positions in the id (three positions, seven alternatives) also returned 404 on every
+one.
+
+| Item                                                       | Value                                                                        |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Transport run                                              | `33565829125`, job `100048651134` — **failure** at the provider lookup       |
+| Probe runs (read-only)                                     | `33565969881`, `33566091089` — both success, both confirming the 404         |
+| Candidate branch                                           | `assets/child-of-the-spring-light-candidate-v1` @ `730efda` — **no artwork** |
+| Transport branch                                           | `transport/art-pack-04-card01-github-actions` @ `73c6b96` — must never merge |
+| Artwork bytes committed                                    | **none**                                                                     |
+| Nine-surface QA                                            | **not run** — there are no bytes to review                                   |
+| Production path `art/cards/child-of-the-spring-light.webp` | **does not exist**                                                           |
+
+No substitute, re-render, re-encode or reconstruction was attempted, and no alternative transport
+route was improvised. To unblock: re-upload the exact WebP (`596976` bytes, SHA-256 `bc2e5abc…f9c2`)
+and supply a fresh share link, then re-run the transport by pushing to the transport branch — the
+workflow already carries the correct expected tuple. A share is live when
+`https://api.firestorage.ai/prod/file/shares/<SHARE_ID>/files?maxResults=1000` returns HTTP 200.
 
 ### Rarity ladder for BOND
 
