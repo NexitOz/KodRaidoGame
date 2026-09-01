@@ -11,43 +11,47 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** Cards 01, 02 and 03 **COMPLETE END TO END — LIVE IN PRODUCTION**; Card 04 **FINAL OWNER APPROVED + REPOSITORY INTEGRATED ON `main` — NOT YET LIVE IN PRODUCTION**
-- **Current target:** controlled production-art sync preparation for Card 04 / 14 total targets
+- **Status:** **READY FOR OWNER MERGE APPROVAL — 14-CARD SYNC PREP ONLY**
+- **Detail:** Cards 01, 02 and 03 **COMPLETE END TO END — LIVE IN PRODUCTION**; Card 04 **FINAL OWNER APPROVED + REPOSITORY INTEGRATED ON `main`, 14-CARD SYNC PREPARED IN PR — NOT AUTHORIZED, NOT RUN, NOT LIVE IN PRODUCTION**
+- **Current target:** owner audit and merge decision on the 14-card sync-preparation PR
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
 - **Current task commit:** `2db532372ef68ea0691ddba360c65baa1360b746`
-- **Current task type:** repository-only preparation PR: extend controlled sync 13 → 14 + immutable-source repin; no merge, no production dispatch
+- **Current task type:** repository-only preparation PR: extend controlled sync 13 → 14 + immutable-source repin; no merge, no production dispatch — **COMPLETED, PR OPEN**
+- **Latest task-result commit:** `404dc6271721e950c4b5b74d9467c49f1aa25050`
+- **Branch / PR:** `claude/prepare-14-card-art-sync` → PR `#42` — OPEN / NOT MERGED
+- **Base SHA:** `798e1430ac833934caf83b797599caa1506f78f9`
+- **Latest report:** PR #42 comment `## AGENT HANDOFF — FINAL REPORT` — https://github.com/NexitOz/KodRaidoGame/pull/42#issuecomment-5500388293
+- **Exact scope of changes (3 files):** `apps/game-server/scripts/sync-production-card-art.ts`, `.github/workflows/production-card-art-sync.yml`, `docs/art-pack-03.md`. No seed, schema, migration, artwork, gameplay or UI file changed.
 - **Card 04 integration PR:** `#41` — MERGED
-- **Card 04 integration merge commit / required immutable source:** `b792be37b32f73906d104642689afaa88a47b1c2`
+- **Card 04 integration merge commit / required immutable source:** `b792be37b32f73906d104642689afaa88a47b1c2` — now pinned at all three sites
 - **Card 04 integration CI:** run `33555928983` — success
 - **Production operation authorized:** **NO**
 - **Card 04 production sync authorized:** **NO**
+- **Production workflow dispatched:** **NO**
+- **Railway / production DB accessed:** **NO** (not even read-only preflight)
 - **`SYNC-13-CARD-ART-PRODUCTION`:** **CONSUMED — MUST NOT BE REUSED**
-- **Future `SYNC-14-CARD-ART-PRODUCTION`:** may be reserved in repository code by the current preparation task if required by the workflow shape, but remains **NOT AUTHORIZED / NOT CONSUMED** until a later explicit owner decision
-- **Open blocker after this task:** owner audit/merge approval of the 14-card sync-preparation PR, followed later by a fresh explicit production authorization
+- **`SYNC-14-CARD-ART-PRODUCTION`:** present in the workflow gate as a **RESERVED exact literal** only — **NOT AUTHORIZED / NOT CONSUMED** until a later explicit owner decision at dispatch time
+- **Open blocker:** owner audit/merge approval of PR #42, followed later by a separate fresh explicit production authorization
+- **Recommended next action:** owner reviews and merges PR #42. Do not dispatch the sync workflow on the strength of this preparation; a fourteen-card run needs a new explicit owner confirmation. After merge the pin is already correct and will not need repinning again for Card 04.
 
-## Current authorized task — 14-card sync preparation only
+## Completed task record — 14-card sync preparation
 
-Execute `docs/CLAUDE_CURRENT_TASK.md` @ `2db532372ef68ea0691ddba360c65baa1360b746`.
+Executed `docs/CLAUDE_CURRENT_TASK.md` @ `2db532372ef68ea0691ddba360c65baa1360b746`. Result: PR #42, head `404dc6271721e950c4b5b74d9467c49f1aa25050`.
 
-Required intent:
+What was verified and done:
 
-1. fresh `main`;
-2. verify PR #41 merge and immutable source `b792be37b32f73906d104642689afaa88a47b1c2`;
-3. create a fresh preparation branch;
-4. extend `apps/game-server/scripts/sync-production-card-art.ts` from 13 to 14 targets by adding only `rune-of-curse-breaking`;
-5. repin script immutable source to `b792be37b32f73906d104642689afaa88a47b1c2`;
-6. extend `.github/workflows/production-card-art-sync.yml` from 13 to 14 counts/slugs and repin both immutable-source env values to the same merge SHA;
-7. preserve all existing fail-closed production-scope, snapshot, transaction, drift, post-write and non-target-field protections;
-8. statically prove 14/14 committed art paths and 14/14 seed art source-of-truth at the immutable merge commit;
-9. do not touch seed/schema/art/gameplay/UI;
-10. do not access Railway or production DB, even read-only;
-11. do not dispatch the production workflow;
-12. create a narrow PR and stop at `READY FOR OWNER MERGE APPROVAL — 14-CARD SYNC PREP ONLY`;
-13. update this file last and fetch-verify it.
+1. fresh `main` synced; PR #41 confirmed merged as `b792be37b32f73906d104642689afaa88a47b1c2` (parents `1a2b7ea` + `b69b389`), an ancestor of both `main` and the task branch;
+2. at the pinned commit: `ARTWORK_FILES_PRESENT=14/14`, `SEED_SOURCE_OF_TRUTH=14/14`, Card 04 blob `e1ea12a2f03cc84e9931600e978cc8bf6b1eaccb` / `438894` bytes / SHA-256 `6f07380f…c1b49dd5`;
+3. `sync-production-card-art.ts` repinned and extended by exactly one slug (`rune-of-curse-breaking`); target-list diff versus the old pin is a single added line;
+4. `production-card-art-sync.yml` repinned at both env values; the same single slug added; every hard count assertion raised 13 → 14 (`ARTWORK_FILES_PRESENT`, `TARGET_ROWS`, `UNIQUE_SLUGS`, mutation bound, `TARGET_ROWS_FINAL`, `SOURCE_OF_TRUTH_MATCH`) plus the confirmation gate;
+5. no safety semantics weakened — production-scope verification, snapshot gate, Serializable transaction, non-target fingerprints, drift checks and POST-WRITE re-read all unchanged; both negative controls still fail closed (old pin rejected; `--apply` without a preceding-`--check` snapshot refused);
+6. no drift on `seed.ts`, `schema.prisma` or `apps/web/public/art/cards` between the pin and either `main` or HEAD;
+7. validation: Prettier clean on all three changed files, pre-existing script drift unchanged at 7 hunks, YAML parses, `tsc --strict` and `eslint` clean on the script, `npm run lint -w apps/game-server` pass, `npm run test -w apps/game-server` **156/156 pass**, `git diff --check` clean;
+8. read-only derivation against a **local test Postgres only**: `TARGET_ROWS=14`, `UNIQUE_SLUGS=14`, `SOURCE_OF_TRUTH_MATCH=14/14`, exit 0.
 
-## Hard production boundary
+## Hard production boundary — still in force
 
-This task is repository preparation only.
+The completed task was repository preparation only, and no production authorization follows from it.
 
 Do NOT:
 
@@ -96,16 +100,21 @@ Gameplay facts are locked and must not change during sync preparation:
 - ability: `В начале каждого вашего хода снимите Проклятие и Заглушение со всех союзников.`
 - mechanic: `TURN_START` → `CLEANSE` / `FRIENDLY_ALL`
 
-## Existing 13-card sync state before current task
+## Sync definition state
 
-Current script/workflow on `main` before the preparation task:
+On `main` (before PR #42 merges):
 
 - targets: 13
 - immutable source: Card 03 integration commit `8b8322aad6fc52ca7e9ac796027605c5e1e9c78b`
 - workflow exact gate: consumed `SYNC-13-CARD-ART-PRODUCTION`
 - Card 04 absent from target list
 
-The current task must update this repository definition safely to 14 while performing **zero production operations**.
+On `claude/prepare-14-card-art-sync` (PR #42, open):
+
+- targets: 14 — the single addition is `rune-of-curse-breaking`
+- immutable source: `b792be37b32f73906d104642689afaa88a47b1c2` at all three pin sites
+- workflow exact gate: `SYNC-14-CARD-ART-PRODUCTION` — RESERVED, NOT AUTHORIZED, NOT CONSUMED
+- zero production operations were performed to produce this state
 
 ## Card 03 closed production record
 
@@ -126,7 +135,7 @@ Card 03 is closed. Do not reopen it without a new owner decision.
 - Card 01 `acolyte-of-the-white-rune` — **COMPLETE END TO END, LIVE IN PRODUCTION**
 - Card 02 `seal-of-the-curse` — **COMPLETE END TO END, LIVE IN PRODUCTION**
 - Card 03 `warden-of-the-barrier` — **COMPLETE END TO END, LIVE IN PRODUCTION**
-- Card 04 `rune-of-curse-breaking` — **FINAL OWNER APPROVED, REPOSITORY INTEGRATED, PRODUCTION SYNC PREPARATION AUTHORIZED, NOT LIVE IN PRODUCTION**
+- Card 04 `rune-of-curse-breaking` — **FINAL OWNER APPROVED, REPOSITORY INTEGRATED, 14-CARD SYNC PREPARED IN PR #42 — NOT AUTHORIZED, NOT RUN, NOT LIVE IN PRODUCTION**
 
 ## Art binary transport standing rule
 
