@@ -112,6 +112,16 @@ const REVIEW_TARGETS: ReviewTarget[] = [
     referenceLabel: 'ART PACK 03 — APPROVED 04',
     reviewArtworkUrl: '/art/cards/rune-of-curse-breaking.webp',
   },
+  // Art Pack 04 Card 01 candidate, under review on this branch only. It reads from the gitignored
+  // `art-review-candidates/` staging directory, never from the production `art/cards/` path, so
+  // nothing here can leak into production. Card 01 is a CHARACTER, so it takes the `hasBoardSlot`
+  // true path below and shows all five surfaces including the real CreatureSlot board slot.
+  {
+    slug: 'child-of-the-spring-light',
+    faction: 'BOND',
+    referenceLabel: 'ART PACK 04 — CANDIDATE 01',
+    reviewArtworkUrl: '/art-review-candidates/child-of-the-spring-light.webp',
+  },
 ];
 
 function FlagshipRow({
