@@ -1,140 +1,140 @@
-# CURRENT TASK — Art Pack 03 Card 04: authorized 14-card production artwork sync
+# CURRENT TASK — Art Pack 04 / BOND Card 01: master-art brief + generation package
 
 ## Status
 
-Card 04 `rune-of-curse-breaking` / «Руна Разрушения Проклятий» is FINAL OWNER APPROVED, repository-integrated, and the controlled 14-card production artwork sync is prepared on `main`.
+Art Pack 03 / PURIFICATION is **COMPLETE END TO END**. Cards 01–04 are live in production, including Card 04 `rune-of-curse-breaking` after controlled production run `33560559977` / job `100031744885`.
 
-Repository preparation:
+Both previous production confirmations are consumed and invalid forever:
 
-- Card 04 integration PR `#41`: MERGED
-- immutable artwork source: `b792be37b32f73906d104642689afaa88a47b1c2`
-- 14-card sync preparation PR `#42`: MERGED
-- sync-preparation merge: `81a550200b06a889a751f3c78535c1b917bd5b41`
-- prepared target count: `14`
-- workflow: `.github/workflows/production-card-art-sync.yml`
+- `SYNC-13-CARD-ART-PRODUCTION` — CONSUMED
+- `SYNC-14-CARD-ART-PRODUCTION` — CONSUMED
 
-## OWNER PRODUCTION AUTHORIZATION — ACTIVE, ONE USE
+No production operation is authorized by this task.
 
-On 2026-09-01 the owner explicitly supplied the exact required confirmation:
+The next faction-art milestone is **Art Pack 04 — BOND / «Дом Весеннего Света»**.
 
-`SYNC-14-CARD-ART-PRODUCTION`
+BOND's flagship Legendary already has approved production artwork:
 
-This task therefore AUTHORIZES exactly one production workflow dispatch using that exact confirmation.
+- `matriarch-of-the-spring-light` / «Матриарх Дома Весеннего Света» — LEGENDARY — production reference / faction anchor already live.
 
-Authorization state before dispatch:
+The four non-flagship BOND cards, in starter-roster order, are:
 
-- `SYNC-13-CARD-ART-PRODUCTION`: CONSUMED, invalid forever
-- `SYNC-14-CARD-ART-PRODUCTION`: **AUTHORIZED / NOT YET CONSUMED**
+1. `child-of-the-spring-light` — «Дитя Весеннего Света»
+2. `keeper-of-the-promise` — «Хранитель Обещания»
+3. `light-of-the-hearth` — «Свет Очага»
+4. `rune-of-reflected-light` — «Руна Отражённого Света»
 
-The authorization is one-use. The moment GitHub accepts the workflow dispatch and a new run is created, mark `SYNC-14-CARD-ART-PRODUCTION` **CONSUMED**, regardless of the eventual run result. Do not create a second dispatch and do not rerun a failed/cancelled job or run without a fresh owner decision.
+This task concerns **Card 01 only**.
 
-If the dispatch API clearly rejects the request before any run is created, STOP as BLOCKED and do not improvise another production route.
+## Canonical Card 01 facts to verify from repository
+
+Target:
+
+- slug: `child-of-the-spring-light`
+- Russian name: «Дитя Весеннего Света»
+- faction: BOND
+- type: CHARACTER
+- rarity: COMMON
+- cost: 1
+- attack / health: 1 / 3
+- ability text: `При выходе: восстановите 1 здоровье Проводнику.`
+- role: early sustain / small on-play heal, not a major board swing
+
+These are gameplay facts, not art suggestions. Confirm them independently from `apps/game-server/prisma/seed.ts`, `docs/content-pack-01.md`, and related engine/interpreter paths. Do not change them.
+
+## BOND visual anchor already established
+
+Use `docs/art-bible-01.md` BOND section and the approved `matriarch-of-the-spring-light` production art as the primary faction anchor.
+
+Known locked language to verify and expand from the repo:
+
+- warm ivory + pale sage-green base;
+- warm amber BOND accent around `#e0a458`;
+- organic gold vine/branch filigree rather than PURIFICATION's straight geometric gold;
+- living garden / natural canopy language unique to BOND;
+- warm golden-hour diffuse backlight;
+- soft, welcoming, sustaining mood rather than harsh combat chiaroscuro;
+- flowing organic fabric/material language rather than rigid plate;
+- healing / protection / ally synergy / sustain is the faction gameplay identity.
+
+Card 01 is COMMON and must sit visibly far below the Legendary Matriarch in ceremony, gold, VFX, architecture, costume complexity and staging.
 
 ## Goal
 
-Dispatch the reviewed 14-card controlled production artwork workflow once, then audit the complete PRE-WRITE → APPLY (if required) → POST-WRITE evidence. Mark Card 04 live only if every required gate passes.
+Create the canonical **master-art brief and image-generation package** for Art Pack 04 Card 01.
+
+The task ends before image generation, candidate transport, repository artwork integration, seed changes or production sync.
 
 ## Required sequence
 
-1. Read `CLAUDE.md`, `docs/AGENT_STATE.md`, this task, PR #42 handoff, and the Card 03 production-sync report.
-2. Sync fresh `main` and verify:
-   - PR #42 is merged as `81a550200b06a889a751f3c78535c1b917bd5b41`;
-   - current workflow gate is exactly `SYNC-14-CARD-ART-PRODUCTION`;
-   - workflow and script target 14 cards;
-   - all three immutable-source pins resolve to `b792be37b32f73906d104642689afaa88a47b1c2`;
-   - no protected-path drift has appeared since the audited preparation that would make the immutable-source gate unsafe or stale.
-3. Do not edit code before dispatch. Do not weaken or bypass any gate.
-4. Dispatch `.github/workflows/production-card-art-sync.yml` on `main` exactly once with input:
-   - `confirmation = SYNC-14-CARD-ART-PRODUCTION`
-5. As soon as GitHub confirms a new workflow run exists, record:
-   - run ID / run number / URL;
-   - head branch/ref;
-   - head SHA;
-   - `SYNC-14-CARD-ART-PRODUCTION = CONSUMED`.
-6. Wait for the run to finish. Do not rerun anything automatically.
-7. Audit the actual job logs, not only the run conclusion. Require all applicable evidence below.
-
-### Immutable/repository gates
-
-Require:
-
-- exact manual confirmation step PASS;
-- immutable source SHA verified as `b792be37b32f73906d104642689afaa88a47b1c2`;
-- `ARTWORK_FILES_PRESENT=14/14`;
-- current `main` satisfies the immutable-source drift gate.
-
-### Production-scope preflight
-
-Require:
-
-- `RAILWAY_TOKEN_PRESENT=YES`;
-- `TOKEN_PROJECT_ID_VERIFIED=YES`;
-- `TOKEN_ENVIRONMENT_ID_VERIFIED=YES`;
-- `GAME_SERVER_DB_LINK_VERIFIED=YES`;
-- `PRODUCTION_SCOPE_VERIFIED=YES`;
-- `READ_ONLY_DB_PREFLIGHT=YES`.
-
-### PRE-WRITE
-
-Require:
-
-- `TARGET_ROWS=14`;
-- `UNIQUE_SLUGS=14`;
-- valid 64-character `PRE_WRITE_SNAPSHOT`;
-- `ROWS_REQUIRING_MUTATION` between 0 and 14;
-- record each card's `needsChange` result;
-- specifically record `rune-of-curse-breaking` current vs desired art fields.
-
-Expected normal case after Cards 01–03 are already live: exactly Card 04 should require mutation. If the actual safe report differs, do not assume. Audit what the workflow reports.
-
-### APPLY
-
-If `ROWS_REQUIRING_MUTATION > 0`, require:
-
-- `TRANSACTION_STARTED=YES`;
-- `TRANSACTION_COMMITTED=YES`;
-- `ROWS_CHANGED` equals the actual PRE-WRITE mutation count;
-- `TARGET_ROWS_FINAL=14`;
-- `SOURCE_OF_TRUTH_MATCH=14/14`;
-- `NON_TARGET_FIELD_CHANGES=0`.
-
-If `ROWS_REQUIRING_MUTATION=0`, require the explicit already-synchronized path and no APPLY transaction.
-
-### POST-WRITE
-
-Always require:
-
-- `TARGET_ROWS=14`;
-- `UNIQUE_SLUGS=14`;
-- `ROWS_REQUIRING_MUTATION=0`;
-- `SOURCE_OF_TRUTH_MATCH=14/14`;
-- production scope still verified.
-
-8. If ANY required gate fails, the workflow conclusion is not success, or the evidence is ambiguous: status `REJECTED / BLOCKED`. Do not retry, repair production manually, run ad-hoc DB commands, or reuse the consumed confirmation.
-9. If all gates pass, record Card 04 as **LIVE IN PRODUCTION** and Art Pack 03 Cards 01–04 as complete end to end.
-10. Update `docs/art-pack-03.md` with the exact run/job identifiers, rows changed, final 14/14 result, non-target field result, immutable source, and consumed authorization state.
-11. Write durable report:
-    `docs/agent-reports/2026-09-01-art-pack-03-card-04-production-sync.md`
-12. Update `docs/AGENT_STATE.md` **last** with the final production status, run/job IDs, evidence summary, and `SYNC-14-CARD-ART-PRODUCTION = CONSUMED`.
-13. Fetch `docs/AGENT_STATE.md` back from GitHub and verify it.
-14. Stop.
+1. Read fresh `main`, `CLAUDE.md`, `docs/AGENT_STATE.md`, this task, `docs/art-bible-01.md`, `docs/content-pack-01.md`, `docs/content-pack-01-balance.md`, `apps/game-server/src/content/starter-decks.ts`, and the exact Card 01 seed definition.
+2. Verify the Card 01 gameplay facts and inspect the actual effect implementation enough to explain exactly what the art should communicate and what it must **not** imply.
+3. Inspect every current in-app artwork surface relevant to a CHARACTER:
+   - `CardView` 3:4
+   - `CardDetailDrawer` 4:5
+   - `HandCardPreview` 7:9
+   - `CreatureSlot` 3:4
+   - `/admin/art-review` desktop and 390px contexts
+   Reconfirm crop math from code rather than copying old assumptions blindly.
+4. Inspect the approved BOND flagship `matriarch-of-the-spring-light` and compare it against the already-completed SHADOW and PURIFICATION lower-rarity packs. Establish an explicit rarity hierarchy for BOND COMMON → RARE → EPIC → LEGENDARY before proposing Card 01.
+5. Research all four non-flagship BOND cards together just enough to avoid spending Card 02/03/04's unique visual motifs on Card 01. Define a visual-reservation table for:
+   - `child-of-the-spring-light`
+   - `keeper-of-the-promise`
+   - `light-of-the-hearth`
+   - `rune-of-reflected-light`
+   Do not write full future-card briefs yet.
+6. Choose one canonical visual concept for Card 01. The concept must:
+   - read instantly as BOND and not PURIFICATION;
+   - communicate a **small restorative on-play action** rather than a giant miracle or mass heal;
+   - remain clearly COMMON beside the Matriarch;
+   - preserve a strong 92px silhouette/read;
+   - avoid generic healer-priest cliché if a more faction-specific storytelling device is available;
+   - keep any youthful subject age-appropriate, fully clothed and entirely nonsexualized.
+7. Write `docs/art-review/child-of-the-spring-light-master-art-brief.md` as the canonical detailed brief. Match or exceed the rigor of the approved Card 03/04 briefs. Include at minimum:
+   - gameplay truth and art translation;
+   - faction language;
+   - rarity hierarchy;
+   - chosen hero concept and rejected alternatives;
+   - subject/pose/expression;
+   - costume/materials;
+   - environment/background hierarchy;
+   - lighting and palette;
+   - healing/VFX language;
+   - exact crop/safe-zone constraints;
+   - 92px thumbnail requirements;
+   - differentiation from Matriarch, PURIFICATION, and the future BOND cards;
+   - forbidden motifs / automatic rejects;
+   - measurable QA targets where meaningful;
+   - generation prompt;
+   - negative prompt;
+   - concise regeneration/polish instructions if the first render drifts.
+8. Create or initialize `docs/art-pack-04.md` with the BOND pack roster and status table. Card 01 should end at **BRIEF READY FOR OWNER REVIEW / GENERATION**, Cards 02–04 planned only, and the Matriarch recorded as the already-live faction flagship reference.
+9. Do not modify any production art file or candidate branch. Do not create artwork bytes in this task.
+10. Do not change `seed.ts`, gameplay, balance, schema, migrations, workflow/sync logic or production data.
+11. Do not use or alter the stale consumed-authorization comments in production sync files as part of this art-direction task. They are separate technical debt and must not broaden this scope.
+12. Run docs formatting/diff validation only as appropriate. No production credentials.
+13. Write durable handoff report under `docs/agent-reports/2026-09-02-art-pack-04-card-01-master-art-brief.md`.
+14. Update `docs/AGENT_STATE.md` **last**, fetch it back from GitHub and verify it.
+15. Stop. Do not generate an image and do not begin Card 02.
 
 ## Hard exclusions
 
 Do NOT:
 
-- dispatch more than once;
-- rerun a failed/cancelled run or job without a fresh owner decision;
-- reuse `SYNC-13-CARD-ART-PRODUCTION`;
-- reuse `SYNC-14-CARD-ART-PRODUCTION` after a run is created;
-- edit gameplay, seed source, schema, migrations, artwork or application UI as part of the production run;
-- bypass immutable-source checks, snapshot checks, production-scope checks, Serializable transaction, non-target fingerprints or POST-WRITE verification;
-- perform ad-hoc production DB repairs;
-- begin another card before this production closeout is recorded.
+- edit `apps/game-server/prisma/seed.ts`;
+- edit schema or migrations;
+- change gameplay, cost, stats, rarity, tags, ability or effects;
+- edit any existing approved artwork;
+- create/transport/integrate Card 01 artwork bytes;
+- touch Railway, production DB or Vercel production state;
+- edit or dispatch production sync workflows;
+- create a new production confirmation phrase;
+- reopen Art Pack 03;
+- begin full work on Card 02/03/04.
 
-## Final status
+## Expected final status
 
 End at exactly one of:
 
-- **COMPLETE END TO END — CARD 04 LIVE IN PRODUCTION**
-- **REJECTED / BLOCKED — AUTHORIZATION CONSUMED IF DISPATCH OCCURRED**
+- **READY FOR OWNER ART BRIEF REVIEW — ART PACK 04 CARD 01**
+- **REJECTED / BLOCKED**
