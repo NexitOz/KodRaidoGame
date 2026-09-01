@@ -1,0 +1,70 @@
+name: Card01 Transport Probe
+
+on:
+  push:
+    branches:
+      - transport/art-pack-04-card01-github-actions
+    paths:
+      - .github/workflows/card01-transport-probe.yml
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Probe the Firestorage share (read-only, no commit)
+        env:
+          SHARE_ID: aZIlHM-TkPI7
+          FILE_ID: fl_f0555165aaff4598bed07f2e0f44c487
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json, os, re, urllib.request, urllib.error
+
+          share = os.environ['SHARE_ID']
+          file_id = os.environ['FILE_ID']
+          ua = {'User-Agent': 'Mozilla/5.0 Chrome/151', 'Accept': '*/*'}
+
+          def probe(label, url, data=None, method=None):
+              req = urllib.request.Request(url, data=data, method=method, headers=ua)
+              try:
+                  with urllib.request.urlopen(req, timeout=30) as r:
+                      body = r.read()
+                      print(f'{label} STATUS={r.status} LEN={len(body)} CT={r.headers.get("Content-Type")}')
+                      return body
+              except urllib.error.HTTPError as e:
+                  body = e.read()
+                  print(f'{label} HTTPError={e.code} LEN={len(body)} BODY={body[:400]!r}')
+              except Exception as e:
+                  print(f'{label} ERROR={type(e).__name__}: {e}')
+              return None
+
+          api = 'https://api.firestorage.ai/prod/file'
+          probe('A_shares_files', f'{api}/shares/{share}/files?maxResults=1000')
+          probe('B_share_meta', f'{api}/shares/{share}')
+          probe('C_download_post', f'{api}/shares/{share}/files/{file_id}/download', data=b'', method='POST')
+
+          html = probe('D_page_ja', f'https://firestorage.ai/ja/f/{share}')
+          if not html:
+              html = probe('E_page_root', f'https://firestorage.ai/f/{share}')
+          if html:
+              text = html.decode('utf-8', 'replace')
+              print('PAGE_TITLE=', (re.search(r'<title>(.*?)</title>', text, re.S) or [None, 'n/a'])[1][:200])
+              for pat, label in [
+                  (r'"shareId"\s*:\s*"([^"]+)"', 'shareId'),
+                  (r'"shareUuid"\s*:\s*"([^"]+)"', 'shareUuid'),
+                  (r'"uuid"\s*:\s*"([^"]+)"', 'uuid'),
+                  (r'"fileId"\s*:\s*"([^"]+)"', 'fileId'),
+                  (r'(fl_[0-9a-f]{32})', 'fl_token'),
+                  (r'"sizeBytes"\s*:\s*"?(\d+)', 'sizeBytes'),
+                  (r'"fileName"\s*:\s*"([^"]+)"', 'fileName'),
+              ]:
+                  found = sorted(set(re.findall(pat, text)))[:6]
+                  if found:
+                      print(f'PAGE_{label}=', found)
+              print('PAGE_HAS_PASSWORD=', 'password' in text.lower())
+              print('PAGE_HAS_EXPIRED=', 'expire' in text.lower())
+          print('PROBE_COMPLETE')
+          PY
