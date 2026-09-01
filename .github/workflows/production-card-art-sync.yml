@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       confirmation:
-        description: Type SYNC-13-CARD-ART-PRODUCTION to authorize the controlled production sync
+        description: Type SYNC-14-CARD-ART-PRODUCTION to authorize the controlled production sync
         required: true
         type: string
 
@@ -17,23 +17,28 @@ concurrency:
 
 jobs:
   sync-production-card-art:
-    name: Verify and synchronize thirteen production card artwork records
+    name: Verify and synchronize fourteen production card artwork records
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      # Pinned to the merged Card 03 integration commit containing the reviewed 13-card seed/art
-      # source of truth. This is the merge commit of the independently reviewed PR #39 - the first
-      # commit on `main` carrying the Card 03 integration - and deliberately not the PR head, the
+      # Pinned to the merged Card 04 integration commit containing the reviewed 14-card seed/art
+      # source of truth. This is the merge commit of the independently reviewed PR #41 - the first
+      # commit on `main` carrying the Card 04 integration - and deliberately not the PR head, the
       # candidate branch SHA, or a later docs-only commit.
       #
-      # This replaced the temporary Card 02 pin that intentionally held the workflow closed while
-      # Card 03 was unmerged. The immutable-source and thirteen-file checks below now resolve
-      # against a commit that actually contains all thirteen artwork files and their seed fields.
+      # This replaced the Card 03 pin (`8b8322aa`), which covered only thirteen targets and would
+      # have failed closed on the fourteenth. The immutable-source and fourteen-file checks below
+      # now resolve against a commit that actually contains all fourteen artwork files and their
+      # seed fields.
       #
-      # Production dispatch still requires fresh explicit owner confirmation via the workflow input
-      # below. SYNC-13-CARD-ART-PRODUCTION remains RESERVED, NOT AUTHORIZED, NOT CONSUMED.
-      REQUIRED_SOURCE_COMMIT: 8b8322aad6fc52ca7e9ac796027605c5e1e9c78b
-      SOURCE_COMMIT: 8b8322aad6fc52ca7e9ac796027605c5e1e9c78b
+      # Authorization state:
+      #   SYNC-13-CARD-ART-PRODUCTION - CONSUMED (Card 03 sync, run 33436786024). Never reuse.
+      #   SYNC-14-CARD-ART-PRODUCTION - RESERVED, NOT AUTHORIZED, NOT CONSUMED.
+      #
+      # Production dispatch still requires a fresh explicit owner confirmation via the workflow
+      # input below. The presence of the fourteen-card phrase here is not authorization to run it.
+      REQUIRED_SOURCE_COMMIT: b792be37b32f73906d104642689afaa88a47b1c2
+      SOURCE_COMMIT: b792be37b32f73906d104642689afaa88a47b1c2
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
 
     steps:
@@ -41,7 +46,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test "${{ inputs.confirmation }}" = "SYNC-13-CARD-ART-PRODUCTION"
+          test "${{ inputs.confirmation }}" = "SYNC-14-CARD-ART-PRODUCTION"
 
       - name: Check out the reviewed workflow revision
         uses: actions/checkout@v4
@@ -67,7 +72,7 @@ jobs:
           echo "IMMUTABLE_SOURCE_SHA_VERIFIED=$REQUIRED_SOURCE_COMMIT"
           echo "CURRENT_MAIN_SHA=$actual_main"
 
-      - name: Verify all thirteen committed artwork files
+      - name: Verify all fourteen committed artwork files
         shell: bash
         run: |
           set -euo pipefail
@@ -85,11 +90,12 @@ jobs:
             acolyte-of-the-white-rune
             seal-of-the-curse
             warden-of-the-barrier
+            rune-of-curse-breaking
           )
           for slug in "${slugs[@]}"; do
             git cat-file -e "$REQUIRED_SOURCE_COMMIT:apps/web/public/art/cards/$slug.webp"
           done
-          echo "ARTWORK_FILES_PRESENT=13/13"
+          echo "ARTWORK_FILES_PRESENT=14/14"
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -133,13 +139,13 @@ jobs:
             npm exec -- tsx apps/game-server/scripts/sync-production-card-art.ts --check \
             | tee /tmp/prewrite.log
           grep -qx 'PRODUCTION_SCOPE_VERIFIED=YES' /tmp/prewrite.log
-          grep -qx 'TARGET_ROWS=13' /tmp/prewrite.log
-          grep -qx 'UNIQUE_SLUGS=13' /tmp/prewrite.log
+          grep -qx 'TARGET_ROWS=14' /tmp/prewrite.log
+          grep -qx 'UNIQUE_SLUGS=14' /tmp/prewrite.log
           snapshot="$(sed -n 's/^PRE_WRITE_SNAPSHOT=//p' /tmp/prewrite.log)"
           test "$(printf '%s' "$snapshot" | wc -c)" -eq 64
           rows_requiring_mutation="$(sed -n 's/^ROWS_REQUIRING_MUTATION=//p' /tmp/prewrite.log)"
           test "$rows_requiring_mutation" -ge 0
-          test "$rows_requiring_mutation" -le 13
+          test "$rows_requiring_mutation" -le 14
           echo "snapshot=$snapshot" >> "$GITHUB_OUTPUT"
           echo "rows_requiring_mutation=$rows_requiring_mutation" >> "$GITHUB_OUTPUT"
 
@@ -155,8 +161,8 @@ jobs:
           grep -qx 'PRODUCTION_SCOPE_VERIFIED=YES' /tmp/apply.log
           grep -qx 'TRANSACTION_STARTED=YES' /tmp/apply.log
           grep -qx 'TRANSACTION_COMMITTED=YES' /tmp/apply.log
-          grep -qx 'TARGET_ROWS_FINAL=13' /tmp/apply.log
-          grep -qx 'SOURCE_OF_TRUTH_MATCH=13/13' /tmp/apply.log
+          grep -qx 'TARGET_ROWS_FINAL=14' /tmp/apply.log
+          grep -qx 'SOURCE_OF_TRUTH_MATCH=14/14' /tmp/apply.log
           grep -qx 'NON_TARGET_FIELD_CHANGES=0' /tmp/apply.log
 
       - name: Report already synchronized state
@@ -173,7 +179,7 @@ jobs:
             npm exec -- tsx apps/game-server/scripts/sync-production-card-art.ts --check \
             | tee /tmp/postwrite.log
           grep -qx 'PRODUCTION_SCOPE_VERIFIED=YES' /tmp/postwrite.log
-          grep -qx 'TARGET_ROWS=13' /tmp/postwrite.log
-          grep -qx 'UNIQUE_SLUGS=13' /tmp/postwrite.log
+          grep -qx 'TARGET_ROWS=14' /tmp/postwrite.log
+          grep -qx 'UNIQUE_SLUGS=14' /tmp/postwrite.log
           grep -qx 'ROWS_REQUIRING_MUTATION=0' /tmp/postwrite.log
-          grep -qx 'SOURCE_OF_TRUTH_MATCH=13/13' /tmp/postwrite.log
+          grep -qx 'SOURCE_OF_TRUTH_MATCH=14/14' /tmp/postwrite.log
