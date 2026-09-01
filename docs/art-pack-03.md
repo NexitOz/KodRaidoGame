@@ -4,16 +4,14 @@ Production artwork for the PURIFICATION faction's non-flagship cards. The factio
 flagship, `high-warden-of-the-white-rune`, was approved earlier as part of Art Pack 01 and is not
 part of this pack — see [`art-bible-01.md`](art-bible-01.md).
 
-**Pack status:** IN PROGRESS — Cards 01, 02 and 03 complete end to end and live in production;
-Card 04 is FINAL OWNER APPROVED and MERGED INTO `main`, with the 14-card controlled sync prepared
-but not yet authorized and not yet run, so Card 04 is not live in production.
+**Pack status:** COMPLETE — Cards 01, 02, 03 and 04 are complete end to end and live in production.
 
-| #   | Slug                        | Type / Rarity / Cost   | Status                                            |
-| --- | --------------------------- | ---------------------- | ------------------------------------------------- |
-| 01  | `acolyte-of-the-white-rune` | CHARACTER / COMMON / 1 | **LIVE IN PRODUCTION**                            |
-| 02  | `seal-of-the-curse`         | EVENT / RARE / 2       | **LIVE IN PRODUCTION**                            |
-| 03  | `warden-of-the-barrier`     | CHARACTER / RARE / 3   | **LIVE IN PRODUCTION**                            |
-| 04  | `rune-of-curse-breaking`    | RUNE / EPIC / 3        | **MERGED — sync prepared, not authorized, unrun** |
+| #   | Slug                        | Type / Rarity / Cost   | Status                 |
+| --- | --------------------------- | ---------------------- | ---------------------- |
+| 01  | `acolyte-of-the-white-rune` | CHARACTER / COMMON / 1 | **LIVE IN PRODUCTION** |
+| 02  | `seal-of-the-curse`         | EVENT / RARE / 2       | **LIVE IN PRODUCTION** |
+| 03  | `warden-of-the-barrier`     | CHARACTER / RARE / 3   | **LIVE IN PRODUCTION** |
+| 04  | `rune-of-curse-breaking`    | RUNE / EPIC / 3        | **LIVE IN PRODUCTION** |
 
 ## Card 01 — `acolyte-of-the-white-rune` — FINAL APPROVED
 
@@ -315,7 +313,7 @@ appears on the production artwork path.
 3. **Minor 4:5 anchor-base crop.** The binding crop trims only the very bottom lip of the base
    plate; the planted spike and displaced rubble that carry the read remain visible.
 
-## Card 04 — `rune-of-curse-breaking` — FINAL OWNER APPROVED, MERGED, NOT SYNCED
+## Card 04 — `rune-of-curse-breaking` — COMPLETE END TO END, LIVE IN PRODUCTION
 
 Owner-approved after the eight-surface candidate QA on 2026-09-01. Records:
 [`agent-reports/2026-09-01-art-pack-03-card-04-post-qa-owner-approval.md`](agent-reports/2026-09-01-art-pack-03-card-04-post-qa-owner-approval.md)
@@ -325,10 +323,8 @@ and
 **Repository integration is merged.** PR #41 merged into `main` as
 `b792be37b32f73906d104642689afaa88a47b1c2`, which is the reviewed 14-card seed/art source of truth.
 
-**Not live in production.** The controlled sync definition has been extended 13 → 14 and repinned to
-that merge commit as a preparation-only change — see
-[Production sync 13 → 14 — PREPARED, NOT AUTHORIZED, NOT RUN](#production-sync-13--14--prepared-not-authorized-not-run)
-below. No workflow has been dispatched and no production database has been touched.
+**Live in production** since run `33560559977` on 2026-09-01 — see
+[Production sync 13 → 14 — COMPLETED](#production-sync-13--14--completed) below.
 
 ### Card facts
 
@@ -404,23 +400,51 @@ unless the artwork changes.
    soft and low-contrast, collapsing at 92 px. None of the named rejects — cathedral facade, rose
    window, banners, crowd, monumental staging — is present.
 
-## Production sync 13 → 14 — PREPARED, NOT AUTHORIZED, NOT RUN
+## Production sync 13 → 14 — COMPLETED
 
-Card 04's repository integration is merged, so the controlled sync definition was extended 13 → 14
-and repinned in a separate preparation-only change. **Nothing was dispatched, and no Railway
-credential or production database was used at any point.**
+Card 04 is live in production. The controlled sync was extended 13 → 14 and executed successfully.
 
-| Item                   | Value                                                            |
-| ---------------------- | ---------------------------------------------------------------- |
-| Immutable source pin   | `b792be37b32f73906d104642689afaa88a47b1c2` (PR #41 merge commit) |
-| Script target slugs    | 14 (unique) — the only addition is `rune-of-curse-breaking`      |
-| Workflow target slugs  | 14 (unique) — lists identical to the script                      |
-| Artwork files present  | `14/14` at the pinned commit                                     |
-| Seed source of truth   | `14/14` with `/art/cards/<slug>.webp` and `rightsStatus: owned`  |
-| Confirmation phrase    | `SYNC-14-CARD-ART-PRODUCTION`                                    |
-| Authorization state    | **RESERVED / NOT AUTHORIZED / NOT CONSUMED**                     |
-| Workflow dispatched    | **NO**                                                           |
-| Production DB accessed | **NO**                                                           |
+| Item                  | Value                                                                 |
+| --------------------- | --------------------------------------------------------------------- |
+| Workflow run          | **33560559977** (run 10), job `100031744885` — conclusion **success** |
+| Executed              | 2026-09-01, ~55 s                                                     |
+| Dispatched on         | `main` @ `a81823443f8a824ecfbe03629c167a3f81b37d76`                   |
+| Immutable source pin  | `b792be37b32f73906d104642689afaa88a47b1c2` (PR #41 merge)             |
+| Preparation PR        | `#42`, merged as `81a550200b06a889a751f3c78535c1b917bd5b41`           |
+| Artwork files present | `14/14`                                                               |
+| Rows changed          | **1** — only `rune-of-curse-breaking`                                 |
+| Non-target changes    | **0**                                                                 |
+| Final source of truth | `14/14`                                                               |
+| Confirmation used     | `SYNC-14-CARD-ART-PRODUCTION` — now **CONSUMED**                      |
+
+The single changed row (`bb32d11c-3a3e-4f76-bbbe-1cd020caecf6`) moved from an inline SVG placeholder
+with `rightsStatus: placeholder` to `/art/cards/rune-of-curse-breaking.webp` with
+`rightsStatus: owned`. The other thirteen targets reported `needsChange=NO` in both the PRE-WRITE and
+POST-WRITE passes and were not written.
+
+Gates read from the actual job logs:
+
+- `IMMUTABLE_SOURCE_SHA_VERIFIED=b792be37…`, `CURRENT_MAIN_SHA=a818234…`, `ARTWORK_FILES_PRESENT=14/14`
+- `RAILWAY_TOKEN_PRESENT=YES`, `TOKEN_PROJECT_ID_VERIFIED=YES`, `TOKEN_ENVIRONMENT_ID_VERIFIED=YES`,
+  `GAME_SERVER_DB_LINK_VERIFIED=YES`, `PRODUCTION_SCOPE_VERIFIED=YES`, `READ_ONLY_DB_PREFLIGHT=YES`
+- **PRE-WRITE** — `TARGET_ROWS=14`, `UNIQUE_SLUGS=14`, `ROWS_REQUIRING_MUTATION=1`,
+  `SOURCE_OF_TRUTH_MATCH=13/14`, snapshot `3ed2430d…`, `NON_TARGET_FINGERPRINTS=14`
+- **APPLY** — `TRANSACTION_STARTED=YES`, `TRANSACTION_COMMITTED=YES`, `ROWS_CHANGED=1`,
+  `TARGET_ROWS_FINAL=14`, `SOURCE_OF_TRUTH_MATCH=14/14`, **`NON_TARGET_FIELD_CHANGES=0`**
+- **Independent POST-WRITE re-read** — `TARGET_ROWS=14`, `UNIQUE_SLUGS=14`,
+  `ROWS_REQUIRING_MUTATION=0`, `SOURCE_OF_TRUTH_MATCH=14/14`
+
+Full evidence:
+[`agent-reports/2026-09-01-art-pack-03-card-04-production-sync.md`](agent-reports/2026-09-01-art-pack-03-card-04-production-sync.md)
+
+`SYNC-14-CARD-ART-PRODUCTION` authorized exactly that one run and is **consumed**. It is not standing
+authorization; a fifteenth card needs a fresh owner confirmation and a pin repointed at a new
+already-merged integration commit.
+
+**Card 04 is complete end to end:** briefed → generated → byte-verified → surface-reviewed →
+owner-approved → integrated → merged → prepared → synced to production.
+
+### Sync preparation record (PR #42)
 
 Three pin sites were repointed from the Card 03 commit `8b8322aa` to `b792be37`:
 
@@ -438,9 +462,15 @@ snapshot gate, the Serializable transaction, non-target field fingerprints
 (`NON_TARGET_FIELD_CHANGES=0`), the immutable-source drift checks and the independent POST-WRITE
 re-read. Every count assertion was raised 13 → 14 rather than removed.
 
-**`SYNC-14-CARD-ART-PRODUCTION` is reserved wording only.** Its presence in this repository is not
-authorization. A production run requires a fresh, explicit owner confirmation given at dispatch time.
-`SYNC-13-CARD-ART-PRODUCTION` remains **CONSUMED** and must never be reused.
+At the time PR #42 was merged, `SYNC-14-CARD-ART-PRODUCTION` was reserved wording only; the owner
+supplied it as an explicit one-use authorization afterwards, and it was consumed by run
+`33560559977`. `SYNC-13-CARD-ART-PRODUCTION` remains **CONSUMED** from the Card 03 sync. Neither may
+ever be reused.
+
+The authorization-state comments inside `sync-production-card-art.ts` and
+`production-card-art-sync.yml` still read "RESERVED, NOT AUTHORIZED, NOT CONSUMED" for `SYNC-14…`.
+That wording is stale — this document and `docs/AGENT_STATE.md` are authoritative — and should be
+corrected in the next preparation change, the same way the `SYNC-13…` CONSUMED note was folded in.
 
 ## Production sync 12 → 13 — COMPLETED
 
