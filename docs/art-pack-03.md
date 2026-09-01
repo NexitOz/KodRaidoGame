@@ -5,14 +5,15 @@ flagship, `high-warden-of-the-white-rune`, was approved earlier as part of Art P
 part of this pack — see [`art-bible-01.md`](art-bible-01.md).
 
 **Pack status:** IN PROGRESS — Cards 01, 02 and 03 complete end to end and live in production;
-Card 04 is next, with its master-art brief in preparation.
+Card 04 is FINAL OWNER APPROVED with its repository integration in review, not yet synced to
+production.
 
-| #   | Slug                        | Type / Rarity / Cost   | Status                 |
-| --- | --------------------------- | ---------------------- | ---------------------- |
-| 01  | `acolyte-of-the-white-rune` | CHARACTER / COMMON / 1 | **LIVE IN PRODUCTION** |
-| 02  | `seal-of-the-curse`         | EVENT / RARE / 2       | **LIVE IN PRODUCTION** |
-| 03  | `warden-of-the-barrier`     | CHARACTER / RARE / 3   | **LIVE IN PRODUCTION** |
-| 04  | `rune-of-curse-breaking`    | RUNE / EPIC / 3        | brief in preparation   |
+| #   | Slug                        | Type / Rarity / Cost   | Status                                           |
+| --- | --------------------------- | ---------------------- | ------------------------------------------------ |
+| 01  | `acolyte-of-the-white-rune` | CHARACTER / COMMON / 1 | **LIVE IN PRODUCTION**                           |
+| 02  | `seal-of-the-curse`         | EVENT / RARE / 2       | **LIVE IN PRODUCTION**                           |
+| 03  | `warden-of-the-barrier`     | CHARACTER / RARE / 3   | **LIVE IN PRODUCTION**                           |
+| 04  | `rune-of-curse-breaking`    | RUNE / EPIC / 3        | **FINAL OWNER APPROVED — integration in review** |
 
 ## Card 01 — `acolyte-of-the-white-rune` — FINAL APPROVED
 
@@ -313,6 +314,90 @@ appears on the production artwork path.
    consistent with the already approved `acolyte-of-the-white-rune`.
 3. **Minor 4:5 anchor-base crop.** The binding crop trims only the very bottom lip of the base
    plate; the planted spike and displaced rubble that carry the read remain visible.
+
+## Card 04 — `rune-of-curse-breaking` — FINAL OWNER APPROVED, INTEGRATION IN REVIEW
+
+Owner-approved after the eight-surface candidate QA on 2026-09-01. Records:
+[`agent-reports/2026-09-01-art-pack-03-card-04-post-qa-owner-approval.md`](agent-reports/2026-09-01-art-pack-03-card-04-post-qa-owner-approval.md)
+and
+[`agent-reports/2026-08-31-art-pack-03-card-04-candidate-qa.md`](agent-reports/2026-08-31-art-pack-03-card-04-candidate-qa.md)
+
+**Not live in production.** The repository integration is open for review; the controlled sync is
+still at its consumed 13-card state and has deliberately **not** been extended 13 → 14 in this task.
+
+### Card facts
+
+| Field                      | Value                                                                          |
+| -------------------------- | ------------------------------------------------------------------------------ |
+| `slug`                     | `rune-of-curse-breaking`                                                       |
+| `name`                     | Руна Разрушения Проклятий                                                      |
+| `type` / `rarity` / `cost` | RUNE / EPIC / 3                                                                |
+| `tags`                     | `['Purification']`                                                             |
+| `abilityText`              | В начале каждого вашего хода снимите Проклятие и Заглушение со всех союзников. |
+| `effectJson`               | `TURN_START` → `CLEANSE` / `FRIENDLY_ALL`                                      |
+
+None of the above was changed by the art integration.
+
+### Production artwork
+
+| Property            | Value                                                                                              |
+| ------------------- | -------------------------------------------------------------------------------------------------- |
+| Path                | `apps/web/public/art/cards/rune-of-curse-breaking.webp`                                            |
+| Dimensions          | 1024 × 1536 (vertical 2:3)                                                                         |
+| Byte size           | 438894                                                                                             |
+| RIFF-declared total | 438894 (equals byte size)                                                                          |
+| Container fourcc    | plain `VP8 ` (original export, not a `VP8X` transcode)                                             |
+| SHA-256             | `6f07380f1f64bee0efd8ec9819de1951dd14fd9dc127dd173ddda909b1c49dd5`                                 |
+| Git blob SHA        | `e1ea12a2f03cc84e9931600e978cc8bf6b1eaccb`                                                         |
+| Candidate source    | `assets/rune-of-curse-breaking-candidate-v1` @ `185126c`, `art-source/rune-of-curse-breaking.webp` |
+| Generation id       | `f2e3d336-6db5-4d45-9d64-6bfebd8e9196`                                                             |
+
+The production copy was taken byte-for-byte from the candidate git object via `git show`, so the
+committed blob SHA equals the candidate's unchanged. No re-encode, resize, crop or sharpen.
+
+`seed.ts` carries `artworkUrl: '/art/cards/rune-of-curse-breaking.webp'` and `rightsStatus: 'owned'`.
+
+### Visual direction
+
+Approved brief:
+[`art-review/rune-of-curse-breaking-master-art-brief.md`](art-review/rune-of-curse-breaking-master-art-brief.md)
+
+**The cleansing font** — a low, wide, faceted octagonal basin on a short stepped stone base,
+brimming and overflowing in thin continuous sheets that feed straight channels cut into the pale
+floor and run off-frame. No figure appears at all.
+
+Continuous overflow renders the card's `TURN_START` recurrence as a physical steady state rather
+than a single instant; water is the least ambiguous `CLEANSE` verb; and the radiating channels carry
+`FRIENDLY_ALL` outward without drawing allies, which is flagship-reserved language. A vessel is also
+a silhouette no other card in the set uses — at 92 px Card 04 is the only low, wide, horizontal mass
+against the SHADOW rune's tall monolith, two standing figures, a diagonal blade and the flagship's
+round shield.
+
+### Verification at approval
+
+Eight surfaces were captured against the real running stack. Card 04 is a `RUNE`, so `hasBoardSlot`
+is false and **`CreatureSlot` is correctly N/A** — confirmed empirically, with the live review row
+rendering four in-app panels and no board-slot panel at either viewport.
+
+Measured: no figure; continuous laminar overflow; straight radiating channels with **no closed floor
+rune-circle**; rim marks ornamental rather than script; no text, watermark, logo or UI; gold
+coverage **0.00 %** against a 4 % limit; 92 px grayscale spread **142** against the brief's >122
+target; 92 px edge density `27.55`.
+
+### Accepted caveats — non-blocking
+
+The owner reviewed and explicitly accepted both for these exact bytes. Neither is to be reopened
+unless the artwork changes.
+
+1. **The basin reads dark, not bright.** Brief reject #22 asked for the water lip to be the
+   brightest and highest-contrast element. Measured at 92 px it is the highest-contrast zone (edge
+   32.69, highest of four) but the darkest (mean L 107.2 against the mid-floor's 185.7). The brief
+   held a latent tension — it also required a dark anchor so Card 04 would not be a second
+   flat-white PURIFICATION card — and the master resolves it by making the basin that anchor, which
+   is why the grayscale spread clears the target so comfortably.
+2. **Background architecture above the §13 ceiling.** Pale marble piers occupy the upper third,
+   soft and low-contrast, collapsing at 92 px. None of the named rejects — cathedral facade, rose
+   window, banners, crowd, monumental staging — is present.
 
 ## Production sync 12 → 13 — COMPLETED
 
