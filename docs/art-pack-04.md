@@ -5,12 +5,12 @@ Production artwork for the BOND faction's non-flagship cards. The faction's LEGE
 this pack — it is the faction anchor every card here is measured against. See
 [`art-bible-01.md`](art-bible-01.md).
 
-**Pack status:** IN PROGRESS — Card 01 has a canonical master-art brief awaiting owner review. No
-image has been generated, no artwork bytes exist, and nothing has been integrated or synced.
+**Pack status:** IN PROGRESS — Card 01 brief and generated master are owner-approved. Exact candidate
+transport and the full nine-surface QA are next. Nothing has been integrated or synced.
 
 | #   | Slug                            | Type / Rarity / Cost      | Status                                                           |
 | --- | ------------------------------- | ------------------------- | ---------------------------------------------------------------- |
-| 01  | `child-of-the-spring-light`     | CHARACTER / COMMON / 1    | **BRIEF READY FOR OWNER REVIEW / GENERATION**                    |
+| 01  | `child-of-the-spring-light`     | CHARACTER / COMMON / 1    | **OWNER MASTER APPROVED — CANDIDATE TRANSPORT / QA NEXT**        |
 | 02  | `keeper-of-the-promise`         | CHARACTER / RARE / 3      | Planned — not briefed                                            |
 | 03  | `light-of-the-hearth`           | TRACK / RARE / 2          | Planned — not briefed                                            |
 | 04  | `rune-of-reflected-light`       | RUNE / EPIC / 3           | Planned — not briefed                                            |
@@ -37,10 +37,13 @@ Measured at 92 px (method in the Card 01 brief §9): edge density **43.46**, gra
 mean luminance **131.4**, R−B **+62.0**, saturation **42.1 %** — the second-busiest and by far the
 warmest image in the shipped set.
 
-## Card 01 — `child-of-the-spring-light` — BRIEF READY FOR OWNER REVIEW
+## Card 01 — `child-of-the-spring-light` — OWNER MASTER APPROVED
 
 Canonical brief:
 [`art-review/child-of-the-spring-light-master-art-brief.md`](art-review/child-of-the-spring-light-master-art-brief.md)
+
+Owner master approval:
+[`agent-reports/2026-09-02-art-pack-04-card-01-owner-master-approval.md`](agent-reports/2026-09-02-art-pack-04-card-01-owner-master-approval.md)
 
 ### Card facts
 
@@ -54,7 +57,7 @@ Canonical brief:
 | `abilityText`              | При выходе: восстановите 1 здоровье Проводнику. |
 | `effectJson`               | `ON_PLAY` → `HEAL` / `FRIENDLY_CONDUCTOR`, `1`  |
 
-Verified from `apps/game-server/prisma/seed.ts`; unchanged by this task. Deck presence: ×2 in the
+Verified from `apps/game-server/prisma/seed.ts`; unchanged by the art tasks. Deck presence: ×2 in the
 BOND starter deck and ×2 as a COSMIC Ramp splash, so it is one of the most-seen cards in the game.
 
 ### Locked concept
@@ -72,6 +75,36 @@ Five concept alternatives were evaluated and rejected: the watering can (reads a
 restoration), the laying-on of hands (healer-priest cliché, and it illustrates Card 02's mechanic),
 the cradled orb (collides with the flagship), the sleeping child under a canopy (no restorative act;
 canopy is a flagship motif), and the lit lamp (reserved for Card 03).
+
+### Approved generated master and transport tuple
+
+The owner explicitly approved the generated image on 2026-09-02. This is **visual master approval
+before candidate QA**, not repository integration approval.
+
+Generation ID: `615e529f-173b-4c42-826b-814da3de8b96`.
+
+Approved PNG:
+
+- `1024 × 1536`, RGB PNG
+- size `2902102`
+- SHA-256 `b67d2e520ed7b967e724e47f6de52809ea44da9efaca3d48a33a3265da759635`
+- full decode PASS
+
+Exact candidate transport WebP, derived without crop/resize/recomposition:
+
+- `1024 × 1536`
+- size `596976`
+- SHA-256 `bc2e5abcfcedacfad6b98816229c0bb1205cb71d7177f09e88568442ecaaf9c2`
+- expected Git blob `a52fb443ff296c4411c7dc0e640be98befbc12bc`
+- RIFF total `596976`
+- FourCC `VP8 `
+- full decode PASS
+
+Machine-owned temporary source: `https://firestorage.ai/ja/f/aZIlHM-TkPI7`, expires
+`2026-09-16T21:44:37.912662Z`. The owner must not be used as a manual file courier.
+
+The WebP still requires objective candidate QA against the canonical brief. Owner approval does not
+silently waive crop or metric criteria.
 
 ### Rarity ladder for BOND
 
@@ -135,8 +168,10 @@ itself and should repeat on every card.
 
 ## Pack boundary
 
-Nothing in Art Pack 04 has reached generation. No artwork bytes exist for any card here, no
-`seed.ts` entry has been touched, and no production operation is authorized. Both previous production
-confirmations — `SYNC-13-CARD-ART-PRODUCTION` and `SYNC-14-CARD-ART-PRODUCTION` — are **CONSUMED**
-and invalid forever; a future BOND sync will need a new phrase, a pin repointed at a new
+Card 01 has reached owner-approved master generation only. It is **not** integrated and is **not**
+live. Candidate transport and nine-surface QA are the active next step.
+
+No `seed.ts` entry has been touched and no production operation is authorized. Both previous
+production confirmations — `SYNC-13-CARD-ART-PRODUCTION` and `SYNC-14-CARD-ART-PRODUCTION` — are
+**CONSUMED** and invalid forever. A future BOND sync will need a new phrase, a pin repointed at a new
 already-merged integration commit, and a fresh explicit owner decision.
