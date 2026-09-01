@@ -104,6 +104,14 @@ const REVIEW_TARGETS: ReviewTarget[] = [
     referenceLabel: 'ART PACK 03 — APPROVED 03',
     reviewArtworkUrl: '/art/cards/warden-of-the-barrier.webp',
   },
+  // Card 04 is a RUNE, so like Card 02 it takes the `hasBoardSlot` false path and shows four
+  // surfaces rather than five - a rune never occupies a Battlefield board slot.
+  {
+    slug: 'rune-of-curse-breaking',
+    faction: 'PURIFICATION',
+    referenceLabel: 'ART PACK 03 — APPROVED 04',
+    reviewArtworkUrl: '/art/cards/rune-of-curse-breaking.webp',
+  },
 ];
 
 function FlagshipRow({

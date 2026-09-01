@@ -879,6 +879,9 @@ const PURIFICATION_CARDS: SeedCard[] = [
     cost: 3,
     tags: ['Purification'],
     abilityText: 'В начале каждого вашего хода снимите Проклятие и Заглушение со всех союзников.',
+    // Art Pack 03 Card 04 - owner-approved production artwork.
+    artworkUrl: '/art/cards/rune-of-curse-breaking.webp',
+    rightsStatus: 'owned',
     effectJson: [
       { trigger: 'TURN_START', conditions: [], effects: [{ type: 'CLEANSE', target: 'FRIENDLY_ALL' }] },
     ],
