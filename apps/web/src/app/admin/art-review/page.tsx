@@ -104,6 +104,14 @@ const REVIEW_TARGETS: ReviewTarget[] = [
     referenceLabel: 'ART PACK 03 — APPROVED 03',
     reviewArtworkUrl: '/art/cards/warden-of-the-barrier.webp',
   },
+  // Art Pack 03 Card 04 is a RUNE, so like Card 02 it takes the `hasBoardSlot` false path and shows
+  // four surfaces, not five. Deliberately no `reviewArtworkUrl`: this row reads the gitignored
+  // candidate file so the master can be reviewed before any promotion to `/art/cards/`.
+  {
+    slug: 'rune-of-curse-breaking',
+    faction: 'PURIFICATION',
+    referenceLabel: 'ART PACK 03 — CANDIDATE 04 (pending owner approval)',
+  },
 ];
 
 function FlagshipRow({
