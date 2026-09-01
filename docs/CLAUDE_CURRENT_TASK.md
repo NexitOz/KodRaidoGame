@@ -1,140 +1,72 @@
-# CURRENT TASK — Art Pack 04 / BOND Card 01: master-art brief + generation package
+# CURRENT TASK — Art Pack 04 Card 01 candidate transport + nine-surface QA
 
 ## Status
 
-Art Pack 03 / PURIFICATION is **COMPLETE END TO END**. Cards 01–04 are live in production, including Card 04 `rune-of-curse-breaking` after controlled production run `33560559977` / job `100031744885`.
+`child-of-the-spring-light` / «Дитя Весеннего Света» has an owner-approved brief and an owner-approved generated master. This task authorizes **candidate intake and QA only**.
 
-Both previous production confirmations are consumed and invalid forever:
+Read first:
 
-- `SYNC-13-CARD-ART-PRODUCTION` — CONSUMED
-- `SYNC-14-CARD-ART-PRODUCTION` — CONSUMED
+- `CLAUDE.md`
+- `docs/AGENT_STATE.md`
+- `docs/art-review/child-of-the-spring-light-master-art-brief.md`
+- `docs/art-pack-04.md`
+- `docs/agent-reports/2026-09-02-art-pack-04-card-01-owner-master-approval.md`
+- `docs/agent-reports/2026-08-31-art-pack-03-card-04-candidate-qa.md` as the proven transport/QA pattern
 
-No production operation is authorized by this task.
+## Exact candidate source
 
-The next faction-art milestone is **Art Pack 04 — BOND / «Дом Весеннего Света»**.
+Generation ID: `615e529f-173b-4c42-826b-814da3de8b96`.
 
-BOND's flagship Legendary already has approved production artwork:
+Approved original PNG: `1024×1536`, RGB, `2902102` bytes, SHA-256 `b67d2e520ed7b967e724e47f6de52809ea44da9efaca3d48a33a3265da759635`, full decode PASS.
 
-- `matriarch-of-the-spring-light` / «Матриарх Дома Весеннего Света» — LEGENDARY — production reference / faction anchor already live.
+Exact WebP for candidate transport:
 
-The four non-flagship BOND cards, in starter-roster order, are:
+- file `child-of-the-spring-light.webp`
+- `1024×1536`
+- `596976` bytes
+- SHA-256 `bc2e5abcfcedacfad6b98816229c0bb1205cb71d7177f09e88568442ecaaf9c2`
+- expected Git blob `a52fb443ff296c4411c7dc0e640be98befbc12bc`
+- RIFF total `596976`
+- FourCC `VP8 `
+- full decode PASS
 
-1. `child-of-the-spring-light` — «Дитя Весеннего Света»
-2. `keeper-of-the-promise` — «Хранитель Обещания»
-3. `light-of-the-hearth` — «Свет Очага»
-4. `rune-of-reflected-light` — «Руна Отражённого Света»
+Machine source: `https://firestorage.ai/ja/f/aZIlHM-TkPI7`, share UUID `aZIlHM-TkPI7`, file id `fl_f0555165aaff4598bed07f2e0f44c487`, expires `2026-09-16T21:44:37.912662Z`.
 
-This task concerns **Card 01 only**.
+The owner must not be used as a manual file courier.
 
-## Canonical Card 01 facts to verify from repository
+## Required work
 
-Target:
+1. Confirm fresh `main` and re-read all canonical sources above.
+2. Use the established GitHub-hosted runner transport pattern. Temporary branch: `transport/art-pack-04-card01-github-actions`. It may contain the temporary `contents: write` transport workflow and **must never merge into `main`**.
+3. Fetch the WebP through a machine-readable Firestorage route, not the browser HTML page.
+4. Before committing, hard-fail unless all exact gates pass: byte size, SHA-256, expected Git blob SHA, RIFF total, FourCC, dimensions and full decode.
+5. Create candidate branch `assets/child-of-the-spring-light-candidate-v1` from the intended fresh `main` base.
+6. Commit the exact binary as `art-source/child-of-the-spring-light.webp`.
+7. Push, fetch remote back and verify the remote tree points to blob `a52fb443ff296c4411c7dc0e640be98befbc12bc`; re-check the full tuple remotely.
+8. Mirror the Card 04 candidate-review pattern: stage a byte-identical ignored runtime copy at `apps/web/public/art-review-candidates/child-of-the-spring-light.webp` and add only the minimum candidate row in `apps/web/src/app/admin/art-review/page.tsx` on the candidate branch.
+9. Do **not** use `apps/web/public/art/cards/child-of-the-spring-light.webp`; do not edit `seed.ts` or `rightsStatus`.
+10. Run and capture the full nine-surface CHARACTER QA:
+   - raw 2:3;
+   - CardView 3:4;
+   - CardDetailDrawer 4:5;
+   - HandCardPreview 7:9;
+   - CreatureSlot 3:4;
+   - admin desktop;
+   - admin 390 px;
+   - 92 px thumbnail;
+   - 92 px hierarchy beside `matriarch-of-the-spring-light`.
+11. Measure **every objective acceptance gate in canonical brief §16** exactly as specified there. Explicitly report crop geometry, edge density, warmth R−B, saturation, mean luminance, grayscale spread, metallic-gold coverage, thumbnail read, rarity hierarchy, faction differentiation, reserved-motif compliance and all safety constraints in the brief.
+12. Owner visual approval before QA is **not** a waiver. Report every measured deviation honestly.
+13. Do not regenerate, retouch, crop, recolor, re-encode or automatically repair the master because of a QA miss.
+14. Write `docs/agent-reports/2026-09-02-art-pack-04-card-01-candidate-qa.md` and update `docs/art-pack-04.md` with the candidate branch/commit, exact tuple and QA result.
+15. Update `docs/AGENT_STATE.md` **last**, fetch it back from GitHub, verify, then stop.
 
-- slug: `child-of-the-spring-light`
-- Russian name: «Дитя Весеннего Света»
-- faction: BOND
-- type: CHARACTER
-- rarity: COMMON
-- cost: 1
-- attack / health: 1 / 3
-- ability text: `При выходе: восстановите 1 здоровье Проводнику.`
-- role: early sustain / small on-play heal, not a major board swing
+## Decision rule
 
-These are gameplay facts, not art suggestions. Confirm them independently from `apps/game-server/prisma/seed.ts`, `docs/content-pack-01.md`, and related engine/interpreter paths. Do not change them.
-
-## BOND visual anchor already established
-
-Use `docs/art-bible-01.md` BOND section and the approved `matriarch-of-the-spring-light` production art as the primary faction anchor.
-
-Known locked language to verify and expand from the repo:
-
-- warm ivory + pale sage-green base;
-- warm amber BOND accent around `#e0a458`;
-- organic gold vine/branch filigree rather than PURIFICATION's straight geometric gold;
-- living garden / natural canopy language unique to BOND;
-- warm golden-hour diffuse backlight;
-- soft, welcoming, sustaining mood rather than harsh combat chiaroscuro;
-- flowing organic fabric/material language rather than rigid plate;
-- healing / protection / ally synergy / sustain is the faction gameplay identity.
-
-Card 01 is COMMON and must sit visibly far below the Legendary Matriarch in ceremony, gold, VFX, architecture, costume complexity and staging.
-
-## Goal
-
-Create the canonical **master-art brief and image-generation package** for Art Pack 04 Card 01.
-
-The task ends before image generation, candidate transport, repository artwork integration, seed changes or production sync.
-
-## Required sequence
-
-1. Read fresh `main`, `CLAUDE.md`, `docs/AGENT_STATE.md`, this task, `docs/art-bible-01.md`, `docs/content-pack-01.md`, `docs/content-pack-01-balance.md`, `apps/game-server/src/content/starter-decks.ts`, and the exact Card 01 seed definition.
-2. Verify the Card 01 gameplay facts and inspect the actual effect implementation enough to explain exactly what the art should communicate and what it must **not** imply.
-3. Inspect every current in-app artwork surface relevant to a CHARACTER:
-   - `CardView` 3:4
-   - `CardDetailDrawer` 4:5
-   - `HandCardPreview` 7:9
-   - `CreatureSlot` 3:4
-   - `/admin/art-review` desktop and 390px contexts
-   Reconfirm crop math from code rather than copying old assumptions blindly.
-4. Inspect the approved BOND flagship `matriarch-of-the-spring-light` and compare it against the already-completed SHADOW and PURIFICATION lower-rarity packs. Establish an explicit rarity hierarchy for BOND COMMON → RARE → EPIC → LEGENDARY before proposing Card 01.
-5. Research all four non-flagship BOND cards together just enough to avoid spending Card 02/03/04's unique visual motifs on Card 01. Define a visual-reservation table for:
-   - `child-of-the-spring-light`
-   - `keeper-of-the-promise`
-   - `light-of-the-hearth`
-   - `rune-of-reflected-light`
-   Do not write full future-card briefs yet.
-6. Choose one canonical visual concept for Card 01. The concept must:
-   - read instantly as BOND and not PURIFICATION;
-   - communicate a **small restorative on-play action** rather than a giant miracle or mass heal;
-   - remain clearly COMMON beside the Matriarch;
-   - preserve a strong 92px silhouette/read;
-   - avoid generic healer-priest cliché if a more faction-specific storytelling device is available;
-   - keep any youthful subject age-appropriate, fully clothed and entirely nonsexualized.
-7. Write `docs/art-review/child-of-the-spring-light-master-art-brief.md` as the canonical detailed brief. Match or exceed the rigor of the approved Card 03/04 briefs. Include at minimum:
-   - gameplay truth and art translation;
-   - faction language;
-   - rarity hierarchy;
-   - chosen hero concept and rejected alternatives;
-   - subject/pose/expression;
-   - costume/materials;
-   - environment/background hierarchy;
-   - lighting and palette;
-   - healing/VFX language;
-   - exact crop/safe-zone constraints;
-   - 92px thumbnail requirements;
-   - differentiation from Matriarch, PURIFICATION, and the future BOND cards;
-   - forbidden motifs / automatic rejects;
-   - measurable QA targets where meaningful;
-   - generation prompt;
-   - negative prompt;
-   - concise regeneration/polish instructions if the first render drifts.
-8. Create or initialize `docs/art-pack-04.md` with the BOND pack roster and status table. Card 01 should end at **BRIEF READY FOR OWNER REVIEW / GENERATION**, Cards 02–04 planned only, and the Matriarch recorded as the already-live faction flagship reference.
-9. Do not modify any production art file or candidate branch. Do not create artwork bytes in this task.
-10. Do not change `seed.ts`, gameplay, balance, schema, migrations, workflow/sync logic or production data.
-11. Do not use or alter the stale consumed-authorization comments in production sync files as part of this art-direction task. They are separate technical debt and must not broaden this scope.
-12. Run docs formatting/diff validation only as appropriate. No production credentials.
-13. Write durable handoff report under `docs/agent-reports/2026-09-02-art-pack-04-card-01-master-art-brief.md`.
-14. Update `docs/AGENT_STATE.md` **last**, fetch it back from GitHub and verify it.
-15. Stop. Do not generate an image and do not begin Card 02.
+- All required gates pass: **READY FOR POST-QA OWNER APPROVAL — ART PACK 04 CARD 01**.
+- Candidate is intact but one or more brief gates miss: **CANDIDATE QA COMPLETE — OWNER CAVEAT DECISION REQUIRED** and list every miss. No integration and no automatic regeneration.
+- Binary integrity, transport or a hard safety gate fails: **REJECTED / BLOCKED — NO INTEGRATION**.
 
 ## Hard exclusions
 
-Do NOT:
-
-- edit `apps/game-server/prisma/seed.ts`;
-- edit schema or migrations;
-- change gameplay, cost, stats, rarity, tags, ability or effects;
-- edit any existing approved artwork;
-- create/transport/integrate Card 01 artwork bytes;
-- touch Railway, production DB or Vercel production state;
-- edit or dispatch production sync workflows;
-- create a new production confirmation phrase;
-- reopen Art Pack 03;
-- begin full work on Card 02/03/04.
-
-## Expected final status
-
-End at exactly one of:
-
-- **READY FOR OWNER ART BRIEF REVIEW — ART PACK 04 CARD 01**
-- **REJECTED / BLOCKED**
+No production asset path, seed, schema, migration, gameplay or balance changes. No integration PR. No production-sync preparation or dispatch. No Railway, production DB or Vercel. Do not start Card 02. Do not reuse `SYNC-13-CARD-ART-PRODUCTION` or `SYNC-14-CARD-ART-PRODUCTION`; both are consumed.
