@@ -5,7 +5,7 @@ Date: 2026-09-01
 Branch: `main`
 PR: none — docs-only closeout, same pattern as the Card 03 production-sync record
 Base SHA: `a81823443f8a824ecfbe03629c167a3f81b37d76`
-Head SHA: see the commit carrying this report
+Head SHA: `4ff241ccc82c67578adbb2dcaffc035e1b84c389` (this report)
 Status: **COMPLETE END TO END — CARD 04 LIVE IN PRODUCTION**
 
 ## Authorization
