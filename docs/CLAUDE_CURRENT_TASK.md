@@ -1,97 +1,139 @@
-# CURRENT TASK — Art Pack 03 Card 04: final repository integration PR
+# CURRENT TASK — Art Pack 03 Card 04: prepare controlled 14-card production sync
 
 ## Status
 
-Card 04 `rune-of-curse-breaking` / «Руна Разрушения Проклятий» is **FINAL OWNER APPROVED AFTER EIGHT-SURFACE QA**.
+Card 04 `rune-of-curse-breaking` / «Руна Разрушения Проклятий» is **FINAL OWNER APPROVED** and **REPOSITORY INTEGRATED ON `main`**, but is **NOT LIVE IN PRODUCTION**.
 
-Post-QA owner approval:
+Owner explicitly authorized this next **repository-only preparation task** on 2026-09-01.
 
-`docs/agent-reports/2026-09-01-art-pack-03-card-04-post-qa-owner-approval.md`
+Canonical integration source:
 
-Candidate QA:
-
-`docs/agent-reports/2026-08-31-art-pack-03-card-04-candidate-qa.md`
-
-This task authorizes **repository integration PR preparation only**. It does not authorize production sync, production DB access or workflow dispatch.
-
-## Exact approved source
-
-Use only:
-
-- candidate branch: `assets/rune-of-curse-breaking-candidate-v1`
-- candidate HEAD: `185126c8b402dc4134245f984d9d0e7cddc6db8a`
-- candidate asset: `art-source/rune-of-curse-breaking.webp`
-- dimensions: `1024 × 1536`
-- byte size / RIFF total: `438894`
-- FourCC: plain `VP8 `
+- PR `#41`: MERGED
+- exact merge commit / immutable source candidate: `b792be37b32f73906d104642689afaa88a47b1c2`
+- approved Card 04 artwork path: `apps/web/public/art/cards/rune-of-curse-breaking.webp`
+- Card 04 artwork Git blob: `e1ea12a2f03cc84e9931600e978cc8bf6b1eaccb`
+- byte size: `438894`
 - SHA-256: `6f07380f1f64bee0efd8ec9819de1951dd14fd9dc127dd173ddda909b1c49dd5`
-- Git blob SHA: `e1ea12a2f03cc84e9931600e978cc8bf6b1eaccb`
-- full decode: PASS
 
-The two QA caveats are explicitly accepted by the owner for these exact bytes: dark-rather-than-bright basin/water lip, and the soft upper-third architecture. Do not regenerate, alter or reopen those caveats unless the bytes/rendering change.
+Cards 01–03 are already live. The current controlled production-art sync is still the consumed 13-card definition and is pinned to Card 03 source commit `8b8322aad6fc52ca7e9ac796027605c5e1e9c78b`.
+
+`SYNC-13-CARD-ART-PRODUCTION` is **CONSUMED — MUST NOT BE REUSED**.
+
+## Authorization boundary
+
+This task authorizes **repository preparation and PR creation only**.
+
+It does **NOT** authorize:
+
+- dispatching any production workflow;
+- accessing Railway or the production database, including read-only preflight;
+- mutating production;
+- treating `SYNC-14-CARD-ART-PRODUCTION` as owner-authorized;
+- consuming any production confirmation.
+
+If the existing workflow shape requires the future exact phrase to be present in code, it may be changed to:
+
+`SYNC-14-CARD-ART-PRODUCTION`
+
+but it must be documented everywhere as **RESERVED / NOT AUTHORIZED / NOT CONSUMED**. Merely placing the future phrase in repository code is not production authorization.
 
 ## Goal
 
-Prepare a narrow, auditable PR that integrates the exact approved Card 04 artwork into repository production paths, but **does not perform production synchronization**.
+Prepare one narrow, auditable PR that upgrades the controlled artwork sync definition from 13 targets to 14 targets and repins every immutable source-of-truth reference to the exact Card 04 integration merge commit:
+
+`b792be37b32f73906d104642689afaa88a47b1c2`
+
+The prepared workflow must remain **NOT DISPATCHED**. Stop for owner review of the preparation PR.
 
 ## Required sequence
 
-1. Read `CLAUDE.md`, `docs/AGENT_STATE.md`, this task, the post-QA owner approval and candidate QA report.
-2. Sync fresh `main` and confirm the task source is current.
-3. Fetch `assets/rune-of-curse-breaking-candidate-v1` and independently re-verify the exact candidate tuple above before copying anything.
-4. Create a fresh integration branch from current `main`, preferably:
-   `claude/integrate-rune-of-curse-breaking-art`
-5. Do **not** merge/cherry-pick the candidate review branch wholesale. Bring only the approved binary and the deliberate integration changes listed below.
-6. Copy the exact approved bytes to:
-   `apps/web/public/art/cards/rune-of-curse-breaking.webp`
-   Then prove the production-path file remains byte-identical to the candidate by size + SHA-256 + Git blob SHA + dimensions + full decode.
-7. Update only the Card 04 seed artwork fields in `apps/game-server/prisma/seed.ts`:
-   - `artworkUrl: '/art/cards/rune-of-curse-breaking.webp'`
-   - `rightsStatus: 'owned'`
-   Do not change gameplay, ability, cost, rarity, faction, tags or any other card field.
-8. Add Card 04 to the canonical `/admin/art-review` approved targets, following Cards 01–03:
-   - slug `rune-of-curse-breaking`
-   - faction `PURIFICATION`
-   - label `ART PACK 03 — APPROVED 04`
-   - `reviewArtworkUrl: '/art/cards/rune-of-curse-breaking.webp'`
-   Preserve the RUNE/no-`CreatureSlot` behavior.
-9. Update `docs/art-pack-03.md` to record Card 04 as **FINAL OWNER APPROVED / REPOSITORY INTEGRATION** (not live in production yet). Keep production status truthful.
-10. Update any minimal provenance/status documentation genuinely required to point at the immutable approved candidate and post-QA approval. Do not broaden scope.
-11. Run scope diff checks, Prettier on changed text/code files, relevant lint/typecheck/tests, and production build if the normal art integration checklist requires it.
-12. Verify exact changed-file list. Expected core scope is:
-    - `apps/web/public/art/cards/rune-of-curse-breaking.webp`
-    - `apps/game-server/prisma/seed.ts`
-    - `apps/web/src/app/admin/art-review/page.tsx`
+1. Read `CLAUDE.md`, `docs/AGENT_STATE.md`, this task, the Card 04 owner-approval report, candidate QA report, PR #41 handoff, and the Card 03 production-sync report.
+2. Sync a fresh `main`. Confirm PR #41 is actually merged and `b792be37b32f73906d104642689afaa88a47b1c2` is reachable from current `main`.
+3. Independently verify at commit `b792be37...` that:
+   - Card 04 seed has `artworkUrl: '/art/cards/rune-of-curse-breaking.webp'`;
+   - Card 04 seed has `rightsStatus: 'owned'`;
+   - the exact Card 04 artwork exists at the production path;
+   - its Git blob is `e1ea12a2f03cc84e9931600e978cc8bf6b1eaccb`;
+   - the existing thirteen target cards are still present and valid.
+4. Create a fresh branch from current `main`, preferably:
+   `claude/prepare-14-card-art-sync`
+5. Update `apps/game-server/scripts/sync-production-card-art.ts` narrowly:
+   - repin `REQUIRED_SOURCE_COMMIT` to `b792be37b32f73906d104642689afaa88a47b1c2`;
+   - add `rune-of-curse-breaking` as the fourteenth and only new target slug;
+   - update comments/count wording from thirteen to fourteen;
+   - remove stale claims that `SYNC-13...` is reserved; record it as CONSUMED;
+   - if mentioning the next phrase, record `SYNC-14-CARD-ART-PRODUCTION` as RESERVED / NOT AUTHORIZED / NOT CONSUMED;
+   - preserve all transaction, snapshot, non-target fingerprint, source-of-truth and fail-closed semantics.
+6. Update `.github/workflows/production-card-art-sync.yml` narrowly:
+   - repin both immutable-source env values to `b792be37b32f73906d104642689afaa88a47b1c2`;
+   - update job/step wording and all hard count assertions from 13 to 14;
+   - add only `rune-of-curse-breaking` to the committed-artwork slug list;
+   - require `ARTWORK_FILES_PRESENT=14/14`;
+   - require `TARGET_ROWS=14`, `UNIQUE_SLUGS=14`, mutation count `0..14`, `TARGET_ROWS_FINAL=14`, and `SOURCE_OF_TRUTH_MATCH=14/14` where applicable;
+   - replace the consumed 13-card confirmation gate with the future 14-card exact gate only if needed by the existing design;
+   - clearly document `SYNC-14-CARD-ART-PRODUCTION` as RESERVED / NOT AUTHORIZED / NOT CONSUMED;
+   - do not weaken production-scope verification, snapshot locking, serializable transaction checks, post-write verification, immutable-source drift checks or non-target-field protection.
+7. Verify the immutable-source safety boundary statically:
+   - `b792be37...` is ancestor of current `main` and task branch;
+   - no commit after `b792be37...` on the task branch changes `apps/game-server/prisma/seed.ts`, `apps/game-server/prisma/schema.prisma`, or `apps/web/public/art/cards`;
+   - all 14 production WebP paths exist at `b792be37...`;
+   - all 14 seed rows at `b792be37...` resolve to `/art/cards/<slug>.webp` with `rightsStatus: 'owned'`;
+   - Card 04 artwork still has the approved blob/hash tuple.
+8. Do **not** run the production workflow, and do not run any command through Railway or production credentials. Static/local validation only.
+9. Run repository-local validation appropriate to the two operational files: diff checks, formatting/YAML validation, TypeScript/lint/test/build checks where relevant. Do not broaden unrelated formatting drift.
+10. Update `docs/art-pack-03.md` only as needed to say truthfully:
+    - Card 04 repository integration is merged;
+    - 14-card controlled sync is **prepared in PR / not yet authorized / not run**;
+    - `SYNC-13...` is consumed;
+    - future `SYNC-14...` remains reserved only until explicit owner authorization.
+11. Verify final changed-file scope. Expected core files are:
+    - `apps/game-server/scripts/sync-production-card-art.ts`
+    - `.github/workflows/production-card-art-sync.yml`
     - `docs/art-pack-03.md`
-    - minimal integration handoff/provenance docs only
-13. Create a PR to `main` with a clear Card 04 integration title/body.
-14. Add the standard PR comment:
+    - minimal handoff/provenance documentation only
+    No seed, schema, artwork, gameplay or application UI files should change.
+12. Create a PR to `main`, preferably titled:
+    `ops(card-04): prepare controlled 14-card artwork sync`
+13. Add the standard PR comment:
     `## AGENT HANDOFF — FINAL REPORT`
-    including exact integrity tuple, changed files, validation results, and explicit statement that production sync was not run.
-15. Update `docs/AGENT_STATE.md` last to point at the PR and status **READY FOR OWNER MERGE APPROVAL**, then fetch it back from GitHub and verify.
-16. Stop. **Do not merge the PR.**
+    Include:
+    - base/head SHA;
+    - exact changed files;
+    - immutable source SHA `b792be37...`;
+    - proof of 14/14 committed artwork files and seed source-of-truth;
+    - all validation results;
+    - explicit statement `PRODUCTION WORKFLOW DISPATCHED=NO`;
+    - explicit statement `RAILWAY / PRODUCTION DB ACCESSED=NO`;
+    - `SYNC-13... = CONSUMED`;
+    - `SYNC-14... = RESERVED / NOT AUTHORIZED / NOT CONSUMED`.
+14. Update `docs/AGENT_STATE.md` **last** to status `READY FOR OWNER MERGE APPROVAL — 14-CARD SYNC PREP ONLY`, point to the PR/head/report, and state that production authorization remains NO.
+15. Fetch `docs/AGENT_STATE.md` back from GitHub and verify it.
+16. Stop. **Do not merge the PR. Do not dispatch production.**
 
 ## Hard exclusions
 
 Do NOT:
 
-- regenerate/edit/re-encode/crop/resize the artwork;
-- merge the candidate branch wholesale;
-- change Card 04 gameplay or balance fields;
-- change other cards' seed rows;
-- extend or modify production sync logic 13 → 14 in this task;
-- create or consume a production confirmation string;
-- dispatch production workflows;
-- access/mutate Railway, Vercel or production DB;
-- reuse `SYNC-13-CARD-ART-PRODUCTION`;
-- begin another card;
-- merge the integration PR.
+- edit `apps/game-server/prisma/seed.ts`;
+- edit `apps/game-server/prisma/schema.prisma` or migrations;
+- edit, move, regenerate, resize, crop or re-encode any artwork;
+- change gameplay, balance or UI;
+- add/remove any target other than the single Card 04 slug;
+- weaken any existing production safety assertion;
+- reuse or re-authorize `SYNC-13-CARD-ART-PRODUCTION`;
+- claim `SYNC-14-CARD-ART-PRODUCTION` is authorized;
+- dispatch `.github/workflows/production-card-art-sync.yml`;
+- use Railway credentials;
+- read or mutate the production DB;
+- access or mutate Vercel production state;
+- merge the preparation PR;
+- begin Card 05 or another art pack.
 
-## Final status
+## Expected final status
 
 End at exactly one of:
 
-- **READY FOR OWNER MERGE APPROVAL**
+- **READY FOR OWNER MERGE APPROVAL — 14-CARD SYNC PREP ONLY**
 - **REJECTED / BLOCKED**
 
 No production action is authorized by this task.
