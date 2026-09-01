@@ -22,10 +22,10 @@ jobs:
       - name: Download the approved Card 01 master and verify source bytes
         env:
           API_BASE: https://api.firestorage.ai/prod/file
-          SHARE_ID: aZIlHM-TkPI7
+          SHARE_ID: 1CULOcsXBz8s
           EXPECTED_SIZE: "596976"
-          EXPECTED_SHA256: bc2e5abcfcedacfad6b98816229c0bb1205cb71d7177f09e88568442ecaaf9c2
-          EXPECTED_BLOB_SHA: a52fb443ff296c4411c7dc0e640be98befbc12bc
+          EXPECTED_SHA256: bc2de762075121604d24756478e1d89a9d4e176207a3d8e45a8622b90893eca3
+          EXPECTED_BLOB_SHA: a52de8f99b5d775e6c85c9db7e139a09196bdd7c
         run: |
           set -euo pipefail
           python - <<'PY'
@@ -136,8 +136,8 @@ jobs:
       - name: Commit onto the candidate branch and verify the Git object
         env:
           EXPECTED_SIZE: "596976"
-          EXPECTED_SHA256: bc2e5abcfcedacfad6b98816229c0bb1205cb71d7177f09e88568442ecaaf9c2
-          EXPECTED_BLOB_SHA: a52fb443ff296c4411c7dc0e640be98befbc12bc
+          EXPECTED_SHA256: bc2de762075121604d24756478e1d89a9d4e176207a3d8e45a8622b90893eca3
+          EXPECTED_BLOB_SHA: a52de8f99b5d775e6c85c9db7e139a09196bdd7c
           TARGET_BRANCH: assets/child-of-the-spring-light-candidate-v1
           TARGET_PATH: art-source/child-of-the-spring-light.webp
         run: |
