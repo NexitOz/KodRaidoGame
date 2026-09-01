@@ -11,7 +11,7 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 ## Current project state
 
 - **Phase:** Art Pack 03 — PURIFICATION
-- **Status:** Cards 01, 02 and 03 **COMPLETE END TO END — LIVE IN PRODUCTION**; Card 04 **FINAL OWNER APPROVED AFTER EIGHT-SURFACE QA — REPOSITORY INTEGRATION PR NEXT**
+- **Status:** Cards 01, 02 and 03 **COMPLETE END TO END — LIVE IN PRODUCTION**; Card 04 **INTEGRATION PR OPEN — READY FOR OWNER MERGE APPROVAL**, not merged, not synced
 - **Current target:** `rune-of-curse-breaking` / «Руна Разрушения Проклятий»
 - **Current task:** `docs/CLAUDE_CURRENT_TASK.md`
 - **Current task commit:** `1c7470dd8c17f64a294b600aa302429ad8c4f6ac`
@@ -20,7 +20,14 @@ Canonical cross-agent handoff pointer for `NexitOz/KodRaidoGame`.
 - **Latest QA report:** `docs/agent-reports/2026-08-31-art-pack-03-card-04-candidate-qa.md`
 - **Candidate branch:** `assets/rune-of-curse-breaking-candidate-v1`
 - **Candidate HEAD:** `185126c8b402dc4134245f984d9d0e7cddc6db8a`
-- **Open blocker:** NONE for artwork or repository integration preparation. Next gate after PR is **OWNER MERGE APPROVAL**.
+- **Integration PR:** **#41** — OPEN / NOT MERGED — `https://github.com/NexitOz/KodRaidoGame/pull/41`
+- **Integration branch:** `claude/integrate-rune-of-curse-breaking-art`
+- **Integration base SHA:** `c8e34b6cdcb3b42943cdfafc47eb0d58c136c8c9`
+- **Integration head SHA:** `b69b3893d359ccb8b1742b901969a0d3a23e4b5f`
+- **Latest task-result commit:** `b69b3893d359ccb8b1742b901969a0d3a23e4b5f`
+- **PR handoff report:** PR #41 comment `## AGENT HANDOFF — FINAL REPORT` (`#issuecomment-5500075876`), plus a head-SHA correction (`#issuecomment-5500081791`)
+- **Integration CI:** run `33555928983` — success
+- **Open blocker:** **OWNER MERGE APPROVAL OF PR #41.**
 - **Card 04 repository integration authorized:** PR PREPARATION ONLY
 - **Card 04 integration PR merge authorized:** NO
 - **Production operation authorized:** NO
@@ -209,3 +216,39 @@ For generated masters when Claude Code has GitHub-only egress:
 7. manual owner upload is fallback-only.
 
 Never use GitHub Contents-API binary/base64 transport for generated masters; this project has already observed truncation through that route.
+
+## Card 04 integration PR #41 — open, awaiting owner merge
+
+Exactly four files, +103/−7:
+
+- `apps/web/public/art/cards/rune-of-curse-breaking.webp` — the approved binary
+- `apps/game-server/prisma/seed.ts` — +3 lines, art fields only
+- `apps/web/src/app/admin/art-review/page.tsx` — +8 lines, `ART PACK 03 — APPROVED 04`
+- `docs/art-pack-03.md` — Card 04 recorded FINAL OWNER APPROVED / integration in review
+
+Production-path artwork: `438894` bytes, SHA-256
+`6f07380f1f64bee0efd8ec9819de1951dd14fd9dc127dd173ddda909b1c49dd5`, Git blob
+`e1ea12a2f03cc84e9931600e978cc8bf6b1eaccb` — **identical to the candidate's blob**, taken with
+`git show` from the candidate object, so byte-identity is proven rather than hash-matched.
+
+Validation green: prettier, typecheck and lint on both workspaces, 32/32 web tests, 156/156
+game-server tests, both builds, CI run `33555928983`.
+
+### Sync 13 → 14 deliberately NOT done
+
+`apps/game-server/scripts/sync-production-card-art.ts` and
+`.github/workflows/production-card-art-sync.yml` are **unchanged** — verified with `git diff --quiet`
+against `main`. This task's hard exclusions forbade extending the sync, so unlike Card 03 the
+integration PR carries no sync change at all. **Card 04 is not live in production.**
+
+## Next after PR #41 merges
+
+Three separate, separately-authorized steps, in order:
+
+1. extend the controlled sync definition 13 → 14 in repository code;
+2. repoint every immutable-source pin to the exact merge commit and revalidate;
+3. obtain a fresh explicit owner authorization for a 14-card production sync.
+
+`SYNC-13-CARD-ART-PRODUCTION` remains **CONSUMED** and must never be reused. Optional cleanup once
+Card 04 is promoted: delete `transport/card04-github-actions` (carries a `contents: write` workflow,
+must never be merged).
